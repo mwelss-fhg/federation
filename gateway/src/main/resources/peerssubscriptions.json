@@ -1,0 +1,18 @@
+[
+	{
+		"peerId":"5d2f3b51-3d38-46cd-b171-7e0f3718087a",
+		"name":"test",
+		"subjectName":"tester",
+		"description":"fictional peer acumos",
+		"apiUrl":"http://localhost:8085",
+		"subscriptions":[
+			{
+				"selector":"{\"modelTypeCode\":\"CL,PR\"}",
+				"refreshInterval":"60000",
+				"maxArtifactSize":"2048",
+				"created":"8/10/2017 10:25 AM",
+				"modified":"8/16/2017 4:50 PM"
+			}
+		]
+	}
+]

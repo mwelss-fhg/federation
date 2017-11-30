@@ -1,0 +1,32 @@
+[	{
+		"peerId":"9c579bb5-7304-406a-923c-73566d4ff480",
+		"name":"acumosb",
+		"subjectName":"gateway.acumosb.org",
+		"description":"acumosb",
+		"active":"true",
+    "self":"true",
+		"apiUrl":"",
+		"subscriptions":[]
+	},	
+	{
+		"peerId":"5d2f3b51-3d38-46cd-b171-7e0f3718087a",
+		"name":"acumosa",
+		"subjectName":"gateway.acumosa.org",
+		"description":"acumosa",
+		"active":"true",
+    "self":"false",
+		"apiUrl":"https://localhost:9001",
+		"subscriptions":[
+			{
+				"subId":1,
+				"peerId":"5d2f3b51-3d38-46cd-b171-7e0f3718087a",
+				"selector":"{\"modelTypeCode\":\"CL,PR\"}",
+				"refreshInterval":"60000",
+				"maxArtifactSize":"2048",
+				"created":"2017-09-21",
+				"modified":"2017-10-10"
+			}
+		]
+	}
+]
+

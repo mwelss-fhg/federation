@@ -1,0 +1,36 @@
+[{
+  "solutionId":"9d7973ac-2b19-439f-9753-e83a77ea6b6e",
+  "name":"traffic-jam",
+  "description":"Jam traffic model",
+  "ownerId":"ak1234",
+  "active":"true",
+  "modelTypeCode":"RT",
+  "toolkitTypeCode":"",
+  "validationStatusCode":"",
+  "metadata":"acumosb",
+  "created":"2017-09-10",
+  "modified":"2017-09-11",
+  "revisions":[
+   {
+    "revisionId":"4145a175-05a0-44d8-bcfd-1627b0e97e81",
+    "solutionId":"9d7973ac-2b19-439f-9753-e83a77ea6b6e",
+    "description":"First attempt",
+    "version":"1.0",
+    "metadata":"acumosb",
+    "ownerId":"ak1234",
+  	"created":"2017-09-10",
+  	"modified":"2017-09-11",
+    "artifacts":[
+     {
+      "artifactId":"2a0f28e3-ccd9-40e1-a57c-62a57fb46b76",
+      "name":"configuration",
+      "uri":"/home/src/acumos/federation/gateway/application-acumosb.properties",
+      "metadata":"acumosb",
+  	  "created":"2017-09-10",
+  	  "modified":"2017-09-11"
+     }
+    ]
+   }
+  ]
+ }
+]

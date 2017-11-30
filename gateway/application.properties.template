@@ -1,0 +1,35 @@
+##########################################################################
+########Property Files controlled by External docker-compose file#########
+
+# REST endpoint configuration; i.e., where this server listens
+server.port=8084
+server.contextPath=/
+
+#Instance of this component could be gateway or adapter
+#Based on the value configured, the behavior of this instance will vary.
+federated.instance=gateway
+federated.instance.name=ATT
+
+#Task executor that run every x seconds
+peer.jobchecker.interval=300
+
+security.user.name=federated_client
+#security.user.password = ENC(CTQD7Xk5bOIuC4MaqRZtzjW1K4ArjCjr)
+security.user.password=federated_pass
+management.security.roles=SUPERUSER
+
+
+# CDmS REST endpoints are protected by HTTP Basic Authentication
+#Common Data Source Configuration
+cdms.client.url=http://10.1.0.6:8002/ccds
+cdms.client.username=ccds_client
+cdms.client.password=CTQD7Xk5bOIuC4MaqRZtzjW1K4ArjCjr
+
+#nexus
+#replace nexus_repo_host with actual nexus host name
+nexus.url=http://nexus_repo_host:8081/repository/repo_acumos_model_maven
+nexus.username=acumos_model_rw
+nexus.password=not4you
+nexus.groupId=com.artifact
+nexus.proxy=http://some.proxy.com:8080
+###################################################################

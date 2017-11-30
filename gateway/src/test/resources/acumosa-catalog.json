@@ -1,0 +1,36 @@
+[{
+  "solutionId":"6793411f-c7a1-4e93-85bc-f91d267541d8",
+  "name":"traffic-ram",
+  "description":"Round about traffic model",
+  "ownerId":"admin",
+  "active":"true",
+  "modelTypeCode":"CL",
+  "toolkitTypeCode":"",
+  "validationStatusCode":"",
+  "metadata":"acumosa",
+  "created":"2017-08-10",
+  "modified":"2017-08-11",
+  "revisions":[
+   {
+    "revisionId":"2c7e4481-6e6f-47d9-b7a4-c4e674d2b3412c7e4481-6e6f-47d9-b7a4-c4e674d2b3412c7e4481-6e6f-47d9-b7a4-c4e674d2b3412c7e4481-6e6f-47d9-b7a4-c4e674d2b3412c7e4481-6e6f-47d9-b7a4-c4e674d2b341",
+    "solutionId":"6793411f-c7a1-4e93-85bc-f91d267541d8",
+    "description":"First attempt",
+    "version":"1.0",
+    "metadata":"acumosa",
+    "ownerId":"admin",
+  	"created":"2017-08-10",
+  	"modified":"2017-08-11",
+    "artifacts":[
+     {
+      "artifactId":"4fd46d93-e627-473b-a984-be9898ad1123",
+      "name":"configuration",
+      "uri":"/home/src/acumos/federation/gateway/application-acumosa.properties",
+      "metadata":"acumosa",
+  	  "created":"2017-08-10",
+  	  "modified":"2017-08-11"
+     }
+    ]
+   }
+  ]
+ }
+]
