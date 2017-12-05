@@ -63,8 +63,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.acumos.federation.gateway.util.LocalWatchService;
 import org.acumos.federation.gateway.common.AdapterCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.PeerAcumosConfigService;
-import org.acumos.federation.gateway.service.PeerAcumosSubscriptionService;
+import org.acumos.federation.gateway.service.PeerService;
+import org.acumos.federation.gateway.service.PeerSubscriptionService;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
@@ -74,15 +74,15 @@ import org.apache.commons.io.IOUtils;
 @Service
 @ConfigurationProperties(prefix="peersLocal")
 @Conditional(AdapterCondition.class)
-public class PeerAcumosServiceLocalImpl
-												implements PeerAcumosConfigService,
-												 					 PeerAcumosSubscriptionService {
+public class PeerServiceLocalImpl
+												implements PeerService,
+												 					 PeerSubscriptionService {
 
 	private List<FLPPeer>		peers;
 	private URI							sourceUri;
 	private WatchService		sourceWatcher = null;
 
-	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(PeerAcumosServiceLocalImpl.class);
+	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(PeerServiceLocalImpl.class);
 
 	@Autowired
 	private LocalWatchService	watcher;

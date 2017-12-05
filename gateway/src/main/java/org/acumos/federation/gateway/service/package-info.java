@@ -16,13 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ===============LICENSE_END=========================================================
+ *
+ * Contains the specifications of federation gateway/adapter services (used through the gateway implementation)
  */
 
-/**
- * 
- */
-/**
- * 
- *
- */
-package org.acumos.federated.gateway.service;
+package org.acumos.federation.gateway.service;

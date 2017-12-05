@@ -35,6 +35,6 @@ public class GatewayCondition implements Condition {
 												 AnnotatedTypeMetadata theMetadata) {
 
 		Environment env = theContext.getEnvironment();
-    return null != env && "gateway".equals(env.getProperty("federated.instance"));
+    return null != env && "gateway".equals(env.getProperty("federation.instance"));
   }
 }

@@ -35,8 +35,8 @@ import com.google.common.collect.Table;
 import com.google.common.collect.HashBasedTable;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.PeerAcumosConfigService;
-import org.acumos.federation.gateway.service.PeerAcumosSubscriptionService;
+import org.acumos.federation.gateway.service.PeerService;
+import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.task.PeerCommunicationTask;
 import org.acumos.federation.gateway.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,10 +69,10 @@ public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware 
 	private Environment env;
 
 	@Autowired
-	private PeerAcumosConfigService peerAcumosConfigService;
+	private PeerService peerService;
 
 	@Autowired
-	private PeerAcumosSubscriptionService peerAcumosSubscriptionService;
+	private PeerSubscriptionService peerSubscriptionService;
 
 	private ApplicationContext			appCtx;
 
@@ -94,7 +94,7 @@ public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware 
 
 	@Bean
 	public ThreadPoolTaskScheduler taskScheduler() {
-		String name = env.getProperty("federated.instance.name") + "-" + env.getProperty("federated.instance") + "-taskscheduler";
+		String name = env.getProperty("federation.instance.name") + "-" + env.getProperty("federation.instance") + "-taskscheduler";
 		ThreadPoolTaskScheduler threadPoolTaskScheduler = null;
 		try {
 			threadPoolTaskScheduler = (ThreadPoolTaskScheduler)this.appCtx.getBean(name);
@@ -138,9 +138,9 @@ public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware 
 	public void checkPeerJobs() {
 
 		//Get the List of MLP Peers
-		List<MLPPeer> mlpPeers = peerAcumosConfigService.getPeers();
+		List<MLPPeer> mlpPeers = peerService.getPeers();
 		if(Utils.isEmptyList(mlpPeers)) {
-			logger.info(EELFLoggerDelegate.debugLogger, "checkPeer : no peers from " + peerAcumosConfigService);
+			logger.info(EELFLoggerDelegate.debugLogger, "checkPeer : no peers from " + peerService);
 			return;
 		}
 		
@@ -164,7 +164,7 @@ public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware 
 				continue;
 			}
 
-			List<MLPPeerSubscription> mlpSubs = peerAcumosSubscriptionService.getPeerSubscriptions(mlpPeer.getPeerId());
+			List<MLPPeerSubscription> mlpSubs = peerSubscriptionService.getPeerSubscriptions(mlpPeer.getPeerId());
 			if(Utils.isEmptyList(mlpSubs)) {
 				//the peer is still there but has no subscriptions: cancel any ongoing tasks
 

@@ -79,7 +79,7 @@ public class ONAP {
 
 	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ONAP.class);
 	private ASDC 		asdc = new ASDC();
-	private String	asdcOperator = "admin";
+	private String	asdcOperator;
 	private TaskExecutor	taskExecutor; 
   @Autowired
   private Clients clients;
@@ -102,7 +102,9 @@ public class ONAP {
 		logger.debug(EELFLoggerDelegate.debugLogger, "initOnap");
 
 		if (this.asdc.getUri() == null)
-			throw new BeanInitializationException("Forgot to configure the SDC uri??");
+			throw new BeanInitializationException("Forgot to configure the SDC uri ('onap.sdcUri') ??");
+		if (this.asdcOperator == null)
+			throw new BeanInitializationException("Forgot to configure the SDC user ('onap.sdcOperator) ??");
 
 		this.taskExecutor = new ThreadPoolTaskExecutor();
 		((ThreadPoolTaskExecutor)this.taskExecutor).setCorePoolSize(1);
@@ -241,7 +243,7 @@ public class ONAP {
 					fedClient.getSolutionsRevisionListFromPeer(theSolution.getSolutionId(), null).getResponseBody();
 			}
 			catch (Exception x) {
-				logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve acumos revisions: " + x);
+				logger.warn(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos revisions: " + x);
 				throw x;
 			}
 

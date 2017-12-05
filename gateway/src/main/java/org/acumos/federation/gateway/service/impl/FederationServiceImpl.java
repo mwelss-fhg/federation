@@ -38,7 +38,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FileUtils;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.FederatedCatalogService;
+import org.acumos.federation.gateway.service.FederationService;
 import org.acumos.federation.gateway.util.Utils;
 import org.acumos.federation.gateway.common.GatewayCondition;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,9 +64,9 @@ import org.acumos.cds.transport.RestPageResponse;
  */
 @Service
 @Conditional(GatewayCondition.class)
-public class FederatedCatalogServiceImpl extends AbstractServiceImpl implements FederatedCatalogService {
+public class FederationServiceImpl extends AbstractServiceImpl implements FederationService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(FederatedCatalogServiceImpl.class);
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(FederationServiceImpl.class);
 
 	@Autowired
 	private Environment env;

@@ -36,6 +36,6 @@ public class AdapterCondition implements Condition {
 
 		Environment env = theContext.getEnvironment();
     return null != env &&
-					 "adapter".equals(env.getProperty("federated.instance"));
+					 "adapter".equals(env.getProperty("federation.instance"));
   }
 }

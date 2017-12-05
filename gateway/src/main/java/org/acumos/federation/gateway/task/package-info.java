@@ -16,13 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ===============LICENSE_END=========================================================
+ *
+ * Jobs performed within the federation gateway/adapter, such as peer subscription processing
  */
 
-/**
- * 
- */
-/**
- * 
- *
- */
 package org.acumos.federation.gateway.task;

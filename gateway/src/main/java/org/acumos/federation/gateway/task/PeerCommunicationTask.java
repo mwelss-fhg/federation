@@ -26,8 +26,6 @@ import java.util.Map;
 
 import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.PeerAcumosConfigService;
-import org.acumos.federation.gateway.service.PeerAcumosSubscriptionService;
 import org.acumos.federation.gateway.service.impl.Clients;
 import org.acumos.federation.gateway.service.impl.FederationClient;
 import org.acumos.federation.gateway.util.Utils;
@@ -97,15 +95,13 @@ public class PeerCommunicationTask implements Runnable {
 		try {
 			logger.info(EELFLoggerDelegate.debugLogger, "Peer task: " + mlpPeer);
     		
-        		//} else if(env.getProperty("federated.instance") != null && env.getProperty("federated.instance").equalsIgnoreCase("adapter")) {
         			
-      //TODO: X509 Verification and Send Principa verified in the request certificates
       logger.info(EELFLoggerDelegate.debugLogger, "Peer task: invoking getSolutions from Remote instance " + mlpPeer.getApiUrl());
       FederationClient fedClient =
           clients.getFederationClient(this.mlpPeer.getApiUrl());      
 
-        	//Map<String, Object> queryParameters = new HashMap<String, Object>();
-        	//queryParameters.put("modelTypeCode", mlpSubscription.getSelector()); // Subscriptions
+      //Map<String, Object> queryParameters = new HashMap<String, Object>();
+      //queryParameters.put("modelTypeCode", mlpSubscription.getSelector()); // Subscriptions
      	logger.info(EELFLoggerDelegate.debugLogger, "Peer Task: filter " + mlpSubscription.getSelector());
 			
      	JsonResponse<List<MLPSolution>> jsonResponse = 

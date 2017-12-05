@@ -22,44 +22,45 @@ package org.acumos.federation.gateway.service;
 
 import java.util.List;
 
-import org.acumos.cds.domain.MLPPeerSubscription;
-import org.acumos.cds.transport.RestPageResponse;
+import org.acumos.cds.domain.MLPPeer;
 
 /**
  * 
  *
  */
-public interface PeerAcumosSubscriptionService {
+public interface PeerService {
 
 	/**
-	 * @return List of PeerSubscription configured in the Local Acumos Instance
+	 * @return List of Peers configured in the Local Acumos Instance
 	 */
-	List<MLPPeerSubscription> getPeerSubscriptions(String peerId);
+	List<MLPPeer> getPeers();
 	
 	/**
-	 * @return Peer Subscription based on the configured Subject Name
+	 * @return Peer based on the configured Subject Name
 	 */
-	MLPPeerSubscription getPeerSubscription(Long subId);
+	List<MLPPeer> getPeer(String subjectName);
+	
+	MLPPeer getOnePeer(String peerId);
 	
 	/**
-	 * @param mlpPeerSubscription MLPPeer Configuration that needs to be created on the Platform
+	 * @param mlpPeer MLPPeer Configuration that needs to be created on the Platform
 	 * 
-	 * @return MLPPeerSubscription configuration that has been created.
+	 * @return Peer configuration that has been created.
 	 */
-	MLPPeerSubscription savePeerSubscription(MLPPeerSubscription mlpPeerSubscription);
+	MLPPeer savePeer(MLPPeer mlpPeer);
 	
 	
 	/**
-	 * @param mlpPeerSubscription MLPPeer Configuration that needs to be updated on the Platform
+	 * @param mlpPeer MLPPeer Configuration that needs to be updated on the Platform
 	 * 
-	 * @return MLPPeerSubscription configuration that has been updated.
+	 * @return Peer configuration that has been updated.
 	 */
-	boolean updatePeerSubscription(MLPPeerSubscription mlpPeerSubscription);
+	boolean updatePeer(MLPPeer mlpPeer);
 	
 	/**
-	 * @param mlpPeerSubscription MLPPeerSubscription that needs to be deleted on the Platform
+	 * @param mlpPeer MLPPeer Configuration that needs to be deleted on the Platform
 	 * 
 	 * @return true if successfully deleted else false.
 	 */
-	boolean deletePeerSubscription(MLPPeerSubscription mlpPeerSubscription);
+	boolean deletePeer(MLPPeer mlpPeer);
 }

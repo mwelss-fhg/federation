@@ -31,7 +31,9 @@ import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.acumos.federation.gateway.service.impl.Clients;
 import org.acumos.federation.gateway.service.impl.FederationClient;
 import org.acumos.federation.gateway.util.Utils;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.BeanInitializationException;
 //import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Conditional;
@@ -40,6 +42,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import org.acumos.cds.AccessTypeCode;
 import org.acumos.cds.ValidationStatusCode;
@@ -47,18 +50,19 @@ import org.acumos.cds.client.CommonDataServiceRestClientImpl;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPPeer;
+import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 
 
 @Component("peergateway")
 //@Scope("singleton")
-@ConfigurationProperties(prefix="federated")
+@ConfigurationProperties(prefix="federation")
 @Conditional(GatewayCondition.class)
 public class PeerGateway {
 
 	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(PeerGateway.class);
-	private String	peerGatewayOperator = "testUser";
+	private String				operator;
 	private TaskExecutor	taskExecutor; 
 	@Autowired
 	private Environment env;
@@ -70,8 +74,21 @@ public class PeerGateway {
 	public void initPeerGateway() {
 		logger.debug(EELFLoggerDelegate.debugLogger, "initPeerGateway");
 
-		/*if (this.asdc.getUri() == null)
-			throw new BeanInitializationException("Forgot to configure the SDC uri??");*/
+		/* make sure an operator was specified and that it is a declared user */
+		if (null == this.env.getProperty("federation.operator")) {
+			throw new BeanInitializationException("Missing 'federation.operator' configuration");
+		}
+		else {
+			try {
+				if (null == this.clients.getClient().getUser(
+											this.env.getProperty("federation.operator"))) {
+					logger.warn(EELFLoggerDelegate.errorLogger, "'federation.operator' does not point to an existing user");
+				}
+			}
+			catch (HttpStatusCodeException dx) {
+				logger.warn(EELFLoggerDelegate.errorLogger, "failed to verify 'federation.operator' value", dx);
+			}
+		}
 
 		this.taskExecutor = new ThreadPoolTaskExecutor();
 		((ThreadPoolTaskExecutor)this.taskExecutor).setCorePoolSize(1);
@@ -88,20 +105,34 @@ public class PeerGateway {
 		logger.debug(EELFLoggerDelegate.debugLogger, "PeerGateway destroyed");
 	}
 
+	protected String getOwnerId(MLPPeerSubscription theSubscription/*,
+															MLPSolution theSolution*/) {
+		// Need to get from c_user table . It has to be admin user
+		return this.env.getProperty("federation.operator");
+	}
+
 	@EventListener
 	public void handlePeerSubscriptionUpdate(PeerSubscriptionEvent theEvent) {
 		logger.info(EELFLoggerDelegate.debugLogger, "received peer subscription update event " + theEvent);
-		taskExecutor.execute(new PeerGatewayUpdateTask(theEvent.getPeer(), theEvent.getSolutions()));
+		taskExecutor.execute(
+			new PeerGatewayUpdateTask(theEvent.getPeer(),
+																theEvent.getSubscription(),
+																theEvent.getSolutions()));
 	}
 
 
 	public class PeerGatewayUpdateTask implements Runnable {
 
-		private MLPPeer						peer;
-		private List<MLPSolution> solutions;
+		private MLPPeer							peer;
+		private MLPPeerSubscription sub;
+		private List<MLPSolution> 	solutions;
+		
 
-		public PeerGatewayUpdateTask(MLPPeer thePeer, List<MLPSolution> theSolutions) {
+		public PeerGatewayUpdateTask(MLPPeer thePeer,
+																 MLPPeerSubscription theSub,
+																 List<MLPSolution> theSolutions) {
 			this.peer = thePeer;
+			this.sub = theSub;
 			this.solutions = theSolutions;
 		}
 
@@ -144,7 +175,9 @@ public class PeerGateway {
 			}
 		}
 		
-		private MLPSolution createMLPSolution(MLPSolution peerMLPSolution, ICommonDataServiceRestClient cdsClient) {
+		private MLPSolution createMLPSolution(
+																MLPSolution peerMLPSolution,
+																ICommonDataServiceRestClient cdsClient) {
 			logger.info(EELFLoggerDelegate.debugLogger, "Creating Local MLP Solutino for peer solution " + peerMLPSolution);
 			MLPSolution mlpSolution = new MLPSolution();
 			mlpSolution.setSolutionId(peerMLPSolution.getSolutionId());
@@ -159,7 +192,7 @@ public class PeerGateway {
 			mlpSolution.setValidationStatusCode(ValidationStatusCode.PS.toString());
 			mlpSolution.setCreated(peerMLPSolution.getCreated());
 			mlpSolution.setModified(peerMLPSolution.getModified());
-			mlpSolution.setOwnerId(env.getProperty("federated.peerGatewayOperator")); // Need to get from c_user table . It has to be admin user
+			mlpSolution.setOwnerId(getOwnerId(this.sub)); 
 			try {
 				cdsClient.createSolution(mlpSolution);
 			} catch (Exception e) {
@@ -168,13 +201,15 @@ public class PeerGateway {
 			return mlpSolution;
 		}
 		
-		private MLPSolutionRevision createMLPSolutionRevision(MLPSolutionRevision mlpSolutionRevision, ICommonDataServiceRestClient cdsClient) {
+		private MLPSolutionRevision createMLPSolutionRevision(
+																		MLPSolutionRevision mlpSolutionRevision,
+																		ICommonDataServiceRestClient cdsClient) {
 			MLPSolutionRevision solutionRevision = new MLPSolutionRevision();
 			solutionRevision.setSolutionId(mlpSolutionRevision.getSolutionId());
 			solutionRevision.setRevisionId(mlpSolutionRevision.getRevisionId());
 			solutionRevision.setVersion(mlpSolutionRevision.getVersion());
 			solutionRevision.setDescription(mlpSolutionRevision.getDescription());
-			solutionRevision.setOwnerId(env.getProperty("federated.peerGatewayOperator"));//TODO
+			solutionRevision.setOwnerId(getOwnerId(this.sub));
 			solutionRevision.setMetadata(mlpSolutionRevision.getMetadata());
 			solutionRevision.setCreated(mlpSolutionRevision.getCreated());
 			solutionRevision.setModified(mlpSolutionRevision.getModified());
@@ -195,7 +230,7 @@ public class PeerGateway {
 			artifact.setMetadata(mlpArtifact.getMetadata());
 			artifact.setModified(mlpArtifact.getModified());
 			artifact.setName(mlpArtifact.getName());
-			artifact.setOwnerId(env.getProperty("federated.peerGatewayOperator"));
+			artifact.setOwnerId(getOwnerId(this.sub));
 			artifact.setSize(mlpArtifact.getSize());;
 			artifact.setUri(mlpArtifact.getUri());
 			artifact.setVersion(mlpArtifact.getVersion());
@@ -217,7 +252,7 @@ public class PeerGateway {
 			localMLPArtifact.setMetadata(peerMLPArtifact.getMetadata());
 			localMLPArtifact.setModified(peerMLPArtifact.getModified());
 			localMLPArtifact.setName(peerMLPArtifact.getName());
-			localMLPArtifact.setOwnerId(env.getProperty("federated.peerGatewayOperator"));
+			localMLPArtifact.setOwnerId(getOwnerId(this.sub));
 			localMLPArtifact.setSize(peerMLPArtifact.getSize());;
 			localMLPArtifact.setUri(peerMLPArtifact.getUri());
 			localMLPArtifact.setVersion(peerMLPArtifact.getVersion());
@@ -241,7 +276,8 @@ public class PeerGateway {
 			localMLPSolution.setActive(peerMLPSolution.isActive());
 			localMLPSolution.setToolkitTypeCode(peerMLPSolution.getToolkitTypeCode());
 			localMLPSolution.setValidationStatusCode(localMLPSolution.getValidationStatusCode());
-			localMLPSolution.setOwnerId(env.getProperty("federated.peerGatewayOperator")); // Need to get from c_user table . It has to be admin user
+			localMLPSolution.setOwnerId(getOwnerId(this.sub));
+
 			try {
 				cdsClient.updateSolution(localMLPSolution);
 			} catch (Exception e) {

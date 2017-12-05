@@ -30,7 +30,7 @@ import java.util.Collections;
 
 import org.acumos.federation.gateway.common.GatewayCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.PeerAcumosConfigService;
+import org.acumos.federation.gateway.service.PeerService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -46,12 +46,12 @@ import org.acumos.cds.domain.MLPPeer;
  */
 @Service
 @Conditional(GatewayCondition.class)
-public class PeerAcumosConfigServiceImpl extends AbstractServiceImpl implements PeerAcumosConfigService {
+public class PeerServiceImpl extends AbstractServiceImpl implements PeerService {
 
 	/**
 	 * 
 	 */
-	public PeerAcumosConfigServiceImpl() {
+	public PeerServiceImpl() {
 		// TODO Auto-generated constructor stub
 	}
 

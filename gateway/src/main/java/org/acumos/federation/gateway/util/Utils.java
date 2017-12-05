@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.controller.FederatedCatalogController;
 
 import org.acumos.cds.domain.MLPAccessType;
 
@@ -41,7 +40,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Utils {
 
-	private final static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(FederatedCatalogController.class);
+	private final static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(Utils.class);
 	
 	public static ObjectMapper objectMapper = new ObjectMapper();
 	

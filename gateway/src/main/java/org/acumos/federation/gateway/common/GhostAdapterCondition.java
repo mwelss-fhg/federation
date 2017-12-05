@@ -37,7 +37,7 @@ public class GhostAdapterCondition extends AdapterCondition {
 		Environment env = theContext.getEnvironment();
 		return super.matches(theContext, theMetadata) &&
 												 null != env &&
-												 "ghost".equals(env.getProperty("federated.instance.name"));
+												 "ghost".equals(env.getProperty("federation.instance.name"));
   }
 
 }

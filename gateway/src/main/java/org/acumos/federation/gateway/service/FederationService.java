@@ -34,10 +34,9 @@ import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.transport.RestPageResponse;
 
 /**
- * 
- *
+ * Handles the business behind the Acumos federation interface
  */
-public interface FederatedCatalogService {
+public interface FederationService {
 	
 	
 	/**

@@ -25,7 +25,7 @@ import java.util.List;
 import org.acumos.cds.domain.MLPPeer;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.PeerAcumosConfigService;
+import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.util.Utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
 
 	@Autowired
-	private PeerAcumosConfigService peerConfigService;
+	private PeerService peerService;
 
 	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
@@ -83,7 +83,7 @@ public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
 	public UserDetailsService userDetailsService() {
 		return (username -> {
 			log.info(EELFLoggerDelegate.debugLogger, " X509 subject : " + username);
-			List<MLPPeer> mlpPeers = peerConfigService.getPeer(username);
+			List<MLPPeer> mlpPeers = peerService.getPeer(username);
 			log.info(EELFLoggerDelegate.debugLogger, " Peers matching X509 subject : " + mlpPeers);
       if(!Utils.isEmptyList(mlpPeers)) {
 				log.info(EELFLoggerDelegate.debugLogger, " We are providing a matching Use ");

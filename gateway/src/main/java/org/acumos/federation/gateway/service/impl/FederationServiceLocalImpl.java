@@ -46,7 +46,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import org.apache.commons.io.FileUtils;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.FederatedCatalogService;
+import org.acumos.federation.gateway.service.FederationService;
 import org.acumos.federation.gateway.util.Utils;
 import org.acumos.federation.gateway.util.LocalWatchService;
 import org.acumos.federation.gateway.common.AdapterCondition;
@@ -74,8 +74,8 @@ import org.acumos.cds.transport.RestPageResponse;
 @Service
 @ConfigurationProperties(prefix="catalogLocal")
 @Conditional(AdapterCondition.class)
-public class FederatedCatalogServiceLocalImpl extends AbstractServiceImpl
-																				 implements FederatedCatalogService {
+public class FederationServiceLocalImpl extends AbstractServiceImpl
+																				 implements FederationService {
 
 	private URI												catalogUri;
 	private List<FLPSolution>					solutions;

@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 import org.acumos.federation.gateway.common.GatewayCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.PeerAcumosSubscriptionService;
+import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -45,9 +45,7 @@ import org.acumos.cds.transport.RestPageResponse;
  */
 @Service
 @Conditional(GatewayCondition.class)
-public class PeerAcumosSubscriptionServiceImpl extends AbstractServiceImpl implements PeerAcumosSubscriptionService {
-
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(PeerAcumosSubscriptionServiceImpl.class);
+public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements PeerSubscriptionService {
 
 	@Autowired
 	private Environment env;
@@ -55,7 +53,7 @@ public class PeerAcumosSubscriptionServiceImpl extends AbstractServiceImpl imple
 	/**
 	 * 
 	 */
-	public PeerAcumosSubscriptionServiceImpl() {
+	public PeerSubscriptionServiceImpl() {
 		// TODO Auto-generated constructor stub
 	}
 

@@ -47,7 +47,7 @@ import org.acumos.federation.gateway.common.JSONTags;
 import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.config.APINames;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.FederatedCatalogService;
+import org.acumos.federation.gateway.service.FederationService;
 
 import io.swagger.annotations.ApiOperation;
 
@@ -57,12 +57,12 @@ import io.swagger.annotations.ApiOperation;
  */
 @Controller
 @RequestMapping("/")
-public class FederatedCatalogController extends AbstractController {
+public class FederationController extends AbstractController {
 	
-	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(FederatedCatalogController.class);
+	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(FederationController.class);
 	
 	@Autowired
-	FederatedCatalogService federationGatewayService;
+	FederationService federationService;
 	
 	
 //	/**
@@ -113,7 +113,7 @@ public class FederatedCatalogController extends AbstractController {
 		try {
 			data = new JsonResponse<List<MLPSolution>>();
 			logger.debug(EELFLoggerDelegate.debugLogger, "getSolutionsListFromPeer: model types " + mlpModelTypes);
-			peerCatalogSolutions = federationGatewayService.getPeerCatalogSolutionsList(mlpModelTypes);
+			peerCatalogSolutions = federationService.getPeerCatalogSolutionsList(mlpModelTypes);
 			if(peerCatalogSolutions != null) {
 				data.setResponseBody(peerCatalogSolutions);
 				data.setResponseCode(String.valueOf(HttpServletResponse.SC_OK));
@@ -150,7 +150,7 @@ public class FederatedCatalogController extends AbstractController {
 		List<MLPSolutionRevision> peerCatalogSolutionRevisions= null;
 		try {
 			data = new JsonResponse<List<MLPSolutionRevision>>();
-			peerCatalogSolutionRevisions = federationGatewayService.getPeerCatalogSolutionRevision(solutionId);
+			peerCatalogSolutionRevisions = federationService.getPeerCatalogSolutionRevision(solutionId);
 			if(peerCatalogSolutionRevisions != null) {
 				data.setResponseBody(peerCatalogSolutionRevisions);
 				data.setResponseCode(String.valueOf(HttpServletResponse.SC_OK));
@@ -187,7 +187,7 @@ public class FederatedCatalogController extends AbstractController {
 		List<MLPArtifact> peerSolutionArtifacts= null;
 		try {
 			data = new JsonResponse<List<MLPArtifact>>();
-			peerSolutionArtifacts = federationGatewayService.getPeerSolutionArtifacts(solutionId, revisionId);
+			peerSolutionArtifacts = federationService.getPeerSolutionArtifacts(solutionId, revisionId);
 			if(peerSolutionArtifacts != null) {
 				//re-encode the artifact uri
 				{
@@ -232,7 +232,7 @@ public class FederatedCatalogController extends AbstractController {
     		HttpServletRequest request, HttpServletResponse response) {
 		InputStreamResource inputStreamResource = null;
 		try {
-			inputStreamResource = federationGatewayService.getPeerSolutionArtifactFile(artifactId);
+			inputStreamResource = federationService.getPeerSolutionArtifactFile(artifactId);
 			//TODO : Need to Implement a logic to download a Artifact or Docker Image from Nexus
 			response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 			response.setHeader("Pragma", "no-cache");

@@ -37,7 +37,7 @@ public class ONAPAdapterCondition extends AdapterCondition {
 		Environment env = theContext.getEnvironment();
     return super.matches(theContext, theMetadata) &&
 					 null != env &&
-					 "ONAP".equals(env.getProperty("federated.instance.name"));
+					 "ONAP".equals(env.getProperty("federation.instance.name"));
   }
 
 }
