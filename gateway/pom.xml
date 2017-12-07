@@ -267,7 +267,8 @@
 							<name>federation-gateway:${project.version}</name>
 							<build>
 								<!-- This is the same FROM used in a Dockerfile -->
-								<from>openjdk:8-jdk</from>
+								<!-- <from>openjdk:8-jdk</from> -->
+								<from>frolvlad/alpine-oraclejdk8:slim</from>
 								<assembly>
 									<inline>
 										<files>
@@ -277,17 +278,17 @@
 												<destName>application.properties</destName>
 											</file>
 											<file>
-												<source>acumosa.pkcs12</source>
+												<source>src/test/resourcecs/acumosa.pkcs12</source>
 												<outputDirectory />
 												<destName>acumosa.pkcs12</destName>
 											</file>
 											<file>
-												<source>acumosb.pkcs12</source>
+												<source>src/test/resources/acumosb.pkcs12</source>
 												<outputDirectory />
 												<destName>acumosb.pkcs12</destName>
 											</file>
 											<file>
-												<source>acumosTrustStore.jks</source>
+												<source>src/test/resources/acumosTrustStore.jks</source>
 												<outputDirectory />
 												<destName>acumosTrustStore.jks</destName>
 											</file>
@@ -308,38 +309,38 @@
 				</configuration>
 			</plugin>
 			<plugin>
-		        <groupId>org.codehaus.mojo</groupId>
-		        <artifactId>license-maven-plugin</artifactId>
-		        <version>1.14</version>
-		        <configuration>
-		                <licenseName>acumos</licenseName>
-		                <licenseResolver>${project.baseUri}/src/license</licenseResolver>
-		                <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
-		                <processStartTag>===============LICENSE_START=======================================================</processStartTag>
-		                <processEndTag>===============LICENSE_END=========================================================</processEndTag>
-		                <sectionDelimiter>===================================================================================</sectionDelimiter>
-		                <inceptionYear>2017</inceptionYear>
-		                <organizationName>AT&amp;T Intellectual Property &amp; Tech Mahindra. All rights reserved.</organizationName>
-		                <projectName>Acumos</projectName>
-		                <canUpdateCopyright>true</canUpdateCopyright>
-		                <canUpdateDescription>true</canUpdateDescription>
-		                <canUpdateLicense>true</canUpdateLicense>
-		                <emptyLineAfterHeader>true</emptyLineAfterHeader>
-		                <includes>
-	                      <include>**/*.java</include>
-<!-- 	                      <include>**/*.js</include> -->
-<!-- 	                      <include>**/*.ts</include> -->
-	                 </includes>
-		        </configuration>
-<!-- 		        <executions> -->
-<!-- 		                <execution> -->
-<!-- 		                        <id>first</id> -->
-<!-- 		                        <goals> -->
-<!-- 		                                <goal>update-file-header</goal> -->
-<!-- 		                        </goals> -->
-<!-- 		                        <phase>process-sources</phase> -->
-<!-- 		                </execution> -->
-<!-- 		        </executions> -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>1.14</version>
+				<configuration>
+					<licenseName>acumos</licenseName>
+					<licenseResolver>${project.baseUri}/src/license</licenseResolver>
+					<addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+					<processStartTag>===============LICENSE_START=======================================================</processStartTag>
+					<processEndTag>===============LICENSE_END=========================================================</processEndTag>
+					<sectionDelimiter>===================================================================================</sectionDelimiter>
+					<inceptionYear>2017</inceptionYear>
+					<organizationName>AT&amp;T Intellectual Property &amp; Tech Mahindra. All rights reserved.</organizationName>
+					<projectName>Acumos</projectName>
+					<canUpdateCopyright>true</canUpdateCopyright>
+					<canUpdateDescription>true</canUpdateDescription>
+					<canUpdateLicense>true</canUpdateLicense>
+					<emptyLineAfterHeader>true</emptyLineAfterHeader>
+					<includes>
+						<include>**/*.java</include>
+					</includes>
+				</configuration>
+<!--
+				<executions>
+					<execution>
+						<id>first</id>
+						<goals>
+							<goal>update-file-header</goal>
+						</goals>
+						<phase>process-sources</phase>
+					</execution>
+				</executions>
+-->
 			</plugin>
 			<plugin>
 				<groupId>org.jacoco</groupId>
