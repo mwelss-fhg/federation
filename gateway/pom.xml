@@ -288,6 +288,16 @@
 												<destName>acumosb.pkcs12</destName>
 											</file>
 											<file>
+												<source>src/test/resourcecs/ist-acumosa.pkcs12</source>
+												<outputDirectory />
+												<destName>ist-acumosa.pkcs12</destName>
+											</file>
+											<file>
+												<source>src/test/resources/ist-acumosb.pkcs12</source>
+												<outputDirectory />
+												<destName>ist-acumosb.pkcs12</destName>
+											</file>
+											<file>
 												<source>src/test/resources/acumosTrustStore.jks</source>
 												<outputDirectory />
 												<destName>acumosTrustStore.jks</destName>
