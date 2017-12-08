@@ -278,7 +278,7 @@
 												<destName>application.properties</destName>
 											</file>
 											<file>
-												<source>src/test/resourcecs/acumosa.pkcs12</source>
+												<source>src/test/resources/acumosa.pkcs12</source>
 												<outputDirectory />
 												<destName>acumosa.pkcs12</destName>
 											</file>
@@ -288,7 +288,7 @@
 												<destName>acumosb.pkcs12</destName>
 											</file>
 											<file>
-												<source>src/test/resourcecs/ist-acumosa.pkcs12</source>
+												<source>src/test/resources/ist-acumosa.pkcs12</source>
 												<outputDirectory />
 												<destName>ist-acumosa.pkcs12</destName>
 											</file>
