@@ -83,7 +83,7 @@ public class LocalWatchService {
 	protected void setupSourceWatcher(URI theSource) {
 
 		if (this.sourceWatcher == null)
-			logger.warn(EELFLoggerDelegate.debugLogger, "source watcher not available ");
+			logger.warn(EELFLoggerDelegate.errorLogger, "source watcher not available ");
 			
 		if ("file".equals(theSource.getScheme())) {
 			//we can only watch directories ..
@@ -92,7 +92,7 @@ public class LocalWatchService {
 				sourcePath.register(this.sourceWatcher, StandardWatchEventKinds.ENTRY_MODIFY);
 			}
 			catch (IOException iox) {
-				logger.warn(EELFLoggerDelegate.debugLogger, "Failed to setup source watcher for " + theSource + ". Cause: " + iox);
+				logger.warn(EELFLoggerDelegate.errorLogger, "Failed to setup source watcher for " + theSource, iox);
 			}
 		} 
 	}

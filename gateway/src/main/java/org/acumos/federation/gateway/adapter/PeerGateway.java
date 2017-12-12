@@ -80,12 +80,11 @@ public class PeerGateway {
 		}
 		else {
 			try {
-				if (null == this.clients.getClient().getUser(
-											this.env.getProperty("federation.operator"))) {
+				if (null == this.clients.getClient().getUser(this.env.getProperty("federation.operator"))) {
 					logger.warn(EELFLoggerDelegate.errorLogger, "'federation.operator' does not point to an existing user");
 				}
 			}
-			catch (HttpStatusCodeException dx) {
+			catch (/*HttpStatusCode*/Exception dx) {
 				logger.warn(EELFLoggerDelegate.errorLogger, "failed to verify 'federation.operator' value", dx);
 			}
 		}

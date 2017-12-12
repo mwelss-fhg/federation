@@ -21,11 +21,13 @@
 package org.acumos.federation.gateway.service.impl;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -74,30 +76,29 @@ import org.acumos.cds.transport.RestPageResponse;
 @Service
 @ConfigurationProperties(prefix="catalogLocal")
 @Conditional(AdapterCondition.class)
-public class FederationServiceLocalImpl extends AbstractServiceImpl
+public class FederationServiceLocalImpl extends AbstractServiceLocalImpl
 																				 implements FederationService {
 
-	private URI												catalogUri;
 	private List<FLPSolution>					solutions;
-
-	@Autowired
-	private LocalWatchService	watcher;
-
-  public void setCatalogUri(URI theUri) {
-    this.catalogUri = theUri;
-  }
 
 
 	@PostConstruct
 	public void initService() {
-    if (this.catalogUri == null) {
-      throw new BeanInitializationException("No catalog uri was configured");
+
+		checkResource();
+		try {
+	    watcher.watchOn(this.resource.getURL().toURI(),
+  	                  (uri) -> { loadSolutionsCatalogInfo(); });
+
+    }
+    catch (IOException | URISyntaxException iox) {
+      log.info(EELFLoggerDelegate.errorLogger, "Catalog watcher registration failed for " + this.resource, iox);
     }
 
-    watcher.watchOn(this.catalogUri,
-                    (uri) -> { loadSolutionsCatalogInfo(); });
-
 		loadSolutionsCatalogInfo();
+
+    // Done
+    log.debug(EELFLoggerDelegate.debugLogger, "Local FederationService available");
 	}
 
 	@PreDestroy
@@ -111,12 +112,12 @@ public class FederationServiceLocalImpl extends AbstractServiceImpl
 				ObjectReader objectReader = 
 														new ObjectMapper().reader(FLPSolution.class);
 				MappingIterator objectIterator =
-														objectReader.readValues(this.catalogUri.toURL());
+														objectReader.readValues(this.resource.getURL());
 				this.solutions = objectIterator.readAll();
 				log.info(EELFLoggerDelegate.debugLogger, "loaded " + this.solutions.size() + " solutions");
 			}
 			catch (Exception x) {
-				throw new BeanInitializationException("Failed to load solutions catalog from " + this.catalogUri, x);
+				throw new BeanInitializationException("Failed to load solutions catalog from " + this.resource, x);
 			}
 		}
 	}

@@ -25,13 +25,6 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -57,6 +50,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -75,64 +69,51 @@ import org.apache.commons.io.IOUtils;
 @ConfigurationProperties(prefix="peersLocal")
 @Conditional(AdapterCondition.class)
 public class PeerServiceLocalImpl
+												extends AbstractServiceLocalImpl
 												implements PeerService,
 												 					 PeerSubscriptionService {
 
 	private List<FLPPeer>		peers;
-	private URI							sourceUri;
-	private WatchService		sourceWatcher = null;
 
-	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(PeerServiceLocalImpl.class);
-
-	@Autowired
-	private LocalWatchService	watcher;
-		
-	public void setSourceUri(String theUri) {
-		try {
-			this.sourceUri = new URI(theUri);
-		}
-		catch(URISyntaxException urisx) {
-			throw new IllegalArgumentException("Cannot set uri", urisx);
-		}
-	}
 
 	@PostConstruct
 	public void initPeerService() {
-		logger.debug(EELFLoggerDelegate.debugLogger, "init local peer info service");
-
-		if (this.sourceUri == null) {
-			throw new BeanInitializationException("No source uri was configured");
+		log.debug(EELFLoggerDelegate.debugLogger, "init local peer info service");
+		checkResource();
+		try {
+			watcher.watchOn(this.resource.getURL().toURI(),
+											(uri) -> { loadPeersSubscriptionsInfo(); });
 		}
-
-		watcher.watchOn(this.sourceUri,
-										(uri) -> { loadPeersSubscriptionsInfo(); });
+		catch (IOException | URISyntaxException iox) {
+			log.info(EELFLoggerDelegate.errorLogger, "Peers subscriptions watcher registration failed for " + this.resource, iox);
+		}
 
 		loadPeersSubscriptionsInfo();
 
 		// Done
-		logger.debug(EELFLoggerDelegate.debugLogger, "Onap available");
+		log.debug(EELFLoggerDelegate.debugLogger, "Local PeerService available");
 	}
 
 	private void loadPeersSubscriptionsInfo() {
-		logger.info(EELFLoggerDelegate.debugLogger, "Loading peers subscriptions from " + this.sourceUri);
+		log.info(EELFLoggerDelegate.debugLogger, "Loading peers subscriptions from " + this.resource);
 		synchronized (this) {
 	    try {
 				ObjectReader objectReader =
     	                        new ObjectMapper().reader(FLPPeer.class);
       	MappingIterator objectIterator =
-        	                    objectReader.readValues(this.sourceUri.toURL());
+        	                    objectReader.readValues(this.resource.getURL());
 				this.peers = objectIterator.readAll();
-				logger.info(EELFLoggerDelegate.debugLogger, "loaded " + this.peers.size() + " peers");
+				log.info(EELFLoggerDelegate.debugLogger, "loaded " + this.peers.size() + " peers");
 			}
 			catch (Exception x) {
-      	throw new BeanInitializationException("Failed to load solutions catalog from " + this.sourceUri, x);
+      	throw new BeanInitializationException("Failed to load solutions catalog from " + this.resource, x);
 			}
 		}
 	}
 
 	@PreDestroy
 	public void cleanupPeerService() {
-		logger.debug(EELFLoggerDelegate.debugLogger, "Local peer info service destroyed");
+		log.debug(EELFLoggerDelegate.debugLogger, "Local peer info service destroyed");
 	}
 
 
@@ -148,12 +129,12 @@ public class PeerServiceLocalImpl
 	
 	/** */
 	public List<MLPPeer> getPeer(final String theSubjectName) {
-		logger.info(EELFLoggerDelegate.debugLogger, "Looking for peer " + theSubjectName);
+		log.info(EELFLoggerDelegate.debugLogger, "Looking for peer " + theSubjectName);
 		return 
 			this.peers
 						.stream()
 						.filter(peer -> { 
-		logger.info(EELFLoggerDelegate.debugLogger, "Found peer " + peer.getSubjectName());
+		log.info(EELFLoggerDelegate.debugLogger, "Found peer " + peer.getSubjectName());
 															return theSubjectName.equals(peer.getSubjectName()); })
 						.collect(Collectors.toList());
 	}
@@ -167,7 +148,7 @@ public class PeerServiceLocalImpl
 						.findFirst()
 						.orElse(null);
 
-		logger.debug(EELFLoggerDelegate.errorLogger, "Local peer info, one peer: " + apeer);
+		log.debug(EELFLoggerDelegate.errorLogger, "Local peer info, one peer: " + apeer);
 
 		return apeer;
 	}
@@ -194,7 +175,7 @@ public class PeerServiceLocalImpl
 							.filter(entry -> thePeerId.equals(entry.getPeerId()))
 							.findFirst()
 							.orElse(null);
-		logger.info(EELFLoggerDelegate.errorLogger, "Peer " + thePeerId + " subs:" + (peer == null ? "none" : peer.getSubscriptions()));
+		log.info(EELFLoggerDelegate.errorLogger, "Peer " + thePeerId + " subs:" + (peer == null ? "none" : peer.getSubscriptions()));
 		return peer == Collections.EMPTY_LIST ? null : peer.getSubscriptions();
 	}
 

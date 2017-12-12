@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.DefaultResourceLoader;
 
 import java.net.URI;
 
@@ -173,6 +174,9 @@ public class HttpClientConfiguration {
 		SSLContext sslContext = null;
 		log.info(EELFLoggerDelegate.debugLogger, "Build HttpClient with " + this);
 
+		if (this.resourceLoader == null)
+			this.resourceLoader = new DefaultResourceLoader();
+
 		if (this.ssl == null) {
 			log.info(EELFLoggerDelegate.debugLogger, "No ssl config was provided");
 		}
@@ -189,7 +193,7 @@ public class HttpClientConfiguration {
 				}
 				catch (Exception x) {
 					throw new IllegalStateException(
-										"Error loading key material", x);
+										"Error loading key material: " + x, x);
 				}
 			}
 
@@ -205,7 +209,7 @@ public class HttpClientConfiguration {
 				}
 				catch (Exception x) {
 					throw new IllegalStateException(
-										"Error loading trust material", x);
+										"Error loading trust material: " + x, x);
 				}
 			}
 
