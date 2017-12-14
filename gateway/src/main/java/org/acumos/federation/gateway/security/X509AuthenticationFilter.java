@@ -29,7 +29,10 @@ import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.util.Utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -44,14 +47,19 @@ import org.springframework.security.core.userdetails.UserDetailsService;
  * X.509 certificate authentication :  verifying the identity of a communication peer when using the HTTPS (HTTP over SSL) protocol.
  *
  */
+
+@Configuration
 @EnableWebSecurity
 //@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
+	
+	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
 	@Autowired
 	private PeerService peerService;
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+	@Value("${federation.enablePeerAuthentication:true}")
+	private boolean securityEnabled;
 
 	public X509AuthenticationFilter() {
 		// TODO Auto-generated constructor stub
@@ -68,7 +76,7 @@ public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
      */
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		
+
 		http
 		.authorizeRequests()
 			.anyRequest().authenticated()

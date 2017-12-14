@@ -110,6 +110,7 @@ public class FederationController extends AbstractController {
 			@RequestParam(value = "modelTypeCode", required = false) String mlpModelTypes) {
 		JsonResponse<List<MLPSolution>> data = null;
 		List<MLPSolution> peerCatalogSolutions = null;
+		logger.debug(EELFLoggerDelegate.debugLogger, APINames.PEER_SOLUTIONS);
 		try {
 			data = new JsonResponse<List<MLPSolution>>();
 			logger.debug(EELFLoggerDelegate.debugLogger, "getSolutionsListFromPeer: model types " + mlpModelTypes);
@@ -148,6 +149,7 @@ public class FederationController extends AbstractController {
 			@PathVariable("solutionId") String solutionId) {
 		JsonResponse<List<MLPSolutionRevision>> data = null;
 		List<MLPSolutionRevision> peerCatalogSolutionRevisions= null;
+		logger.debug(EELFLoggerDelegate.debugLogger, APINames.PEER_SOLUTIONS_REVISIONS);
 		try {
 			data = new JsonResponse<List<MLPSolutionRevision>>();
 			peerCatalogSolutionRevisions = federationService.getPeerCatalogSolutionRevision(solutionId);
@@ -185,6 +187,7 @@ public class FederationController extends AbstractController {
 			@PathVariable("solutionId") String solutionId, @PathVariable("revisionId") String revisionId) {
 		JsonResponse<List<MLPArtifact>> data = null;
 		List<MLPArtifact> peerSolutionArtifacts= null;
+		logger.debug(EELFLoggerDelegate.debugLogger, APINames.PEER_SOLUTIONS_REVISIONS_ARTIFACTS);
 		try {
 			data = new JsonResponse<List<MLPArtifact>>();
 			peerSolutionArtifacts = federationService.getPeerSolutionArtifacts(solutionId, revisionId);

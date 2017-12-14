@@ -43,12 +43,20 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.core.ParameterizedTypeReference;
 
 import org.apache.http.client.HttpClient;
 
 /* this is not good for unit testing .. */
+import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.common.HttpClientConfigurationBuilder;
 import static org.acumos.federation.gateway.common.HttpClientConfigurationBuilder.SSLBuilder;
+
+import org.acumos.cds.domain.MLPSolution;
+import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.cds.domain.MLPArtifact;
+
+
 
 /**
  */
@@ -67,7 +75,8 @@ import static org.acumos.federation.gateway.common.HttpClientConfigurationBuilde
 									"server.ssl.key-store-type=PKCS12",
 									"server.ssl.key-password = acumosa",
 									"server.ssl.trust-store=classpath:acumosTrustStore.jks",
-									"server.ssl.trust-store-password=acumos"
+									"server.ssl.trust-store-password=acumos",
+									"server.ssl.client-auth=need"
 								})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PeerGatewayTest {
@@ -82,12 +91,20 @@ public class PeerGatewayTest {
 			this.restTemplate.getRestTemplate().getRequestFactory())
 				.setHttpClient(prepareHttpClient());
 		
-		ResponseEntity<List> response =
-			this.restTemplate.exchange("/solutions", HttpMethod.GET, prepareRequest(), List.class);
+		ResponseEntity<JsonResponse<List<MLPSolution>>> response =
+			this.restTemplate.exchange("/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 		
+		if (response != null)	{
+			System.out.println("testSolutions: " + response.getBody());
+			System.out.println("testSolutions: " + response);
+		}
+		
+		assertTrue(response != null);
 		assertTrue(response.getStatusCodeValue() == 200);
+		assertTrue(response.getBody().getResponseBody().size() == 1);
 	}
 
+/*
 	@Test
 	public void testSolutionSuccess() {
 
@@ -95,13 +112,19 @@ public class PeerGatewayTest {
 			this.restTemplate.getRestTemplate().getRequestFactory())
 				.setHttpClient(prepareHttpClient());
 
-		ResponseEntity<List> response =
-			this.restTemplate.exchange("/solution/00000000-0000-0000-0000-000000000000", HttpMethod.GET, prepareRequest(), List.class);
-		
-		assertTrue(response.getStatusCodeValue() == 200);
-		//assertTrue(response.getBody().size() == 0); //no errors
-	}
+		ResponseEntity<JsonResponse<MLPSolution>> response =
+			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
 	
+		if (response != null)	{
+			System.out.println("testSolution: " + response.getBody());
+			System.out.println("testSolution: " + response);
+		}
+
+		assertTrue(response != null);
+		assertTrue(response.getStatusCodeValue() == 200);
+		assertTrue(response.getBody().getResponseBody().getModelTypeCode().equals("CL")); //no errors
+	}
+*/
 	@Test
 	public void testSolutionRevisionsSuccess() {
     
@@ -109,13 +132,39 @@ public class PeerGatewayTest {
 			this.restTemplate.getRestTemplate().getRequestFactory())
 				.setHttpClient(prepareHttpClient());
 
-		ResponseEntity<List> response =
-			this.restTemplate.exchange("/solution/00000000-0000-0000-0000-000000000000/revisions", HttpMethod.GET, prepareRequest(), List.class);
+		ResponseEntity<JsonResponse<List<MLPSolutionRevision>>> response =
+			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {});
 		
+		if (response != null)	{
+			System.out.println("testSolutionRevisions: " + response.getBody());
+			System.out.println("testSolutionRevisions: " + response);
+		}
+
+		assertTrue(response != null);
 		assertTrue(response.getStatusCodeValue() == 200);
-		//assertTrue(response.getBody().size() == 0); //no errors
+		assertTrue(response.getBody().getResponseBody().size() == 1); //no errors
 	}
-	
+
+	@Test
+	public void testSolutionRevisionArtifactsSuccess() {
+    
+		((HttpComponentsClientHttpRequestFactory)
+			this.restTemplate.getRestTemplate().getRequestFactory())
+				.setHttpClient(prepareHttpClient());
+
+		ResponseEntity<JsonResponse<List<MLPArtifact>>> response =
+			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {});
+		
+		if (response != null)	{
+			System.out.println("testSolutionRevisionsArtifacts: " + response.getBody());
+			System.out.println("testSolutionRevisionsArtifacts: " + response);
+		}
+
+		assertTrue(response != null);
+		assertTrue(response.getStatusCodeValue() == 200);
+		assertTrue(response.getBody().getResponseBody().size() == 1); //no errors
+	}
+
 	private HttpEntity prepareRequest(String theResourceName) {
 		String content = new Scanner(
     									   Thread.currentThread().getContextClassLoader().getResourceAsStream(theResourceName), "UTF-8")

@@ -91,4 +91,17 @@ public class JsonResponse<T> implements Serializable {
 	public void setResponseBody(T responseBody) {
 		this.responseBody = responseBody;
 	}
+
+	public String toString() {
+		return new StringBuilder("JsonResponse")
+								.append(System.identityHashCode(this))
+								.append('(')
+								.append(this.responseCode)
+								.append(' ')
+								.append(this.responseDetail)
+								.append(", ")
+								.append(this.responseBody == null ? "null" : this.responseBody)
+								.append(')')
+								.toString();
+	}
 }

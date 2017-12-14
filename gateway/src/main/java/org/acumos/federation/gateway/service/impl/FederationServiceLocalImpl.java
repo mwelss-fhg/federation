@@ -133,11 +133,13 @@ public class FederationServiceLocalImpl extends AbstractServiceLocalImpl
 	@Override
 	public List<MLPSolution> getPeerCatalogSolutionsList(String mlpModelTypes) {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerCatalogSolutionsList");
-		final List<String> modelTypes = Arrays.asList(mlpModelTypes.split(","));
+		final List<String> modelTypes =
+			mlpModelTypes == null ? null : Arrays.asList(mlpModelTypes.split(","));
 		return solutions.stream()
 							.filter(solution -> {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerCatalogSolutionsList: looking for " + modelTypes + ", has " + solution.getModelTypeCode());
-												return modelTypes.contains(solution.getModelTypeCode());
+												return modelTypes == null ||
+															 modelTypes.contains(solution.getModelTypeCode());
 											})
 							.collect(Collectors.toList());
 	}
