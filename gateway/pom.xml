@@ -295,6 +295,11 @@
 								<!-- This is the same FROM used in a Dockerfile -->
 								<!-- <from>openjdk:8-jdk</from> -->
 								<from>frolvlad/alpine-oraclejdk8:slim</from>
+								<tags>
+   	 							<tag>latest</tag>
+    							<tag>${project.version}</tag>
+   	 							<tag>${maven.build.timestamp}</tag>
+								</tags>
 								<assembly>
 									<inline>
 										<files>
