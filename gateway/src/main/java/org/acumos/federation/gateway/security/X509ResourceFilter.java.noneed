@@ -42,6 +42,10 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
+import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+
 /**
  * 
  * X.509 certificate authentication :  verifying the identity of a communication peer when using the HTTPS (HTTP over SSL) protocol.
@@ -49,33 +53,25 @@ import org.springframework.security.core.userdetails.UserDetailsService;
  */
 
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
+@EnableResourceServer
+public class X509ResourceFilter extends ResourceServerConfigurerAdapter {
 	
 	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
 	@Autowired
 	private PeerService peerService;
 
-	@Value("${federation.enablePeerAuthentication:true}")
-	private boolean securityEnabled;
-
-	public X509AuthenticationFilter() {
+	public X509ResourceFilter() {
 	}
 
-/*
-	public X509AuthenticationFilter(boolean disableDefaults) {
-		super(disableDefaults);
-	}
-*/
-	/**
-     * subjectPrincipalRegex("CN=(.*?)(?:,|$)") :- The regular expression used to extract a username from the client certificates subject name.
-     * (CN value of the client certificate)
-     */
 	@Override
-	protected void configure(HttpSecurity http) throws Exception {
+	public void configure(ResourceServerSecurityConfigurer resources) {
+		resources
+			.resourceId("web");
+	}
 
+	@Override
+	public void configure(HttpSecurity http) throws Exception {
 		http
 		.authorizeRequests()
 			.anyRequest().authenticated()
@@ -83,7 +79,6 @@ public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
 			.x509()
 				.subjectPrincipalRegex("CN=(.*?)(?:,|$)")
 				.userDetailsService(userDetailsService());
-
 	}
 	
 	//@Bean

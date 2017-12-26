@@ -18,54 +18,25 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.service;
-
-import java.util.List;
-
-import org.acumos.cds.domain.MLPPeer;
-
 /**
  * 
- *
  */
-public interface PeerService {
+package org.acumos.federation.gateway.service;
 
-	/**
-	 * @return List of Peers configured in the Local Acumos Instance
+import org.acumos.federation.gateway.security.Peer;
+
+
+
+/**
+ * Expose the invocation frame for service calls (whenever a call is selectively
+ * provided).
+ */
+public interface ServiceContext {
+	
+	/*
+	 * In who's behalf are we providing the service
 	 */
-	List<MLPPeer> getPeers();
-	
-	/**
-	 * Provide the list of locally registered peers to one of our peers
-	 */
-	List<MLPPeer> getPeers(ServiceContext theContext);
-	
-	/**
-	 * @return Peer based on the configured Subject Name
-	 */
-	List<MLPPeer> getPeer(String subjectName);
-	
-	MLPPeer getOnePeer(String peerId);
-	
-	/**
-	 * @param mlpPeer MLPPeer Configuration that needs to be created on the Platform
-	 * 
-	 * @return Peer configuration that has been created.
-	 */
-	MLPPeer savePeer(MLPPeer mlpPeer);
-	
-	
-	/**
-	 * @param mlpPeer MLPPeer Configuration that needs to be updated on the Platform
-	 * 
-	 * @return Peer configuration that has been updated.
-	 */
-	boolean updatePeer(MLPPeer mlpPeer);
-	
-	/**
-	 * @param mlpPeer MLPPeer Configuration that needs to be deleted on the Platform
-	 * 
-	 * @return true if successfully deleted else false.
-	 */
-	boolean deletePeer(MLPPeer mlpPeer);
+	public Peer	getPeer();
+
 }
+

@@ -1,0 +1,64 @@
+version: '2.0'
+services:
+  federation:
+    container_name: federation-gateway
+    image: federation-gateway:latest
+    environment:
+      SPRING_APPLICATION_JSON: '{
+        "server" : {
+          "port" : 9084,
+          "ssl" : {
+            "key-store" : "ist-acumosa.pkcs12",
+            "key-store-password" : "acumosa",
+            "key-store-type" : "PKCS12",
+            "key-password" : "acumosa",
+            "trust-store" : "acumosTrustStore.jks",
+            "trust-store-password" : "acumos",
+            "client-auth" : "need"
+          }
+        },
+        "client" : {
+          "ssl" : {
+            "key-store" : "file:///ist-acumosa.pkcs12",
+            "key-store-password" : "acumosa",
+            "key-store-type" : "PKCS12",
+            "key-password" : "acumosa"
+          }
+        },
+        "nexus": {
+          "url": "http://cognita-nexus01.eastus.cloudapp.azure.com:8081/repository/repo_cognita_model_maven/",
+          "proxy": "",
+          "password": "not4you",
+          "username": "cognita_model_rw",
+          "groupid": "com.artifact"
+        },
+        "spring": {
+          "profiles": {
+            "active": "gateway"
+          }
+        },
+        "peer": {
+          "jobchecker": {
+            "interval": 300
+          }
+        },
+        "federation" : {
+          "instance" : "gateway",
+          "instance.name": "ATT",
+          "operator" : "d468656f-57d0-46e3-9f94-7ffa4f66dc03"
+        },
+        "cdms" : {
+          "client" : {
+            "url": "http://mlp-cmn-data-svc:8000/ccds",
+            "username": "ccds_client",
+            "password": "ccds_client"
+          }
+        }
+      }'
+    expose:
+      - "9084"
+    ports:
+      - "9084:9084"
+    logging:
+      driver: json-file
+

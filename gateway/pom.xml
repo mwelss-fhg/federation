@@ -34,9 +34,12 @@
 		<!-- Docker daemon -->
 		<docker.host.url>unix:/var/run/docker.sock</docker.host.url>
 		<!-- Docker image registry -->
+		<!--
 		<docker.registry.url>Set by Jenkins</docker.registry.url>
 		<docker.registry.login>Registry userId - supplied by jenkins</docker.registry.login>
 		<docker.registry.password>Registry password - supplied by jenkins</docker.registry.password>
+		-->
+		<docker.registry.url>registry.hub.docker.io</docker.registry.url> 
 		<!-- dependencies versions -->
 		<slf4j.version>1.7.25</slf4j.version>
 		<logback.version>1.2.3</logback.version>
@@ -49,6 +52,7 @@
 		<acumos.nexus.url>http://cognita-nexus01.eastus.cloudapp.azure.com:8081</acumos.nexus.url>
 		<acumos.nexus.snapshot.path>repository/repo_cognita_platform_maven_snapshots</acumos.nexus.snapshot.path>
 		<acumos.nexus.release.path>repository/repo_cognita_platform_maven</acumos.nexus.release.path>
+		<maven.build.timestamp.format>yyyy.MM.dd_HH.mm</maven.build.timestamp.format>
 	</properties>
 
 	<repositories>
@@ -283,11 +287,13 @@
 				<configuration>
 					<verbose>true</verbose>
 					<dockerHost>${docker.host.url}</dockerHost>
+<!--
 					<registry>${docker.registry.url}</registry>
 					<authConfig>
 						<username>${docker.registry.login}</username>
 						<password>${docker.registry.password}</password>
 					</authConfig>
+-->
 					<images>
 						<image>
 							<name>federation-gateway:${project.version}</name>
@@ -307,16 +313,6 @@
 												<source>application.properties.template</source>
 												<outputDirectory />
 												<destName>application.properties</destName>
-											</file>
-											<file>
-												<source>src/test/resources/acumosa.pkcs12</source>
-												<outputDirectory />
-												<destName>acumosa.pkcs12</destName>
-											</file>
-											<file>
-												<source>src/test/resources/acumosb.pkcs12</source>
-												<outputDirectory />
-												<destName>acumosb.pkcs12</destName>
 											</file>
 											<file>
 												<source>src/test/resources/ist-acumosa.pkcs12</source>
@@ -346,8 +342,82 @@
 								</cmd>
 							</build>
 						</image>
+						<image>
+							<name>federation-gateway-test:${project.version}</name>
+							<build>
+								<!-- This is the same FROM used in a Dockerfile -->
+								<!-- <from>openjdk:8-jdk</from> -->
+								<from>frolvlad/alpine-oraclejdk8:slim</from>
+								<tags>
+   	 							<tag>latest</tag>
+    							<tag>${project.version}</tag>
+   	 							<tag>${maven.build.timestamp}</tag>
+								</tags>
+								<assembly>
+									<inline>
+										<files>
+											<file>
+												<source>application.properties.template</source>
+												<outputDirectory />
+												<destName>application.properties</destName>
+											</file>
+<!--
+	need the following two for server config
+-->
+											<file>
+												<source>src/test/resources/acumosa.pkcs12</source>
+												<outputDirectory />
+												<destName>acumosa.pkcs12</destName>
+											</file>
+											<file>
+												<source>src/test/resources/acumosb.pkcs12</source>
+												<outputDirectory />
+												<destName>acumosb.pkcs12</destName>
+											</file>
+											<file>
+												<source>src/test/resources/acumosTrustStore.jks</source>
+												<outputDirectory />
+												<destName>acumosTrustStore.jks</destName>
+											</file>
+											<file>
+												<source>target/${project.artifactId}-${project.version}.${project.packaging}</source>
+												<outputDirectory />
+											</file>
+											<file>
+												<source>target/${project.artifactId}-${project.version}-tests.${project.packaging}</source>
+												<outputDirectory />
+											</file>
+										</files>
+										<fileSets>
+                      <fileSet>
+                        <directory>${basedir}/target/deps/</directory>
+                        <outputDirectory>/libs/</outputDirectory>
+                        <includes>
+                          <include>*</include>
+                        </includes>
+                        <fileMode>0755</fileMode>
+											</fileSet>
+										</fileSets>
+									</inline>
+								</assembly>
+								<!-- This is the same CMD used in a Dockerfile -->
+								<cmd>
+									<shell>cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djavax.net.ssl.trustStore=acumosTrustStore.jks -Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher</shell>
+								</cmd>
+							</build>
+						</image>
 					</images>
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<!-- build is bound to install phase -->
+							<goal>build</goal>
+							<!-- push is bound to deploy phase -->
+							<goal>push</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>

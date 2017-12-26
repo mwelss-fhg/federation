@@ -48,7 +48,8 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import org.apache.commons.io.FileUtils;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.FederationService;
+import org.acumos.federation.gateway.service.CatalogService;
+import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.util.Utils;
 import org.acumos.federation.gateway.util.LocalWatchService;
 import org.acumos.federation.gateway.common.AdapterCondition;
@@ -76,8 +77,8 @@ import org.acumos.cds.transport.RestPageResponse;
 @Service
 @ConfigurationProperties(prefix="catalogLocal")
 @Conditional(AdapterCondition.class)
-public class FederationServiceLocalImpl extends AbstractServiceLocalImpl
-																				 implements FederationService {
+public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl
+																		 implements CatalogService {
 
 	private List<FLPSolution>					solutions;
 
@@ -98,7 +99,7 @@ public class FederationServiceLocalImpl extends AbstractServiceLocalImpl
 		loadSolutionsCatalogInfo();
 
     // Done
-    log.debug(EELFLoggerDelegate.debugLogger, "Local FederationService available");
+    log.debug(EELFLoggerDelegate.debugLogger, "Local CatalogService available");
 	}
 
 	@PreDestroy
@@ -122,17 +123,12 @@ public class FederationServiceLocalImpl extends AbstractServiceLocalImpl
 		}
 	}
 
-	/**
-	 */
-	@Override
-	public RestPageResponse<MLPSolution>  getPeerCatalogSolutions(Integer pageNumber, Integer maxSize, String sortingOrder,
-			List<String> mlpModelTypes) {
-		return null;
-	}
 
 	@Override
-	public List<MLPSolution> getPeerCatalogSolutionsList(String mlpModelTypes) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerCatalogSolutionsList");
+	public List<MLPSolution> getSolutions(
+		String mlpModelTypes, ServiceContext theContext) {
+
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions");
 		final List<String> modelTypes =
 			mlpModelTypes == null ? null : Arrays.asList(mlpModelTypes.split(","));
 		return solutions.stream()
@@ -144,11 +140,24 @@ public class FederationServiceLocalImpl extends AbstractServiceLocalImpl
 							.collect(Collectors.toList());
 	}
 
+	@Override
+	public MLPSolution getSolution(
+		final String theSolutionId, ServiceContext theContext) {
+
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolution");
+		return solutions.stream()
+							.filter(solution -> {
+												return theSolutionId.equals(solution.getSolutionId());
+											})
+							.findFirst()
+							.orElse(null);
+	}
 	
 	@Override
-	public List<MLPSolutionRevision> getPeerCatalogSolutionRevision(
-																					final String theSolutionId) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerCatalogSolutionRevision`");
+	public List<MLPSolutionRevision> getSolutionRevisions(
+		final String theSolutionId, ServiceContext theContext) {
+
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisions");
 		FLPSolution solution =
 						this.solutions.stream()
 							.filter(sol ->
@@ -158,35 +167,42 @@ public class FederationServiceLocalImpl extends AbstractServiceLocalImpl
 		
 		return (solution == null) ? null : solution.getMLPRevisions();
 	}
-
+	
 	@Override
-	public List<MLPArtifact> getPeerSolutionArtifacts(
-																						final String theSolutionId,
-																						final String theRevisionId) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSolutionArtifacts`");
-		FLPSolution solution =
-						 this.solutions.stream()
-							.filter(sol ->
-												sol.getSolutionId().equals(theSolutionId))
-							.findFirst()
-							.orElse(null);
+	public MLPSolutionRevision getSolutionRevision(
+		String theSolutionId, String theRevisionId, ServiceContext theContext) {
 
-		if (solution == null)
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
+		List<MLPSolutionRevision> revisions = getSolutionRevisions(theSolutionId, theContext);
+
+		if (revisions == null)
 			return null;
 
-		FLPRevision revision = 
-			solution.getRevisions().stream()
+		return revisions.stream()
 							.filter(rev ->
 												rev.getRevisionId().equals(theRevisionId))
 							.findFirst()
 							.orElse(null);
+	}
+
+	@Override
+	public List<MLPArtifact> getSolutionRevisionArtifacts(
+		final String theSolutionId,	final String theRevisionId, ServiceContext theContext) {
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts");
+
+		FLPRevision revision = (FLPRevision)
+			getSolutionRevision(theSolutionId, theRevisionId, theContext);
 
 		return (revision == null) ? null : revision.getArtifacts();
 	}
 
 	@Override
-	public InputStreamResource getPeerSolutionArtifactFile(
-														final String theArtifactId) {
+	public InputStreamResource getSolutionRevisionArtifactContent(
+		String theArtifactId, ServiceContext theContext) {
+
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifactContent");
+		//difficult here as we only have the artifact id ..
+	
 		return null;
 	}
 

@@ -31,6 +31,7 @@ import java.util.Collections;
 import org.acumos.federation.gateway.common.GatewayCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerService;
+import org.acumos.federation.gateway.service.ServiceContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -64,6 +65,12 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 			log.debug(EELFLoggerDelegate.debugLogger, "getPeers size:{}", mlpPeers.size());
 		}
 		return mlpPeers;
+	}
+
+	@Override
+	public List<MLPPeer> getPeers(ServiceContext theContext) {
+		log.debug(EELFLoggerDelegate.debugLogger, "getPeers(ServiceContext)");
+		return getPeers();
 	}
 
 	@Override

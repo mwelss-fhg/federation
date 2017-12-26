@@ -33,10 +33,11 @@ import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.transport.RestPageResponse;
 
+
 /**
- * Handles the business behind the Acumos federation interface
+ * Handles access to the solutions catalog 
  */
-public interface FederationService {
+public interface CatalogService {
 	
 	
 	/**
@@ -54,9 +55,11 @@ public interface FederationService {
 	 * 
 	 * @return Pageable List of the Catalog Solutions
 	 */
+	/*
 	RestPageResponse<MLPSolution>  getPeerCatalogSolutions(Integer pageNumber, Integer maxSize, String sortingOrder, 
 			List<String> mlpModelTypes);
-	
+	*/
+
 	/**
 	 * 
 	 *  API to be invoked by Peer Acumos to fetch the Catalog Solutions List.
@@ -65,7 +68,12 @@ public interface FederationService {
 	 * 
 	 * @return List of the Catalog Solutions for the specified list of query parameters
 	 */
-	List<MLPSolution> getPeerCatalogSolutionsList(String mlpModelTypes);
+	List<MLPSolution> getSolutions(String mlpModelTypes, ServiceContext theContext);
+	
+
+	/**
+	 */
+	MLPSolution getSolution(String theSolutionId, ServiceContext theContext);
 	
 	
 	/**
@@ -73,8 +81,12 @@ public interface FederationService {
 	 * 
 	 * @return List of the Solution Revision for the specified solution Id
 	 */
-	List<MLPSolutionRevision> getPeerCatalogSolutionRevision(String solutionId);
+	List<MLPSolutionRevision> getSolutionRevisions(String theSolutionId, ServiceContext theContext);
 	
+	/**
+	 */
+	MLPSolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId, ServiceContext theContext);
+
 	/**
 	 * @param solutionId : SolutionId for which Solution Revision Artifacts Needs to be returned
 	 * 
@@ -82,7 +94,7 @@ public interface FederationService {
 	 * 
 	 * @return List of the Solution Artifacts for the specified solution Id & revisionId
 	 */
-	List<MLPArtifact> getPeerSolutionArtifacts(String solutionId, String revisionId);
+	List<MLPArtifact> getSolutionRevisionArtifacts(String theSolutionId, String theRevisionId, ServiceContext theContext);
 	
 	
 	
@@ -90,6 +102,6 @@ public interface FederationService {
 	 * @param artifactId of the File stored in Nexus repository
 	 * @return Artifact File for the Machine Learning Solution 
 	 */
-	InputStreamResource getPeerSolutionArtifactFile(String artifactId);
+	InputStreamResource getSolutionRevisionArtifactContent(String theArtifactId, ServiceContext theContext);
 	
 }

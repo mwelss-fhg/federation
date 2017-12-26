@@ -58,6 +58,7 @@ import org.acumos.federation.gateway.util.LocalWatchService;
 import org.acumos.federation.gateway.common.AdapterCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerService;
+import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 
 import org.acumos.cds.domain.MLPPeer;
@@ -126,7 +127,12 @@ public class PeerServiceLocalImpl
 																		.collect(Collectors.toList());
 		}
 	}
-	
+
+	/** */
+	public List<MLPPeer> getPeers(ServiceContext theContext) {
+		return getPeers();	
+	}
+
 	/** */
 	public List<MLPPeer> getPeer(final String theSubjectName) {
 		log.info(EELFLoggerDelegate.debugLogger, "Looking for peer " + theSubjectName);

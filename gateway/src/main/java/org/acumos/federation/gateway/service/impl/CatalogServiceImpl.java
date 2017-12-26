@@ -38,7 +38,8 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FileUtils;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.FederationService;
+import org.acumos.federation.gateway.service.CatalogService;
+import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.util.Utils;
 import org.acumos.federation.gateway.common.GatewayCondition;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,14 +60,14 @@ import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.transport.RestPageResponse;
 
 /**
- * 
+ * CDS based implementation of the CatalogService. 
  *
  */
 @Service
 @Conditional(GatewayCondition.class)
-public class FederationServiceImpl extends AbstractServiceImpl implements FederationService {
-
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(FederationServiceImpl.class);
+public class CatalogServiceImpl 
+								extends AbstractServiceImpl
+								implements CatalogService {
 
 	@Autowired
 	private Environment env;
@@ -76,32 +77,35 @@ public class FederationServiceImpl extends AbstractServiceImpl implements Federa
 	@PostConstruct
 	public void initService() {
 		baseSelector = new HashMap<String, Object>();
-/*
+
 		baseSelector.put("active", true); //Fetch all active solutions
 		baseSelector.put("accessTypeCode", AccessTypeCode.PB.toString()); // Fetch allowed only for Public models
 		baseSelector.put("validationStatusCode", ValidationStatusCode.PS.toString()); // Validation status should be Passed locally
-		baseSelector.put("provider", env.getProperty("federated.instance.name"));
-*/	
+//		baseSelector.put("provider", env.getProperty("federated.instance.name"));
+	
 	}
 
 	/**
 	 * This needs to be implemented for future enhancement where pagination is allowed
 	 */
+/*
 	@Override
 	public RestPageResponse<MLPSolution>  getPeerCatalogSolutions(Integer pageNumber, Integer maxSize, String sortingOrder,
 			List<String> mlpModelTypes) {
 		return null;
 	}
-
+*/
 	@Override
-	public List<MLPSolution> getPeerCatalogSolutionsList(String mlpModelTypes) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerCatalogSolutionsList");
+	public List<MLPSolution> getSolutions(
+		String mlpModelTypes, ServiceContext theContext) {
+		
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions");
 		List<MLPSolution> filteredMLPSolutions = null;
 		ICommonDataServiceRestClient dataServiceRestClient = getClient();
 		//TODO: revisit this code to pass query parameters to CCDS Service
 		Map<String, Object> queryParameters = new HashMap<String, Object>(this.baseSelector);
 		List<MLPSolution> mlpSolutions = dataServiceRestClient.searchSolutions(queryParameters, false);
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerCatalogSolutionsList: data service provided solutions " + mlpSolutions);
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: data service provided solutions " + mlpSolutions);
 
 		if(mlpSolutions != null && mlpSolutions.size() > 0 && !Utils.isEmptyOrNullString(mlpModelTypes)) {
 			//Filter List using Lamba to get solutions which matches the ML Model Type
@@ -117,36 +121,60 @@ public class FederationServiceImpl extends AbstractServiceImpl implements Federa
 		return filteredMLPSolutions;
 	}
 
+	@Override
+	public MLPSolution getSolution(
+		String theSolutionId, ServiceContext theContext) {
+		
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolution");
+		ICommonDataServiceRestClient cdsClient = getClient();
+		return cdsClient.getSolution(theSolutionId);
+	}
 	
 	@Override
-	public List<MLPSolutionRevision> getPeerCatalogSolutionRevision(String solutionId) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerCatalogSolutionRevision`");
-		List<MLPSolutionRevision> mlpSolutionRevisions = null;
+	public List<MLPSolutionRevision> getSolutionRevisions(
+		String theSolutionId, ServiceContext theContext) {
+
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisions");
 		ICommonDataServiceRestClient dataServiceRestClient = getClient();
-		mlpSolutionRevisions = dataServiceRestClient.getSolutionRevisions(solutionId);
+		List<MLPSolutionRevision> mlpSolutionRevisions =
+			dataServiceRestClient.getSolutionRevisions(theSolutionId);
 		return mlpSolutionRevisions;
 	}
 
 	@Override
-	public List<MLPArtifact> getPeerSolutionArtifacts(String solutionId, String revisionId) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSolutionArtifacts`");
-		List<MLPArtifact> mlpSolutionRevisions = new ArrayList<>();
+	public MLPSolutionRevision getSolutionRevision(
+		String theSolutionId, String theRevisionId, ServiceContext theContext) {
+
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
+		ICommonDataServiceRestClient dataServiceRestClient = getClient();
+		MLPSolutionRevision mlpSolutionRevision =
+			dataServiceRestClient.getSolutionRevision(theSolutionId, theRevisionId);
+		return mlpSolutionRevision;
+	}
+
+	@Override
+	public List<MLPArtifact> getSolutionRevisionArtifacts(
+		String theSolutionId, String theRevisionId, ServiceContext theContext) {
+		
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts");
+		List<MLPArtifact> mlpArtifacts = new ArrayList<>();
 		FederationDataClient commonDataClient = getCommonDataClient();
-		Iterable<MLPArtifact> iterable = commonDataClient.getSolutionRevisionArtifacts(solutionId, revisionId);
-		for (MLPArtifact mlpArtifact : iterable) {
-			mlpSolutionRevisions.add(mlpArtifact);
+		Iterable<MLPArtifact> artifacts = commonDataClient.getSolutionRevisionArtifacts(theSolutionId, theRevisionId);
+		for (MLPArtifact mlpArtifact : artifacts) {
+			mlpArtifacts.add(mlpArtifact);
 		}
-		return mlpSolutionRevisions;
+		return mlpArtifacts;
 	}
 
 	@Override
-	public InputStreamResource getPeerSolutionArtifactFile(String artifactId) {
+	public InputStreamResource getSolutionRevisionArtifactContent(
+		String theArtifactId, ServiceContext theContext) {
+
 		InputStreamResource streamResource = null;
 		ByteArrayOutputStream byteArrayOutputStream  = null;
 		try{
-			ICommonDataServiceRestClient dataServiceRestClient = getClient();
-			MLPArtifact mlpArtifact = dataServiceRestClient.getArtifact(artifactId);
-			
+			ICommonDataServiceRestClient cdsClient = getClient();
+			MLPArtifact mlpArtifact = cdsClient.getArtifact(theArtifactId);
 			
 			String path = Utils.getTempFolderPath(mlpArtifact.getName(), mlpArtifact.getVersion(), env.getProperty("nexus.tempFolder", ""));
 			
@@ -173,7 +201,7 @@ public class FederationServiceImpl extends AbstractServiceImpl implements Federa
 			Utils.deletetTempFiles(path);
 			
 		} catch (Exception e) {
-			log.error(EELFLoggerDelegate.errorLogger, "getPeerSolutionArtifactFile`", e);
+			log.error(EELFLoggerDelegate.errorLogger, "getSolutionRevisionArtifactiContent", e);
 		} 
 		// TODO Auto-generated method stub
 		return streamResource;

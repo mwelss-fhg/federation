@@ -52,6 +52,7 @@ import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.common.HttpClientConfigurationBuilder;
 import static org.acumos.federation.gateway.common.HttpClientConfigurationBuilder.SSLBuilder;
 
+import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.domain.MLPArtifact;
@@ -104,7 +105,7 @@ public class PeerGatewayTest {
 		assertTrue(response.getBody().getResponseBody().size() == 1);
 	}
 
-/*
+
 	@Test
 	public void testSolutionSuccess() {
 
@@ -124,7 +125,7 @@ public class PeerGatewayTest {
 		assertTrue(response.getStatusCodeValue() == 200);
 		assertTrue(response.getBody().getResponseBody().getModelTypeCode().equals("CL")); //no errors
 	}
-*/
+
 	@Test
 	public void testSolutionRevisionsSuccess() {
     
@@ -146,6 +147,26 @@ public class PeerGatewayTest {
 	}
 
 	@Test
+	public void testSolutionRevisionSuccess() {
+
+    ((HttpComponentsClientHttpRequestFactory)
+			this.restTemplate.getRestTemplate().getRequestFactory())
+				.setHttpClient(prepareHttpClient());
+
+		ResponseEntity<JsonResponse<MLPSolution>> response =
+			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
+	
+		if (response != null)	{
+			System.out.println("testSolution: " + response.getBody());
+			System.out.println("testSolution: " + response);
+		}
+
+		assertTrue(response != null);
+		assertTrue(response.getStatusCodeValue() == 200);
+		assertTrue(response.getBody().getResponseBody().getOwnerId().equals("admin")); //no errors
+	}
+
+	@Test
 	public void testSolutionRevisionArtifactsSuccess() {
     
 		((HttpComponentsClientHttpRequestFactory)
@@ -153,7 +174,7 @@ public class PeerGatewayTest {
 				.setHttpClient(prepareHttpClient());
 
 		ResponseEntity<JsonResponse<List<MLPArtifact>>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {});
+			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101/artifacts", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {});
 		
 		if (response != null)	{
 			System.out.println("testSolutionRevisionsArtifacts: " + response.getBody());
@@ -163,6 +184,24 @@ public class PeerGatewayTest {
 		assertTrue(response != null);
 		assertTrue(response.getStatusCodeValue() == 200);
 		assertTrue(response.getBody().getResponseBody().size() == 1); //no errors
+	}
+
+	@Test
+	public void testPeersForbidden() {
+
+    ((HttpComponentsClientHttpRequestFactory)
+			this.restTemplate.getRestTemplate().getRequestFactory())
+				.setHttpClient(prepareHttpClient());
+
+		ResponseEntity<JsonResponse<List<MLPPeer>>> response =
+			this.restTemplate.exchange("/peers", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {} );
+	
+		if (response != null)	{
+			System.out.println("testPeers: " + response.getBody());
+			System.out.println("testPeers: " + response);
+		}
+
+		assertTrue(response.getStatusCodeValue() == 403);
 	}
 
 	private HttpEntity prepareRequest(String theResourceName) {

@@ -1,0 +1,110 @@
+version: '2.0'
+services:
+  gateway.acumosa.org:
+    container_name: acumosa
+    image: federation-gateway-test:latest
+    environment:
+      SPRING_APPLICATION_JSON: '{
+        "server" : {
+          "port" : 9001,
+          "ssl" : {
+            "key-store" : "acumosa.pkcs12",
+            "key-store-password" : "acumosa",
+            "key-store-type" : "PKCS12",
+            "key-password" : "acumosa",
+            "trust-store" : "acumosTrustStore.jks",
+            "trust-store-password" : "acumos",
+            "client-auth" : "need"
+          }
+        },
+        "client" : {
+          "ssl" : {
+            "key-store" : "classpath:/acumosa.pkcs12",
+            "key-store-password" : "acumosa",
+            "key-store-type" : "PKCS12",
+            "key-password" : "acumosa"
+          }
+        },
+        "spring": {
+          "profiles": {
+            "active": "gateway"
+          }
+        },
+        "peer": {
+          "jobchecker": {
+            "interval": 300
+          }
+        },
+        "federation" : {
+          "instance" : "adapter",
+          "instance.name": "ghost",
+          "operator" : "anonymous"
+        },
+        "peersLocal" : {
+          "source" : "classpath:/acumosa-peers.json"
+        },
+        "catalogLocal" : {
+          "source" : "classpath:/acumosa-catalog.json"
+        }
+      }'
+    expose:
+      - "9001"
+    ports:
+      - "9001:9001"
+    logging:
+      driver: json-file
+
+  gateway.acumosb.org:
+    container_name: acumosb
+    image: federation-gateway-test:latest
+    environment:
+      SPRING_APPLICATION_JSON: '{
+        "server" : {
+          "port" : 9002,
+          "ssl" : {
+            "key-store" : "acumosb.pkcs12",
+            "key-store-password" : "acumosb",
+            "key-store-type" : "PKCS12",
+            "key-password" : "acumosb",
+            "trust-store" : "acumosTrustStore.jks",
+            "trust-store-password" : "acumos",
+            "client-auth" : "need"
+          }
+        },
+        "client" : {
+          "ssl" : {
+            "key-store" : "classpath:/acumosb.pkcs12",
+            "key-store-password" : "acumosb",
+            "key-store-type" : "PKCS12",
+            "key-password" : "acumosb"
+          }
+        },
+        "spring": {
+          "profiles": {
+            "active": "gateway"
+          }
+        },
+        "peer": {
+          "jobchecker": {
+            "interval": 300
+          }
+        },
+        "federation" : {
+          "instance" : "adapter",
+          "instance.name": "ghost",
+          "operator" : "anonymous"
+        },
+        "peersLocal" : {
+          "source" : "classpath:/acumosb-peers.json"
+        },
+        "catalogLocal" : {
+          "source" : "classpath:/acumosb-catalog.json"
+        }
+      }'
+    expose:
+      - "9002"
+    ports:
+      - "9002:9002"
+    logging:
+      driver: json-file
+

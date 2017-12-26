@@ -16,7 +16,7 @@
 		"description":"acumosb",
     "active": "true",
     "self": "false",
-		"apiUrl":"https://localhost:9002",
+		"apiUrl":"https://gateway.acumosb.org:9002",
 		"subscriptions":[
 			{
         "subId":1,

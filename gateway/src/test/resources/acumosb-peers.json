@@ -15,7 +15,7 @@
 		"description":"acumosa",
 		"active":"true",
     "self":"false",
-		"apiUrl":"https://localhost:9001",
+		"apiUrl":"https://gateway.acumosa.org:9001",
 		"subscriptions":[
 			{
 				"subId":1,

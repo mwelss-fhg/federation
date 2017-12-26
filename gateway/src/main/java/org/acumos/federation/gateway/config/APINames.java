@@ -30,12 +30,17 @@ package org.acumos.federation.gateway.config;
 public class APINames {
 	 //Solutions APIs for MarketPlace Catalog
     public static final String PEER_SOLUTIONS = "/solutions";
-    public static final String PEER_SOLUTIONS_DETAILS = "/solutions/{solutionId}";
+    public static final String PEER_SOLUTION_DETAILS = "/solutions/{solutionId}";
     
-    public static final String PEER_SOLUTIONS_REVISIONS = "/solutions/{solutionId}/revisions";
-    public static final String PEER_SOLUTIONS_REVISIONS_ARTIFACTS = "/solutions/{solutionId}/revisions/{revisionId}";
+    public static final String PEER_SOLUTION_REVISIONS = "/solutions/{solutionId}/revisions";
+    public static final String PEER_SOLUTION_REVISION_DETAILS = "/solutions/{solutionId}/revisions/{revisionId}";
     
-    public static final String PEER_ARTIFACT = "/artifacts";
+    public static final String PEER_SOLUTION_REVISION_ARTIFACTS = "/solutions/{solutionId}/revisions/{revisionId}/artifacts";
     public static final String PEER_ARTIFACT_DETAILS = "/artifacts/{artifactId}";
-    public static final String PEER_ARTIFACT_download = "/artifacts/{artifactId}/download";
+    public static final String PEER_ARTIFACT_DOWNLOAD = "/artifacts/{artifactId}/download";
+    
+		public static final String PEER_PEERS = "/peers";
+		
+		//public static final String PEER_SUBSCRIBE = "/peer/subscribe";
+		//public static final String PEER_UNSUBSCRIBE = "/peer/unsubscribe";
 }
