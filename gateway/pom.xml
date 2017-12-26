@@ -34,12 +34,12 @@
 		<!-- Docker daemon -->
 		<docker.host.url>unix:/var/run/docker.sock</docker.host.url>
 		<!-- Docker image registry -->
-		<!--
 		<docker.registry.url>Set by Jenkins</docker.registry.url>
 		<docker.registry.login>Registry userId - supplied by jenkins</docker.registry.login>
 		<docker.registry.password>Registry password - supplied by jenkins</docker.registry.password>
-		-->
-		<docker.registry.url>registry.hub.docker.io</docker.registry.url> 
+		<!--
+		<docker.registry.url>registry.hub.docker.io</docker.registry.url>
+		--> 
 		<!-- dependencies versions -->
 		<slf4j.version>1.7.25</slf4j.version>
 		<logback.version>1.2.3</logback.version>
@@ -287,13 +287,11 @@
 				<configuration>
 					<verbose>true</verbose>
 					<dockerHost>${docker.host.url}</dockerHost>
-<!--
 					<registry>${docker.registry.url}</registry>
 					<authConfig>
 						<username>${docker.registry.login}</username>
 						<password>${docker.registry.password}</password>
 					</authConfig>
--->
 					<images>
 						<image>
 							<name>federation-gateway:${project.version}</name>
