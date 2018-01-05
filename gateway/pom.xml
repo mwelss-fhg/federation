@@ -400,7 +400,7 @@
 								</assembly>
 								<!-- This is the same CMD used in a Dockerfile -->
 								<cmd>
-									<shell>cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djavax.net.debug=ssl -Djavax.net.ssl.trustStore=/app/certs/acumosTrustStore.jks -Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher</shell>
+									<shell>cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStore=/app/certs/acumosTrustStore.jks -Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher</shell>
 								</cmd>
 							</build>
 						</image>
