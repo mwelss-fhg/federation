@@ -24,7 +24,7 @@
      {
       "artifactId":"4fd46d93-e627-473b-a984-be9898ad1123",
       "name":"configuration",
-      "uri":"/home/src/acumos/federation/gateway/application-acumosa.properties",
+      "uri":"classpath:application-acumosa.properties",
       "metadata":"acumosa",
   	  "created":"2017-08-10",
   	  "modified":"2017-08-11"

@@ -26,20 +26,27 @@ import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Collections;
 
 import org.apache.http.client.HttpClient;
 
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.APIConstants;
-import org.acumos.federation.gateway.config.APINames;
+import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.util.Utils;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.core.io.Resource;
+
+//import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
+import org.springframework.util.Base64Utils;
 
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 
@@ -82,11 +89,24 @@ public class FederationClient extends AbstractClient {
 	 * @throws HttpStatusCodeException
 	 * 		Throws HttpStatusCodeException is remote acumos is not available
 	 */
-	public JsonResponse<List<MLPSolution>> getSolutionsListFromPeer(Map<String, Object> queryParameters) throws HttpStatusCodeException {
-		URI uri = buildUri(new String[] { APIConstants.SOLUTIONS }, queryParameters,
-				null);
-		logger.info(EELFLoggerDelegate.debugLogger, "getPeerSubscriptions: uri " + uri);
-		System.out.println("getPeerSubscriptions: uri " + uri);
+	public JsonResponse<List<MLPSolution>> getSolutions(Map<String, Object> theSelection) throws HttpStatusCodeException {
+
+		String selectorParam = null;
+		try {
+			selectorParam = theSelection == null ? null
+																					 //: UriUtils.encodeQueryParam(Utils.mapToJsonString(theSelection),"UTF-8"); 
+																					 : Base64Utils.encodeToString(Utils.mapToJsonString(theSelection).getBytes("UTF-8")); 
+		}
+		catch (Exception x) {
+			throw new IllegalArgumentException("Cannot process the selection argument", x);
+		}
+
+		URI uri =	
+			API.SOLUTIONS.buildUri(
+				this.baseUrl,
+				selectorParam == null ? Collections.EMPTY_MAP
+															: Collections.singletonMap(API.QueryParameters.SOLUTIONS_SELECTOR, selectorParam));
+		logger.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
 		ResponseEntity<JsonResponse<List<MLPSolution>>> response = null;
 		try {
 			response = restTemplate.exchange(
@@ -96,14 +116,14 @@ public class FederationClient extends AbstractClient {
 									new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 		}
 		catch (HttpStatusCodeException x) {
-		System.out.println("getPeerSubscriptions: error " + x);
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " failed.", x);
 			throw x;
 		}
 		catch (Throwable t) {
-			System.out.println("getPeerSubscriptions: error " + t);
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " unexpected failure.", t);
 		}
 		finally {
-		System.out.println("getPeerSubscriptions: response " + response);
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
 		return response == null ? null : response.getBody();
 	}
@@ -117,14 +137,31 @@ public class FederationClient extends AbstractClient {
 	 * @throws HttpStatusCodeException
 	 * 		Throws HttpStatusCodeException is remote acumos is not available
 	 */
-	public JsonResponse<List<MLPSolutionRevision>> getSolutionsRevisionListFromPeer(String solutinoId, Map<String, Object> queryParameters) throws HttpStatusCodeException {
-		URI uri = buildUri(new String[] { APIConstants.SOLUTIONS, solutinoId, APIConstants.REVISIONS }, queryParameters,
-				null);
-		logger.info(EELFLoggerDelegate.debugLogger, "getPeerSubscriptions: uri " + uri);
-		ResponseEntity<JsonResponse<List<MLPSolutionRevision>>> response = restTemplate.exchange(uri, HttpMethod.GET,
-				null, new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {
+	public JsonResponse<List<MLPSolutionRevision>> getSolutionRevisions(
+		String theSolutionId)	throws HttpStatusCodeException {
+
+		URI uri =	API.SOLUTION_REVISIONS.buildUri(this.baseUrl, theSolutionId);
+		logger.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		ResponseEntity<JsonResponse<List<MLPSolutionRevision>>> response = null;
+		try {
+			response = restTemplate.exchange(
+									uri,
+									HttpMethod.GET,
+									null,
+									new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {
 				});
-		return response.getBody();
+		}
+		catch (HttpStatusCodeException x) {
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " failed.", x);
+			throw x;
+		}
+		catch (Throwable t) {
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		return response == null ? null : response.getBody();
 	}
 	
 	/**
@@ -136,13 +173,57 @@ public class FederationClient extends AbstractClient {
 	 * @throws HttpStatusCodeException
 	 * 		Throws HttpStatusCodeException is remote acumos is not available
 	 */
-	public JsonResponse<List<MLPArtifact>> getArtifactsListFromPeer(String solutinoId, String revisionId, Map<String, Object> queryParameters) throws HttpStatusCodeException {
-		URI uri = buildUri(new String[] { APIConstants.SOLUTIONS, solutinoId, APIConstants.REVISIONS, revisionId }, queryParameters,
-				null);
-		logger.info(EELFLoggerDelegate.debugLogger, "getPeerSubscriptions: uri " + uri);
-		ResponseEntity<JsonResponse<List<MLPArtifact>>> response = restTemplate.exchange(uri, HttpMethod.GET,
-				null, new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {
+	public JsonResponse<List<MLPArtifact>> getArtifacts(
+		String theSolutionId, String theRevisionId) throws HttpStatusCodeException {
+		URI uri =	API.SOLUTION_REVISION_ARTIFACTS.buildUri(this.baseUrl, theSolutionId, theRevisionId);
+		logger.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		ResponseEntity<JsonResponse<List<MLPArtifact>>> response = null;
+		try {
+			response = restTemplate.exchange(
+									uri,
+									HttpMethod.GET,
+									null,
+									new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {
 				});
-		return response.getBody();
+		}
+		catch (HttpStatusCodeException x) {
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " failed.", x);
+			throw x;
+		}
+		catch (Throwable t) {
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		return response == null ? null : response.getBody();
 	}
+	
+	/**
+	 */
+	public Resource downloadArtifact(String theArtifactId) 
+																								throws HttpStatusCodeException {
+		URI uri =	API.ARTIFACT_DOWNLOAD.buildUri(this.baseUrl, theArtifactId);
+		logger.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		ResponseEntity<Resource> response = null;
+		try {
+			response = restTemplate.exchange(
+									uri,
+									HttpMethod.GET,
+									null,
+									Resource.class);
+		}
+		catch (HttpStatusCodeException x) {
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " failed.", x);
+			throw x;
+		}
+		catch (Throwable t) {
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			logger.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		return response == null ? null : response.getBody();
+	}
+
 }

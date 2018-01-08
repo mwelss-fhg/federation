@@ -36,8 +36,6 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.APIConstants;
-import org.acumos.federation.gateway.config.APINames;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;

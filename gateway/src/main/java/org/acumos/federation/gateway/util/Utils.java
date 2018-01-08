@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -74,20 +75,23 @@ public class Utils {
 			try {
 				map = objectMapper.readValue(jsonString, new TypeReference<Map< String, Object>>() {
 				});
-			} catch (JsonParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (JsonMappingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			}
+			catch (IOException x) {
+				throw new IllegalArgumentException("Argument not a map", x);
 			}
 		}
 		return map;
 	}
-	
+
+	public static String mapToJsonString(Map<String,?> theMap) {
+
+		try {
+			return objectMapper.writeValueAsString(theMap);
+		}
+		catch (JsonProcessingException x) {
+			throw new IllegalArgumentException("Failed to convert", x);
+		}
+	}	
 	
 	/**
 	 * 

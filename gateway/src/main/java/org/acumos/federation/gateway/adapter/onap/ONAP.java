@@ -240,7 +240,7 @@ public class ONAP {
 			List<MLPSolutionRevision> acumosRevisions = null;
 			try {
 				acumosRevisions = (List<MLPSolutionRevision>)
-					fedClient.getSolutionsRevisionListFromPeer(theSolution.getSolutionId(), null).getResponseBody();
+					fedClient.getSolutionRevisions(theSolution.getSolutionId()).getResponseBody();
 			}
 			catch (Exception x) {
 				logger.warn(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos revisions: " + x);
@@ -250,7 +250,7 @@ public class ONAP {
 			List<MLPArtifact> acumosArtifacts = null;
 			try {
 				acumosArtifacts = (List<MLPArtifact>)
-					fedClient.getArtifactsListFromPeer(theSolution.getSolutionId(), acumosRevisions.get(acumosRevisions.size()-1).getRevisionId(), null)
+					fedClient.getArtifacts(theSolution.getSolutionId(), acumosRevisions.get(acumosRevisions.size()-1).getRevisionId())
 										.getResponseBody();
 			}
 			catch (Exception x) {

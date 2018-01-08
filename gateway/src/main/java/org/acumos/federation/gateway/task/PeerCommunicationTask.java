@@ -105,7 +105,7 @@ public class PeerCommunicationTask implements Runnable {
      	logger.info(EELFLoggerDelegate.debugLogger, "Peer Task: filter " + mlpSubscription.getSelector());
 			
      	JsonResponse<List<MLPSolution>> jsonResponse = 
-						fedClient.getSolutionsListFromPeer(
+						fedClient.getSolutions(
 							Utils.jsonStringToMap(mlpSubscription.getSelector()));
 			if(jsonResponse != null && jsonResponse.getResponseBody() != null) {
 				List<MLPSolution> mlpSolutions = jsonResponse.getResponseBody();

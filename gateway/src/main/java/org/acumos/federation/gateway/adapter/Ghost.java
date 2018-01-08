@@ -20,6 +20,9 @@
 
 package org.acumos.federation.gateway.gateway.adapter;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 import java.net.URI;
 
 import java.util.List;
@@ -28,6 +31,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -35,7 +39,9 @@ import javax.annotation.PreDestroy;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.Conditional;
 //import org.springframework.scheduling.annotation.Scheduled;
@@ -49,6 +55,8 @@ import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.common.GhostAdapterCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
+import org.acumos.federation.gateway.service.impl.FederationClient;
+import org.acumos.federation.gateway.service.impl.Clients;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPArtifact;
@@ -72,6 +80,8 @@ public class Ghost {
 
 	private Map<String, Map<String, MLPSolution>>	imports = 
 						new HashMap<String, Map<String, MLPSolution>>();
+	@Autowired
+	private Clients clients;
 
 	
 	@PostConstruct
@@ -134,6 +144,43 @@ public class Ghost {
 						}
 						else {
 							logger.debug(EELFLoggerDelegate.debugLogger, "Has updates");
+						}
+					}
+
+					FederationClient fedClient =
+						clients.getFederationClient(this.peer.getApiUrl());
+
+					List<MLPSolutionRevision> revisions = null;
+					try {
+						revisions = (List<MLPSolutionRevision>)
+							fedClient.getSolutionRevisions(solution.getSolutionId()).getResponseBody();
+					}
+					catch (Exception x) {
+						logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve revisions", x);
+						continue;
+					}
+					logger.debug(EELFLoggerDelegate.debugLogger, "Received " + revisions.size() + " revisions " + revisions);
+			
+					List<MLPArtifact> artifacts = null;
+					try {
+						artifacts = (List<MLPArtifact>)
+							fedClient.getArtifacts(solution.getSolutionId(), revisions.get(revisions.size()-1).getRevisionId())
+								.getResponseBody();
+					}
+					catch (Exception x) {
+						logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve artifacts", x);
+						continue;
+					}
+					logger.debug(EELFLoggerDelegate.debugLogger, "Received " + artifacts.size() + " artifacts " + artifacts);
+
+					for (MLPArtifact artifact: artifacts) {
+						Resource artifactContent = null;
+						try {
+							artifactContent = fedClient.downloadArtifact(artifact.getArtifactId());
+						logger.warn(EELFLoggerDelegate.debugLogger, "Received artifact content: " + new BufferedReader(new InputStreamReader(artifactContent.getInputStream())).lines().collect(Collectors.joining("\n")));
+						}
+						catch (Exception x) {
+							logger.debug(EELFLoggerDelegate.debugLogger, "Failed to download artifact", x);
 						}
 					}
 				}

@@ -23,8 +23,8 @@
  */
 package org.acumos.federation.gateway.service;
 
-import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.core.io.InputStreamResource;
 
@@ -68,7 +68,7 @@ public interface CatalogService {
 	 * 
 	 * @return List of the Catalog Solutions for the specified list of query parameters
 	 */
-	List<MLPSolution> getSolutions(String mlpModelTypes, ServiceContext theContext);
+	List<MLPSolution> getSolutions(Map<String,?> theSelector, ServiceContext theContext);
 	
 
 	/**

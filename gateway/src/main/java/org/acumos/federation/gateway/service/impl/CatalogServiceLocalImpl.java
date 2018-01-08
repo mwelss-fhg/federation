@@ -126,11 +126,14 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl
 
 	@Override
 	public List<MLPSolution> getSolutions(
-		String mlpModelTypes, ServiceContext theContext) {
+		Map<String,?> theSelector, ServiceContext theContext) {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions");
+		String modelTypeSelector = theSelector == null ? null
+																									 :(String)theSelector.get("modelTypeCode");
 		final List<String> modelTypes =
-			mlpModelTypes == null ? null : Arrays.asList(mlpModelTypes.split(","));
+			modelTypeSelector == null ? null
+																: Arrays.asList(modelTypeSelector.split(","));
 		return solutions.stream()
 							.filter(solution -> {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerCatalogSolutionsList: looking for " + modelTypes + ", has " + solution.getModelTypeCode());
@@ -201,8 +204,23 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl
 		String theArtifactId, ServiceContext theContext) {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifactContent");
-		//difficult here as we only have the artifact id ..
-	
+		//cumbersome
+		for (FLPSolution solution: this.solutions) {
+			for (FLPRevision revision: solution.getRevisions()) {
+				for (MLPArtifact artifact: revision.getArtifacts()) {
+					if (artifact.getArtifactId().equals(theArtifactId)) {
+						try {
+							return new InputStreamResource(
+													new URI(artifact.getUri()).toURL().openStream());
+						}
+						catch (Exception x) {
+							log.debug(EELFLoggerDelegate.debugLogger, "failed to load content from " + artifact.getUri(), x);
+						}
+					}
+				}
+			}
+		}
+
 		return null;
 	}
 
@@ -238,8 +256,25 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl
 		private List<MLPArtifact> artifacts;
 
 		//@JsonIgnore
+		//we send a deep clone as the client can modify them and we only have one copy
 		public List<MLPArtifact> getArtifacts() {
-			return this.artifacts;
+			List<MLPArtifact> copy = new LinkedList<MLPArtifact>();
+			for (MLPArtifact artifact: this.artifacts) {
+				MLPArtifact acopy = new MLPArtifact();
+				acopy.setArtifactId(artifact.getArtifactId());
+				acopy.setArtifactTypeCode(artifact.getArtifactTypeCode());
+				acopy.setDescription(artifact.getDescription());
+				acopy.setUri(artifact.getUri());
+				acopy.setName(artifact.getName());
+				acopy.setSize(artifact.getSize());
+				acopy.setOwnerId(artifact.getOwnerId());
+				acopy.setCreated(artifact.getCreated());
+				acopy.setModified(artifact.getModified());
+				acopy.setMetadata(artifact.getMetadata());
+
+				copy.add(acopy);
+			}
+			return copy;
 		}
 
 		public void setArtifacts(List<MLPArtifact> theArtifacts) {

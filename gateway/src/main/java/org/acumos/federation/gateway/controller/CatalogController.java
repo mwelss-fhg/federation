@@ -20,12 +20,16 @@
 
 package org.acumos.federation.gateway.controller;
 
+import java.net.URI;
+
+import java.util.Map;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
@@ -40,13 +44,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.util.Base64Utils;
 
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.federation.gateway.util.Utils;
+import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JSONTags;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.APINames;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.ServiceContext;
@@ -76,7 +82,7 @@ public class CatalogController extends AbstractController {
 //	 */
 //	@CrossOrigin
 //	@ApiOperation(value = "Invoked by Peer Acumos to get a Paginated list of Published Solutions from the Catalog of the local Acumos Instance .", response = MLPSolution.class, responseContainer = "Page")
-//	@RequestMapping(value = {APINames.PEER_SOLUTIONS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
+//	@RequestMapping(value = {API.Paths.SOLUTIONS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
 //	@ResponseBody
 //	public JsonResponse<RestPageResponse<MLPSolution>> getSolutionsListFromPeer(HttpServletRequest request, HttpServletResponse response,
 //			@RequestParam("pageNumber") Integer pageNumber, @RequestParam("maxSize") Integer maxSize, 
@@ -107,19 +113,25 @@ public class CatalogController extends AbstractController {
 //@PreAuthorize("hasAuthority('PEER')"
 	@PreAuthorize("hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).CATALOG_ACCESS)")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of Published Solutions from the Catalog of the local Acumos Instance .", response = MLPSolution.class, responseContainer = "List")
-	@RequestMapping(value = {APINames.PEER_SOLUTIONS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@RequestMapping(value = {API.Paths.SOLUTIONS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<List<MLPSolution>> getSolutions(
 			/* HttpServletRequest theHttpRequest,*/
 			HttpServletResponse theHttpResponse,
-			@RequestParam(value = "modelTypeCode", required = false) String mlpModelTypes) {
+			@RequestParam(value = API.QueryParameters.SOLUTIONS_SELECTOR,
+										required = false) String theSelector) {
 		JsonResponse<List<MLPSolution>> response = null;
 		List<MLPSolution> peerCatalogSolutions = null;
-		log.debug(EELFLoggerDelegate.debugLogger, APINames.PEER_SOLUTIONS);
+		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTIONS);
 		try {
 			response = new JsonResponse<List<MLPSolution>>();
-			log.debug(EELFLoggerDelegate.debugLogger, "getSolutionsListFromPeer: model types " + mlpModelTypes);
-			peerCatalogSolutions = catalogService.getSolutions(mlpModelTypes, new ControllerContext());
+			log.debug(EELFLoggerDelegate.debugLogger, "getSolutionsListFromPeer: selector " + theSelector);
+			Map<String,?> selector = null;
+			if (theSelector != null) 
+				selector = Utils.jsonStringToMap(new String(Base64Utils.decodeFromString(theSelector), "UTF-8"));
+				
+			peerCatalogSolutions =
+					catalogService.getSolutions(selector, new ControllerContext());
 			if(peerCatalogSolutions != null) {
 				response.setResponseBody(peerCatalogSolutions);
 				response.setResponseCode(String.valueOf(HttpServletResponse.SC_OK));
@@ -141,14 +153,14 @@ public class CatalogController extends AbstractController {
 	@CrossOrigin
 	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list detailed solution information from the Catalog of the local Acumos Instance .", response = MLPSolution.class)
-	@RequestMapping(value = {APINames.PEER_SOLUTION_DETAILS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@RequestMapping(value = {API.Paths.SOLUTION_DETAILS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<MLPSolution> getSolutionDetails(
 			HttpServletResponse theHttpResponse,
 			@PathVariable(value="solutionId") String theSolutionId) {
 		JsonResponse<MLPSolution> response = null;
 		MLPSolution solution = null;
-		log.debug(EELFLoggerDelegate.debugLogger, APINames.PEER_SOLUTION_DETAILS + ": " + theSolutionId);
+		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTION_DETAILS + ": " + theSolutionId);
 		try {
 			response = new JsonResponse<MLPSolution>();
 			solution = catalogService.getSolution(theSolutionId, new ControllerContext());
@@ -182,14 +194,14 @@ public class CatalogController extends AbstractController {
 	@CrossOrigin
 	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of Solution Revision from the Catalog of the local Acumos Instance .", response = MLPSolutionRevision.class, responseContainer = "List")
-	@RequestMapping(value = {APINames.PEER_SOLUTION_REVISIONS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@RequestMapping(value = {API.Paths.SOLUTION_REVISIONS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<List<MLPSolutionRevision>> getSolutionRevisions(
 			HttpServletResponse theHttpResponse,
 			@PathVariable("solutionId") String theSolutionId) {
 		JsonResponse<List<MLPSolutionRevision>> response = null;
 		List<MLPSolutionRevision> solutionRevisions= null;
-		log.debug(EELFLoggerDelegate.debugLogger, APINames.PEER_SOLUTION_REVISIONS);
+		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTION_REVISIONS);
 		try {
 			response = new JsonResponse<List<MLPSolutionRevision>>();
 			solutionRevisions = catalogService.getSolutionRevisions(theSolutionId, new ControllerContext());
@@ -222,7 +234,7 @@ public class CatalogController extends AbstractController {
 	@CrossOrigin
 	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by Peer Acumos to get Solution Revision details from the Catalog of the local Acumos Instance .", response = MLPSolutionRevision.class)
-	@RequestMapping(value = {APINames.PEER_SOLUTION_REVISION_DETAILS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@RequestMapping(value = {API.Paths.SOLUTION_REVISION_DETAILS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<MLPSolutionRevision> getSolutionRevisionDetails(
 			HttpServletResponse theHttpResponse,
@@ -230,7 +242,7 @@ public class CatalogController extends AbstractController {
 			@PathVariable("revisionId") String theRevisionId) {
 		JsonResponse<MLPSolutionRevision> response = null;
 		MLPSolutionRevision solutionRevision= null;
-		log.debug(EELFLoggerDelegate.debugLogger, APINames.PEER_SOLUTION_REVISION_DETAILS);
+		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTION_REVISION_DETAILS + "(" + theSolutionId + "," + theRevisionId + ")");
 		try {
 			response = new JsonResponse<MLPSolutionRevision>();
 			solutionRevision = catalogService.getSolutionRevision(theSolutionId, theRevisionId, new ControllerContext());
@@ -262,7 +274,7 @@ public class CatalogController extends AbstractController {
 	@CrossOrigin
 	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of Solution Revision Artifacts from the Catalog of the local Acumos Instance .", response = MLPArtifact.class, responseContainer = "List")
-	@RequestMapping(value = {APINames.PEER_SOLUTION_REVISION_ARTIFACTS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@RequestMapping(value = {API.Paths.SOLUTION_REVISION_ARTIFACTS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<List<MLPArtifact>> getSolutionRevisionArtifacts (
 			HttpServletRequest theHttpRequest,
@@ -271,22 +283,24 @@ public class CatalogController extends AbstractController {
 			@PathVariable("revisionId") String theRevisionId) {
 		JsonResponse<List<MLPArtifact>> response = null;
 		List<MLPArtifact> solutionRevisionArtifacts= null;
-		log.debug(EELFLoggerDelegate.debugLogger, APINames.PEER_SOLUTION_REVISION_ARTIFACTS + ":" + theSolutionId + ":" + theRevisionId);
+		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTION_REVISION_ARTIFACTS + "(" + theSolutionId + "," + theRevisionId + ")");
 		try {
 			response = new JsonResponse<List<MLPArtifact>>();
 			solutionRevisionArtifacts = catalogService.getSolutionRevisionArtifacts(theSolutionId, theRevisionId, new ControllerContext());
 			if(solutionRevisionArtifacts != null) {
 				//re-encode the artifact uri
 				{
-		      UriComponentsBuilder uriBuilder = 
-						UriComponentsBuilder.fromHttpUrl(theHttpRequest.getRequestURL().toString());
-
 					for (MLPArtifact artifact: solutionRevisionArtifacts) {
-						artifact.setUri(uriBuilder.replacePath("/artifacts/" + artifact.getArtifactId() + "/download")
-																			.toUriString());
+						//sooo cumbersome
+						URI requestUri = new URI(theHttpRequest.getRequestURL().toString());
+						URI artifactUri = 
+							API.ARTIFACT_DOWNLOAD.buildUri(
+								new URI(requestUri.getScheme(), null, requestUri.getHost(), requestUri.getPort(), null, null, null).toString(),
+								artifact.getArtifactId());
+						log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts: content uri " + artifactUri);
+						artifact.setUri(artifactUri.toString());
 					}
 				}
-
 				response.setResponseBody(solutionRevisionArtifacts);
 				response.setResponseCode(String.valueOf(HttpServletResponse.SC_OK));
 				response.setResponseDetail(JSONTags.TAG_STATUS_SUCCESS);
@@ -300,7 +314,7 @@ public class CatalogController extends AbstractController {
 			response.setResponseDetail(JSONTags.TAG_STATUS_FAILURE);
 			response.setStatus(false);
 			theHttpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			log.error(EELFLoggerDelegate.errorLogger, "Exception Occurred Fetching Solution Revisions Artifacts for Market Place Catalog", e);
+			log.error(EELFLoggerDelegate.errorLogger, "Failed to fetch solution revision artifacts", e);
 		}
 		return response;
 	}
@@ -315,7 +329,7 @@ public class CatalogController extends AbstractController {
 	@CrossOrigin
 	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "API to download the Machine Learning Artifact of the Machine Learning Solution", response = InputStreamResource.class, code = 200)
-	@RequestMapping(value = {APINames.PEER_ARTIFACT_DOWNLOAD}, method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+	@RequestMapping(value = {API.Paths.ARTIFACT_DOWNLOAD}, method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
 	@ResponseBody
 	public InputStreamResource downloadSolutionArtifact(
 			HttpServletRequest theHttpRequest,
@@ -324,7 +338,6 @@ public class CatalogController extends AbstractController {
 		InputStreamResource inputStreamResource = null;
 		try {
 			inputStreamResource = catalogService.getSolutionRevisionArtifactContent(theArtifactId, new ControllerContext());
-			//TODO : Need to Implement a logic to download a Artifact or Docker Image from Nexus
 			theHttpResponse.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 			theHttpResponse.setHeader("Pragma", "no-cache");
 			theHttpResponse.setHeader("Expires", "0");
@@ -337,8 +350,6 @@ public class CatalogController extends AbstractController {
 		return inputStreamResource;
 	}
 
-	/**
-	 */
 	protected class ControllerContext implements ServiceContext {
 
 		public Peer getPeer() {

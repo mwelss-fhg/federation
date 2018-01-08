@@ -97,16 +97,29 @@ public class CatalogServiceImpl
 */
 	@Override
 	public List<MLPSolution> getSolutions(
-		String mlpModelTypes, ServiceContext theContext) {
+		Map<String,?> theSelector, ServiceContext theContext) {
 		
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions");
 		List<MLPSolution> filteredMLPSolutions = null;
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
-		//TODO: revisit this code to pass query parameters to CCDS Service
-		Map<String, Object> queryParameters = new HashMap<String, Object>(this.baseSelector);
-		List<MLPSolution> mlpSolutions = dataServiceRestClient.searchSolutions(queryParameters, false);
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: data service provided solutions " + mlpSolutions);
+		ICommonDataServiceRestClient cdsClient = getClient();
 
+//		String modelTypeSelector = theSelector.get("modelTypeCode");
+//		final List<String> modelTypes =
+//			modelTypeSelector == null ? null
+//																: Arrays.asList(modelTypeSelector.split(","));
+		//TODO: revisit this code to pass query parameters to CCDS Service
+	
+		Map<String, Object> selector =
+				new HashMap<String, Object>(this.baseSelector);
+		if (theSelector != null)
+			selector.putAll(theSelector);
+
+		List<MLPSolution> solutions = cdsClient.searchSolutions(selector, false);
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: cds solutions " + solutions);
+
+		return solutions;
+
+		/*
 		if(mlpSolutions != null && mlpSolutions.size() > 0 && !Utils.isEmptyOrNullString(mlpModelTypes)) {
 			//Filter List using Lamba to get solutions which matches the ML Model Type
 			filteredMLPSolutions = mlpSolutions.stream()
@@ -115,10 +128,12 @@ public class CatalogServiceImpl
 																																mlpModelTypes.contains(modelType);	
 																											 })
 																.collect(Collectors.toList());
-		} else {
+		}
+		else {
 			filteredMLPSolutions = mlpSolutions;
 		}
 		return filteredMLPSolutions;
+		*/
 	}
 
 	@Override

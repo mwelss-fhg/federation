@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.common.JSONTags;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.APINames;
+import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.ServiceContext;
@@ -74,7 +74,7 @@ public class PeerController extends AbstractController {
 	@CrossOrigin
 	@PreAuthorize("hasAuthority('PEERS_ACCESS')")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of peers from local Acumos Instance .", response = MLPPeer.class, responseContainer = "List")
-	@RequestMapping(value = {APINames.PEER_PEERS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@RequestMapping(value = {API.Paths.PEERS}, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<List<MLPPeer>> getSolutions(
 			/* HttpServletRequest theHttpRequest,*/
@@ -82,7 +82,7 @@ public class PeerController extends AbstractController {
 
 		JsonResponse<List<MLPPeer>> response = null;
 		List<MLPPeer> peers = null;
-		log.debug(EELFLoggerDelegate.debugLogger, APINames.PEER_PEERS);
+		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.PEERS);
 		try {
 			response = new JsonResponse<List<MLPPeer>>();
 			log.debug(EELFLoggerDelegate.debugLogger, "getPeers");

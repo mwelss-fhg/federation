@@ -30,8 +30,6 @@ import java.util.Map;
 import org.apache.http.client.HttpClient;
 
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.APIConstants;
-import org.acumos.federation.gateway.config.APINames;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
