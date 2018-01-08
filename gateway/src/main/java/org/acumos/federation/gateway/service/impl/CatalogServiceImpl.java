@@ -49,7 +49,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.context.annotation.Conditional;
 
 import org.acumos.nexus.client.NexusArtifactClient;
-import org.acumos.nexus.client.RepositoryLocation;
 
 import org.acumos.cds.AccessTypeCode;
 import org.acumos.cds.ValidationStatusCode;
@@ -191,17 +190,7 @@ public class CatalogServiceImpl
 			ICommonDataServiceRestClient cdsClient = getClient();
 			MLPArtifact mlpArtifact = cdsClient.getArtifact(theArtifactId);
 			
-			String path = Utils.getTempFolderPath(mlpArtifact.getName(), mlpArtifact.getVersion(), env.getProperty("nexus.tempFolder", ""));
-			
-			RepositoryLocation repositoryLocation = new RepositoryLocation();
-			repositoryLocation.setId("1");
-			repositoryLocation.setUrl(env.getProperty("nexus.url"));
-			repositoryLocation.setUsername(env.getProperty("nexus.username"));
-			repositoryLocation.setPassword(env.getProperty("nexus.password"));
-			repositoryLocation.setProxy(env.getProperty("nexus.proxy"));
-			
-			// if you need a proxy to access the Nexus
-			NexusArtifactClient artifactClient = new NexusArtifactClient(repositoryLocation);
+			NexusArtifactClient artifactClient = this.clients.getNexusClient();
 			
 			byteArrayOutputStream = artifactClient.getArtifact(mlpArtifact.getUri());
 			InputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
@@ -213,7 +202,6 @@ public class CatalogServiceImpl
 			if(byteArrayOutputStream != null) {
 				byteArrayOutputStream.close();
 			}
-			Utils.deletetTempFiles(path);
 			
 		} catch (Exception e) {
 			log.error(EELFLoggerDelegate.errorLogger, "getSolutionRevisionArtifactiContent", e);

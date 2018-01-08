@@ -164,15 +164,19 @@ public class PeerGateway {
 					}
 					
 					//Verify if MLPSolution is not same
-					if(mlpSolution != null && !isSameMLPSolution(acumosSolution, mlpSolution)) {
+					if(mlpSolution != null &&
+						 isSameMLPSolution(acumosSolution, mlpSolution)) {
 						//if already exists locally then loop through next
 						mlpSolution = updateMLPSolution(acumosSolution, mlpSolution, cdsClient);
 						
-					} else {
+					} 
+					else {
 						mlpSolution = createMLPSolution(acumosSolution, cdsClient);
 					}
-					updateMLPSolutionArtifacts(mlpSolution, cdsClient);
-					//ONAP.this.asdc.checkinResource(UUID.fromString(sdcAsset.getString("artifactUUID")), ONAP.this.asdcOperator, "solution imported " + " the acumos revision number ");
+
+					if (mlpSolution != null) {	
+						updateMLPSolutionArtifacts(mlpSolution, cdsClient);
+					}
 				}
 				catch (Exception x) {
 					logger.warn(EELFLoggerDelegate.debugLogger, "Mapping of acumos solution failed for: " + acumosSolution + ": " + x);
@@ -294,7 +298,7 @@ public class PeerGateway {
 		}
 		
 		private MLPSolution updateMLPSolution(MLPSolution peerMLPSolution, MLPSolution localMLPSolution, ICommonDataServiceRestClient cdsClient) {
-			logger.info(EELFLoggerDelegate.debugLogger, "Updating Local MLP Solutino for peer solution " + peerMLPSolution);
+			logger.info(EELFLoggerDelegate.debugLogger, "Updating Local MLP Solution for peer solution " + peerMLPSolution);
 			localMLPSolution.setSolutionId(peerMLPSolution.getSolutionId());
 			localMLPSolution.setName(peerMLPSolution.getName());
 			localMLPSolution.setDescription(peerMLPSolution.getDescription());
@@ -372,7 +376,7 @@ public class PeerGateway {
 			
 			MLPSolutionRevision mlpSolutionRevision = cdsClient.getSolutionRevision(theSolution.getSolutionId(), acumosRevisions.get(acumosRevisions.size()-1).getRevisionId());
 			if(mlpSolutionRevision == null && !Utils.isEmptyList(acumosArtifacts)) {
-				//If SolutinoRevision is null, we need to create a Solution Revision in Local Acumos
+				//If SolutionRevision is null, we need to create a Solution Revision in Local Acumos
 				mlpSolutionRevision = createMLPSolutionRevision(acumosRevisions.get(acumosRevisions.size()-1), cdsClient);
 			} 
 			
@@ -388,11 +392,23 @@ public class PeerGateway {
 					Resource artifactContent = null;
 					try {
 						artifactContent = fedClient.downloadArtifact(artifact.getArtifactId());
-						logger.warn(EELFLoggerDelegate.debugLogger, "Received artifact content: " + new BufferedReader(new InputStreamReader(artifactContent.getInputStream())).lines().collect(Collectors.joining("\n")));
+						//logger.warn(EELFLoggerDelegate.debugLogger, "Received artifact content: " + new BufferedReader(new InputStreamReader(artifactContent.getInputStream())).lines().collect(Collectors.joining("\n")));
 					}
 					catch (Exception x) {
 						logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve acumos artifact content", x);
 					}
+
+					if (artifactContent != null) {
+						try {
+							PeerGateway.this.clients.getNexusClient().uploadArtifact("", "", "", "", 0, artifactContent.getInputStream());
+						}
+						catch (Exception x) {
+							logger.warn(EELFLoggerDelegate.debugLogger, "Failed to push artifact content to local Nexus repo", x);
+						}
+					}
+
+					//update artifact with local repo
+					//updateMLPArtifact(artifact, mlpArtifact, cdsClient);
 				}
 				
 			}

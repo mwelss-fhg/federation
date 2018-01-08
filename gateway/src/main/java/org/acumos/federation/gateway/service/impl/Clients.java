@@ -34,6 +34,10 @@ import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.cds.client.CommonDataServiceRestClientImpl;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 
+import org.acumos.nexus.client.NexusArtifactClient;
+import org.acumos.nexus.client.RepositoryLocation;
+
+
 /**
  * Unique entry point for building clients: peer access clients, cds clients
  */
@@ -69,5 +73,18 @@ public class Clients implements ApplicationContextAware {
     return new FederationClient(
 									thePeerURI,
                   (HttpClient)this.appCtx.getBean("federationClient"));
+	}
+
+	public NexusArtifactClient getNexusClient() {
+
+		RepositoryLocation repositoryLocation = new RepositoryLocation();
+		repositoryLocation.setId("1");
+		repositoryLocation.setUrl(this.env.getProperty("nexus.url"));
+		repositoryLocation.setUsername(this.env.getProperty("nexus.username"));
+		repositoryLocation.setPassword(this.env.getProperty("nexus.password"));
+		repositoryLocation.setProxy(this.env.getProperty("nexus.proxy"));
+			
+		// if you need a proxy to access the Nexus
+		return new NexusArtifactClient(repositoryLocation);
 	}
 }
