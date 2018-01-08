@@ -181,7 +181,7 @@ public class PeerGateway {
 					}
 				}
 				catch (Exception x) {
-					logger.warn(EELFLoggerDelegate.debugLogger, "Mapping of acumos solution failed for: " + acumosSolution + ": " + x);
+					logger.warn(EELFLoggerDelegate.debugLogger, "Mapping of acumos solution failed for: " + acumosSolution, x);
 				}
 			}
 		}
@@ -355,7 +355,6 @@ public class PeerGateway {
 		}
 		
 		public void updateMLPSolutionArtifacts(MLPSolution theSolution,  ICommonDataServiceRestClient cdsClient) throws Exception {
-			//fetch the solution artifacts: for now we'll do this for the latest acumos revision
 			FederationClient fedClient =
 					clients.getFederationClient(this.peer.getApiUrl());
 
