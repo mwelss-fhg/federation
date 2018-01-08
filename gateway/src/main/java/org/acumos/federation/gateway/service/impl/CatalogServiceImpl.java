@@ -197,7 +197,9 @@ public class CatalogServiceImpl
 			
 			//Plain Old Java. Sprint 3 will use try resource handling
 			if(inputStream != null) {
-				streamResource = new InputStreamResource(inputStream);
+				streamResource = new InputStreamResource(inputStream
+																								 /*, some_description
+																									*/);
 			}
 			if(byteArrayOutputStream != null) {
 				byteArrayOutputStream.close();

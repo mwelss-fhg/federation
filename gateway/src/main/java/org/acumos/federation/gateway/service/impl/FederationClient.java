@@ -223,7 +223,13 @@ public class FederationClient extends AbstractClient {
 		finally {
 			logger.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
-		return response == null ? null : response.getBody();
+
+		if (response == null) {
+			return null;
+		}
+		else {
+			return response.getBody();
+		}
 	}
 
 }

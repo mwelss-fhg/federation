@@ -36,6 +36,8 @@ import org.acumos.federation.gateway.service.impl.Clients;
 import org.acumos.federation.gateway.service.impl.FederationClient;
 import org.acumos.federation.gateway.util.Utils;
 
+import org.acumos.nexus.client.data.UploadArtifactInfo;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.BeanInitializationException;
 //import org.springframework.scheduling.annotation.Scheduled;
@@ -242,7 +244,11 @@ public class PeerGateway {
 			}
 		}
 		
-		private MLPArtifact createMLPArtifact(MLPArtifact mlpArtifact, ICommonDataServiceRestClient cdsClient) {
+		private MLPArtifact createMLPArtifact(
+				String theSolutionId,
+				String theRevisionId,
+				MLPArtifact mlpArtifact,
+				ICommonDataServiceRestClient cdsClient) {
 			MLPArtifact artifact = new MLPArtifact();
 			artifact.setArtifactId(mlpArtifact.getArtifactId());
 			artifact.setArtifactTypeCode(mlpArtifact.getArtifactTypeCode());
@@ -257,6 +263,7 @@ public class PeerGateway {
 			artifact.setVersion(mlpArtifact.getVersion());
 			try {
 				cdsClient.createArtifact(artifact);
+				cdsClient.addSolutionRevisionArtifact(theSolutionId, theRevisionId, mlpArtifact.getArtifactId());
 				return artifact;
 			}
 			catch (HttpStatusCodeException restx) {
@@ -384,10 +391,23 @@ public class PeerGateway {
 				for(MLPArtifact artifact : acumosArtifacts) {
 					MLPArtifact mlpArtifact = cdsClient.getArtifact(artifact.getArtifactId());
 					if(mlpArtifact == null) {
-						createMLPArtifact(mlpArtifact, cdsClient);
-					} else {
-						updateMLPArtifact(artifact, mlpArtifact, cdsClient);
+						mlpArtifact = createMLPArtifact(
+														theSolution.getSolutionId(),
+														mlpSolutionRevision.getRevisionId(),
+														artifact,
+														cdsClient);
 					}
+					else {
+						mlpArtifact = updateMLPArtifact(artifact, mlpArtifact, cdsClient);
+					}
+
+					if (mlpArtifact == null) {
+						//not transactional .. hard to recover from, we'll re-attempt
+						//next time we process the enclosing solution/revision (should be
+						//marked accordingly)
+						continue;
+					}
+
 					//artifacts file download and push it to nexus
 					Resource artifactContent = null;
 					try {
@@ -398,17 +418,37 @@ public class PeerGateway {
 						logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve acumos artifact content", x);
 					}
 
+					UploadArtifactInfo uploadInfo = null;
 					if (artifactContent != null) {
 						try {
-							PeerGateway.this.clients.getNexusClient().uploadArtifact("", "", "", "", 0, artifactContent.getInputStream());
+							uploadInfo = 
+								PeerGateway.this.clients.getNexusClient()
+									.uploadArtifact(
+											PeerGateway.this.env.getProperty("nexus.groupId"),
+											mlpArtifact.getName(), /* probably wrong */
+											mlpArtifact.getVersion(),
+											"", /* should receive this from peer */
+											artifactContent.contentLength(),
+											artifactContent.getInputStream());
 						}
 						catch (Exception x) {
 							logger.warn(EELFLoggerDelegate.debugLogger, "Failed to push artifact content to local Nexus repo", x);
 						}
 					}
 
-					//update artifact with local repo
-					//updateMLPArtifact(artifact, mlpArtifact, cdsClient);
+					if (uploadInfo != null) {
+						//update artifact with local repo reference
+						mlpArtifact.setUri(uploadInfo.getArtifactMvnPath());
+						try {
+							cdsClient.updateArtifact(mlpArtifact);
+						}
+						catch (HttpStatusCodeException restx) {
+							logger.error(EELFLoggerDelegate.debugLogger, "updateArtifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(),  restx);
+						}
+						catch (Exception x) {
+							logger.error(EELFLoggerDelegate.debugLogger, "updateArtifact unexpected failure",  x);
+						}
+					}
 				}
 				
 			}
