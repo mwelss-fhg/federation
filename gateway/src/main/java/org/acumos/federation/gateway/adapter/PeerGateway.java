@@ -34,6 +34,7 @@ import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.acumos.federation.gateway.service.impl.Clients;
 import org.acumos.federation.gateway.service.impl.FederationClient;
+import org.acumos.federation.gateway.util.Errors;
 import org.acumos.federation.gateway.util.Utils;
 
 import org.acumos.nexus.client.data.UploadArtifactInfo;
@@ -148,11 +149,7 @@ public class PeerGateway {
 
 			//list with category and subcategory currently used for onap
 			//more dynamic mapping to come: based on solution information it will provide sdc assettype, categoty and subcategoty
-			ICommonDataServiceRestClient cdsClient =
-				new CommonDataServiceRestClientImpl(
-							env.getProperty("cdms.client.url"),
-							env.getProperty("cdms.client.username"),
-							env.getProperty("cdms.client.password"));
+			ICommonDataServiceRestClient cdsClient = PeerGateway.this.clients.getClient();
 			
 			logger.info(EELFLoggerDelegate.debugLogger, "Received peer " + this.peer + " solutions: " + this.solutions);
 
@@ -381,7 +378,7 @@ public class PeerGateway {
 						peerRevisions.get(peerRevisions.size()-1).getRevisionId());
 			}
 			catch (HttpStatusCodeException restx) {
-				if (restx.getStatusCode() != HttpStatus.NOT_FOUND) {
+				if (!Errors.isCDSNotFound(restx)) {
 					logger.error(EELFLoggerDelegate.debugLogger, "getSolutionRevision CDS call failed. CDS message is " + restx.getResponseBodyAsString(),  restx);
 					throw restx;
 				}
@@ -418,7 +415,7 @@ public class PeerGateway {
 							cdsClient.getArtifact(peerArtifact.getArtifactId());
 					}
 					catch (HttpStatusCodeException restx) {
-						if (restx.getStatusCode() != HttpStatus.NOT_FOUND) {
+						if (!Errors.isCDSNotFound(restx)) {
 							logger.error(EELFLoggerDelegate.debugLogger, "getArtifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(),  restx);
 							throw restx;
 						}
