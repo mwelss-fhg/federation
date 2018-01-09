@@ -39,8 +39,12 @@ public class Errors {
 
 		if (theError.getStatusCode() == HttpStatus.BAD_REQUEST) {
 			String msg = theError.getResponseBodyAsString();
-			return (msg != null &&
-							msg.startsWith("No entry for ID"));
+			if (msg != null) {
+				return ((String)Utils
+													.jsonStringToMap(msg)
+														.getOrDefault("error", ""))
+												.startsWith("No entry for ID");
+			}
 		}
 		return false;
 	}
