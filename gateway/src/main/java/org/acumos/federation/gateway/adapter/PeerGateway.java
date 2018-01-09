@@ -51,6 +51,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 
 import org.acumos.cds.AccessTypeCode;
 import org.acumos.cds.ValidationStatusCode;
@@ -153,7 +154,7 @@ public class PeerGateway {
 							env.getProperty("cdms.client.username"),
 							env.getProperty("cdms.client.password"));
 			
-			logger.info(EELFLoggerDelegate.debugLogger, "Received Acumos solutions: " + this.solutions);
+			logger.info(EELFLoggerDelegate.debugLogger, "Received peer " + this.peer + " solutions: " + this.solutions);
 
 			for (MLPSolution acumosSolution: this.solutions) {
 				try {
@@ -177,7 +178,7 @@ public class PeerGateway {
 					}
 
 					if (mlpSolution != null) {	
-						updateMLPSolutionArtifacts(mlpSolution, cdsClient);
+						updateMLPSolution(mlpSolution, cdsClient);
 					}
 				}
 				catch (Exception x) {
@@ -354,64 +355,102 @@ public class PeerGateway {
 			return isSame;
 		}
 		
-		public void updateMLPSolutionArtifacts(MLPSolution theSolution,  ICommonDataServiceRestClient cdsClient) throws Exception {
+		public void updateMLPSolution(MLPSolution theSolution,  ICommonDataServiceRestClient cdsClient) throws Exception {
 			FederationClient fedClient =
 					clients.getFederationClient(this.peer.getApiUrl());
 
-			//Get List of all SolutionRevisions for a solution Id
-			List<MLPSolutionRevision> acumosRevisions = null;
+			//get revisions
+			List<MLPSolutionRevision> peerRevisions = null;
 			try {
-				acumosRevisions = (List<MLPSolutionRevision>)
+				peerRevisions = (List<MLPSolutionRevision>)
 						fedClient.getSolutionRevisions(theSolution.getSolutionId()).getResponseBody();
 			}
 			catch (Exception x) {
 				logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve acumos revisions", x);
 				throw x;
 			}
-			
-			List<MLPArtifact> acumosArtifacts = null;
+
+			//check if we have locally the latest revision available on the peer
+			//TODO: this is just one possible policy regarding the handling of
+			//such a mismatch
+			MLPSolutionRevision localRevision = null;
 			try {
-				acumosArtifacts = (List<MLPArtifact>)
-						fedClient.getArtifacts(theSolution.getSolutionId(), acumosRevisions.get(acumosRevisions.size()-1).getRevisionId())
-						.getResponseBody();
+				localRevision =
+					cdsClient.getSolutionRevision(
+						theSolution.getSolutionId(),
+						peerRevisions.get(peerRevisions.size()-1).getRevisionId());
+			}
+			catch (HttpStatusCodeException restx) {
+				if (restx.getStatusCode() != HttpStatus.NOT_FOUND) {
+					logger.error(EELFLoggerDelegate.debugLogger, "getSolutionRevision CDS call failed. CDS message is " + restx.getResponseBodyAsString(),  restx);
+					throw restx;
+				}
+			}
+
+			if(localRevision == null) {
+				localRevision = createMLPSolutionRevision(
+													peerRevisions.get(peerRevisions.size()-1), cdsClient);
+			}
+			else {
+				//update the revision information
+			}
+
+			//continue to verify that we have the latest version of the artifacts
+			//for this revision
+			List<MLPArtifact> peerArtifacts = null;
+			try {
+					peerArtifacts = (List<MLPArtifact>)
+						fedClient.getArtifacts(
+							theSolution.getSolutionId(),
+							peerRevisions.get(peerRevisions.size()-1).getRevisionId())
+								.getResponseBody();
 			}
 			catch (Exception x) {
-				logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve acumos artifacts", x);
+				logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve peer acumos artifacts", x);
 				throw x;
 			}
 			
-			MLPSolutionRevision mlpSolutionRevision = cdsClient.getSolutionRevision(theSolution.getSolutionId(), acumosRevisions.get(acumosRevisions.size()-1).getRevisionId());
-			if(mlpSolutionRevision == null && !Utils.isEmptyList(acumosArtifacts)) {
-				//If SolutionRevision is null, we need to create a Solution Revision in Local Acumos
-				mlpSolutionRevision = createMLPSolutionRevision(acumosRevisions.get(acumosRevisions.size()-1), cdsClient);
-			} 
-			
-			if(mlpSolutionRevision != null) {
-				for(MLPArtifact artifact : acumosArtifacts) {
-					MLPArtifact mlpArtifact = cdsClient.getArtifact(artifact.getArtifactId());
-					if(mlpArtifact == null) {
-						mlpArtifact = createMLPArtifact(
+			if(localRevision != null) {
+				for(MLPArtifact peerArtifact : peerArtifacts) {
+					MLPArtifact localArtifact = null;
+					try {
+						localArtifact =
+							cdsClient.getArtifact(peerArtifact.getArtifactId());
+					}
+					catch (HttpStatusCodeException restx) {
+						if (restx.getStatusCode() != HttpStatus.NOT_FOUND) {
+							logger.error(EELFLoggerDelegate.debugLogger, "getArtifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(),  restx);
+							throw restx;
+						}
+					}
+
+					if(localArtifact == null) {
+						localArtifact = createMLPArtifact(
 														theSolution.getSolutionId(),
-														mlpSolutionRevision.getRevisionId(),
-														artifact,
+														localRevision.getRevisionId(),
+														peerArtifact,
 														cdsClient);
 					}
 					else {
-						mlpArtifact = updateMLPArtifact(artifact, mlpArtifact, cdsClient);
+						//an update might not actually be necessary but we cannot compare
+						//timestamps as they are locally generated 
+						localArtifact = updateMLPArtifact(peerArtifact, localArtifact, cdsClient);
 					}
 
-					if (mlpArtifact == null) {
+					//TODO: add the delete of those who are not available anymore
+
+					//if (localArtifact == null) {
 						//not transactional .. hard to recover from, we'll re-attempt
 						//next time we process the enclosing solution/revision (should be
 						//marked accordingly)
-						continue;
-					}
+						//if anything happened an exception 
+					//}
 
-					//artifacts file download and push it to nexus
+					//artifacts file download and push it to nexus: we continue here 
+					//as we persisted the peer URI 
 					Resource artifactContent = null;
 					try {
-						artifactContent = fedClient.downloadArtifact(artifact.getArtifactId());
-						//logger.warn(EELFLoggerDelegate.debugLogger, "Received artifact content: " + new BufferedReader(new InputStreamReader(artifactContent.getInputStream())).lines().collect(Collectors.joining("\n")));
+						artifactContent = fedClient.downloadArtifact(peerArtifact.getArtifactId());
 					}
 					catch (Exception x) {
 						logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve acumos artifact content", x);
@@ -424,8 +463,8 @@ public class PeerGateway {
 								PeerGateway.this.clients.getNexusClient()
 									.uploadArtifact(
 											PeerGateway.this.env.getProperty("nexus.groupId"),
-											mlpArtifact.getName(), /* probably wrong */
-											mlpArtifact.getVersion(),
+											localArtifact.getName(), /* probably wrong */
+											localArtifact.getVersion(),
 											"", /* should receive this from peer */
 											artifactContent.contentLength(),
 											artifactContent.getInputStream());
@@ -437,9 +476,9 @@ public class PeerGateway {
 
 					if (uploadInfo != null) {
 						//update artifact with local repo reference
-						mlpArtifact.setUri(uploadInfo.getArtifactMvnPath());
+						localArtifact.setUri(uploadInfo.getArtifactMvnPath());
 						try {
-							cdsClient.updateArtifact(mlpArtifact);
+							cdsClient.updateArtifact(localArtifact);
 						}
 						catch (HttpStatusCodeException restx) {
 							logger.error(EELFLoggerDelegate.debugLogger, "updateArtifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(),  restx);
