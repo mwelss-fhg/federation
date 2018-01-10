@@ -429,19 +429,22 @@ public class PeerGateway {
 														cdsClient);
 					}
 					else {
-						//an update might not actually be necessary but we cannot compare
-						//timestamps as they are locally generated 
-						localArtifact = updateMLPArtifact(peerArtifact, localArtifact, cdsClient);
+						//check version
+						if (!peerArtifact.getVersion().equals(localArtifact.getVersion())) {
+							localArtifact = updateMLPArtifact(peerArtifact, localArtifact, cdsClient);
+						}
+						else {
+							//mark the fact that loca artifact does not need an update
+							localArtifact = null;
+						}
 					}
 
 					//TODO: add the delete of those who are not available anymore
 
-					//if (localArtifact == null) {
-						//not transactional .. hard to recover from, we'll re-attempt
-						//next time we process the enclosing solution/revision (should be
-						//marked accordingly)
-						//if anything happened an exception 
-					//}
+					if (localArtifact == null) {
+						//the artifact does not need an update
+						continue;
+					}
 
 					//artifacts file download and push it to nexus: we continue here 
 					//as we persisted the peer URI 
