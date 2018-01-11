@@ -24,68 +24,40 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpHost;
-import org.apache.http.client.HttpClient;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
-import org.acumos.cds.CCDSConstants;
-import org.acumos.cds.client.HttpComponentsClientHttpRequestFactoryBasicAuth;
-import org.acumos.cds.domain.MLPArtifact;
-import org.acumos.cds.domain.MLPPeerSubscription;
-import org.acumos.cds.domain.MLPSolution;
-import org.acumos.cds.domain.MLPSolutionRevision;
-import org.acumos.cds.domain.MLPUser;
-import org.acumos.cds.transport.LoginTransport;
 import org.acumos.cds.transport.RestPageRequest;
-import org.acumos.cds.transport.RestPageResponse;
-
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.apache.http.client.HttpClient;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * 
  * 
  * 
- *         Temporary Client until we have login functions available in Common
- *         Data MicroService
+ * Temporary Client until we have login functions available in Common Data
+ * MicroService
  */
 public abstract class AbstractClient {
 
 	protected final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(getClass().getName());
-	
+
 	protected final String baseUrl;
 	protected final RestTemplate restTemplate;
 
 	/**
-	 * Builds a restTemplate. If user and pass are both supplied, uses basic
-	 * HTTP authentication; if either one is missing, no authentication is used.
+	 * Builds a restTemplate. If user and pass are both supplied, uses basic HTTP
+	 * authentication; if either one is missing, no authentication is used.
 	 * 
 	 * @param theTarget
 	 *            URL of the web endpoint
 	 * @param theClient
-	 *						underlying http client
+	 *            underlying http client
 	 */
-	public AbstractClient(String theTarget,
-													HttpClient theClient) {
+	public AbstractClient(String theTarget, HttpClient theClient) {
 		if (theTarget == null)
 			throw new IllegalArgumentException("Null URL not permitted");
 
@@ -93,33 +65,26 @@ public abstract class AbstractClient {
 		try {
 			url = new URL(theTarget);
 			this.baseUrl = url.toExternalForm();
-		}
-		catch (MalformedURLException ex) {
+		} catch (MalformedURLException ex) {
 			throw new RuntimeException("Failed to parse targedt URL", ex);
 		}
 
 		this.restTemplate = new RestTemplateBuilder()
-														.requestFactory(
-															new HttpComponentsClientHttpRequestFactory(theClient))	
-														.rootUri(this.baseUrl)
-														.build();
+				.requestFactory(new HttpComponentsClientHttpRequestFactory(theClient)).rootUri(this.baseUrl).build();
 	}
 
-
 	/**
-	 * Builds URI by adding specified path segments and query parameters to the
-	 * base URL.
+	 * Builds URI by adding specified path segments and query parameters to the base
+	 * URL.
 	 * 
 	 * @param path
 	 *            Array of path segments
 	 * @param queryParams
-	 *            key-value pairs; ignored if null or empty. Gives special
-	 *            treatment to Date-type values.
-	 * @param restPageRequest
-	 *            TODO
+	 *            key-value pairs; ignored if null or empty. Gives special treatment
+	 *            to Date-type values.
 	 * @param pageRequest
 	 *            page, size and sort specification; ignored if null.
-	 * @return
+	 * @return URI
 	 */
 	protected URI buildUri(final String[] path, final Map<String, Object> queryParams, RestPageRequest pageRequest) {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.baseUrl);
@@ -151,4 +116,4 @@ public abstract class AbstractClient {
 		return builder.build().encode().toUri();
 	}
 
-}	
+}

@@ -62,53 +62,16 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping("/")
 public class CatalogController extends AbstractController {
 
-	@Autowired
-	CatalogService catalogService;
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(CatalogController.class.getName());
 
-	// /**
-	// * @param request
-	// * HttpServletRequest
-	// * @param response
-	// * HttpServletResponse
-	// * @return List of Published ML Solutions in JSON format.
-	// */
-	// @CrossOrigin
-	// @ApiOperation(value = "Invoked by Peer Acumos to get a Paginated list of
-	// Published Solutions from the Catalog of the local Acumos Instance .",
-	// response = MLPSolution.class, responseContainer = "Page")
-	// @RequestMapping(value = {API.Paths.SOLUTIONS}, method = RequestMethod.GET,
-	// produces = APPLICATION_JSON)
-	// @ResponseBody
-	// public JsonResponse<RestPageResponse<MLPSolution>>
-	// getSolutionsListFromPeer(HttpServletRequest request, HttpServletResponse
-	// response,
-	// @RequestParam("pageNumber") Integer pageNumber, @RequestParam("maxSize")
-	// Integer maxSize,
-	// @RequestParam(required = false) String sortingOrder, @RequestParam(required =
-	// false) String mlpModelTypes) {
-	// JsonResponse<RestPageResponse<MLPSolution>> data = null;
-	// RestPageResponse<MLPSolution> peerCatalogSolutions = null;
-	// try {
-	// data = new JsonResponse<RestPageResponse<MLPSolution>>();
-	// peerCatalogSolutions =
-	// federationGatewayService.getPeerCatalogSolutions(pageNumber, maxSize,
-	// sortingOrder, null);
-	// if(peerCatalogSolutions != null) {
-	// data.setResponseBody(peerCatalogSolutions);
-	// logger.debug(EELFLoggerDelegate.debugLogger, "getSolutionsListFromPeer: size
-	// is {} ");
-	// }
-	// } catch (Exception e) {
-	// logger.error(EELFLoggerDelegate.errorLogger, "Exception Occurred Fetching
-	// Solutions for Market Place Catalog", e);
-	// }
-	// return data;
-	// }
+	@Autowired
+	private CatalogService catalogService;
 
 	/**
 	 * @param theHttpResponse
 	 *            HttpServletResponse
 	 * @param theSelector
+	 *            Solutions selector
 	 * @return List of Published ML Solutions in JSON format.
 	 */
 	@CrossOrigin
@@ -183,6 +146,7 @@ public class CatalogController extends AbstractController {
 
 	/**
 	 * @param theSolutionId
+	 *            Solution ID
 	 * @param theHttpResponse
 	 *            HttpServletResponse
 	 * @return List of Published ML Solutions in JSON format.
@@ -222,7 +186,9 @@ public class CatalogController extends AbstractController {
 	/**
 	 * 
 	 * @param theSolutionId
+	 *            Solution ID
 	 * @param theRevisionId
+	 *            Revision ID
 	 * @param theHttpResponse
 	 *            HttpServletResponse
 	 * @return List of Published ML Solutions in JSON format.
@@ -266,7 +232,9 @@ public class CatalogController extends AbstractController {
 	 * @param theHttpResponse
 	 *            HttpServletResponse
 	 * @param theSolutionId
+	 *            Solution ID
 	 * @param theRevisionId
+	 *            Revision ID
 	 * @return List of Published ML Solutions in JSON format.
 	 */
 	@CrossOrigin
@@ -326,6 +294,7 @@ public class CatalogController extends AbstractController {
 	 * @param theHttpResponse
 	 *            HttpServletResponse
 	 * @param theArtifactId
+	 *            Artifact ID
 	 * @return Archive file of the Artifact for the Solution.
 	 */
 	@CrossOrigin

@@ -18,81 +18,59 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.gateway.adapter;
+package org.acumos.federation.gateway.adapter;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-
-import java.net.URI;
-
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.UUID;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpClientErrorException;
-
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.Conditional;
-//import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPPeer;
+import org.acumos.cds.domain.MLPSolution;
+import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.federation.gateway.common.GhostAdapterCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
-import org.acumos.federation.gateway.service.impl.FederationClient;
 import org.acumos.federation.gateway.service.impl.Clients;
-
-import org.acumos.cds.domain.MLPPeer;
-import org.acumos.cds.domain.MLPArtifact;
-import org.acumos.cds.domain.MLPSolution;
-import org.acumos.cds.domain.MLPSolutionRevision;
-
-import org.json.JSONObject;
-import org.json.JSONArray;
-
-import org.apache.commons.io.IOUtils;
-
+import org.acumos.federation.gateway.service.impl.FederationClient;
+import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.io.Resource;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Component;
 
 @Component("ghost")
-//@Scope("singleton")
-@ConfigurationProperties(prefix="ghost")
+// @Scope("singleton")
+@ConfigurationProperties(prefix = "ghost")
 @Conditional(GhostAdapterCondition.class)
 public class Ghost {
 
 	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(Ghost.class);
-	private TaskExecutor	taskExecutor; 
+	private TaskExecutor taskExecutor;
 
-	private Map<String, Map<String, MLPSolution>>	imports = 
-						new HashMap<String, Map<String, MLPSolution>>();
+	private Map<String, Map<String, MLPSolution>> imports = new HashMap<String, Map<String, MLPSolution>>();
 	@Autowired
 	private Clients clients;
 
-	
 	@PostConstruct
 	public void initGhost() {
 		logger.debug(EELFLoggerDelegate.debugLogger, "initGhost");
 
 		this.taskExecutor = new ThreadPoolTaskExecutor();
-		((ThreadPoolTaskExecutor)this.taskExecutor).setCorePoolSize(1);
-    ((ThreadPoolTaskExecutor)this.taskExecutor).setMaxPoolSize(1);
-    ((ThreadPoolTaskExecutor)this.taskExecutor).setQueueCapacity(25);
-    ((ThreadPoolTaskExecutor)this.taskExecutor).initialize();
+		((ThreadPoolTaskExecutor) this.taskExecutor).setCorePoolSize(1);
+		((ThreadPoolTaskExecutor) this.taskExecutor).setMaxPoolSize(1);
+		((ThreadPoolTaskExecutor) this.taskExecutor).setQueueCapacity(25);
+		((ThreadPoolTaskExecutor) this.taskExecutor).initialize();
 
 		// Done
 		logger.debug(EELFLoggerDelegate.debugLogger, "Ghost available");
@@ -109,10 +87,9 @@ public class Ghost {
 		taskExecutor.execute(new GhostTask(theEvent.getPeer(), theEvent.getSolutions()));
 	}
 
-
 	public class GhostTask implements Runnable {
 
-		private MLPPeer		peer;
+		private MLPPeer peer;
 		private List<MLPSolution> solutions;
 
 		public GhostTask(MLPPeer thePeer, List<MLPSolution> theSolutions) {
@@ -125,61 +102,57 @@ public class Ghost {
 			Map<String, MLPSolution> peerImports = null;
 
 			synchronized (imports) {
-				peerImports = imports.computeIfAbsent(peer.getPeerId(),
-																							pid -> new HashMap());
+				peerImports = imports.computeIfAbsent(peer.getPeerId(), pid -> new HashMap());
 			}
 
 			synchronized (peerImports) {
-				for (MLPSolution solution: this.solutions) {
-					
+				for (MLPSolution solution : this.solutions) {
+
 					MLPSolution peerImport = peerImports.get(solution.getSolutionId());
 					if (peerImport == null) {
 						logger.debug(EELFLoggerDelegate.debugLogger, "New solution");
 						peerImports.put(solution.getSolutionId(), solution);
-					}
-					else {
+					} else {
 						logger.debug(EELFLoggerDelegate.debugLogger, "Existing solution");
 						if (peerImport.getModified().equals(solution.getModified())) {
 							logger.debug(EELFLoggerDelegate.debugLogger, "No updates");
-						}
-						else {
+						} else {
 							logger.debug(EELFLoggerDelegate.debugLogger, "Has updates");
 						}
 					}
 
-					FederationClient fedClient =
-						clients.getFederationClient(this.peer.getApiUrl());
+					FederationClient fedClient = clients.getFederationClient(this.peer.getApiUrl());
 
 					List<MLPSolutionRevision> revisions = null;
 					try {
-						revisions = (List<MLPSolutionRevision>)
-							fedClient.getSolutionRevisions(solution.getSolutionId()).getResponseBody();
-					}
-					catch (Exception x) {
+						revisions = (List<MLPSolutionRevision>) fedClient.getSolutionRevisions(solution.getSolutionId())
+								.getResponseBody();
+					} catch (Exception x) {
 						logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve revisions", x);
 						continue;
 					}
-					logger.debug(EELFLoggerDelegate.debugLogger, "Received " + revisions.size() + " revisions " + revisions);
-			
+					logger.debug(EELFLoggerDelegate.debugLogger,
+							"Received " + revisions.size() + " revisions " + revisions);
+
 					List<MLPArtifact> artifacts = null;
 					try {
-						artifacts = (List<MLPArtifact>)
-							fedClient.getArtifacts(solution.getSolutionId(), revisions.get(revisions.size()-1).getRevisionId())
-								.getResponseBody();
-					}
-					catch (Exception x) {
+						artifacts = (List<MLPArtifact>) fedClient.getArtifacts(solution.getSolutionId(),
+								revisions.get(revisions.size() - 1).getRevisionId()).getResponseBody();
+					} catch (Exception x) {
 						logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve artifacts", x);
 						continue;
 					}
-					logger.debug(EELFLoggerDelegate.debugLogger, "Received " + artifacts.size() + " artifacts " + artifacts);
+					logger.debug(EELFLoggerDelegate.debugLogger,
+							"Received " + artifacts.size() + " artifacts " + artifacts);
 
-					for (MLPArtifact artifact: artifacts) {
+					for (MLPArtifact artifact : artifacts) {
 						Resource artifactContent = null;
 						try {
 							artifactContent = fedClient.downloadArtifact(artifact.getArtifactId());
-						logger.warn(EELFLoggerDelegate.debugLogger, "Received artifact content: " + new BufferedReader(new InputStreamReader(artifactContent.getInputStream())).lines().collect(Collectors.joining("\n")));
-						}
-						catch (Exception x) {
+							logger.warn(EELFLoggerDelegate.debugLogger, "Received artifact content: "
+									+ new BufferedReader(new InputStreamReader(artifactContent.getInputStream()))
+											.lines().collect(Collectors.joining("\n")));
+						} catch (Exception x) {
 							logger.debug(EELFLoggerDelegate.debugLogger, "Failed to download artifact", x);
 						}
 					}

@@ -50,8 +50,10 @@ import org.springframework.web.client.HttpStatusCodeException;
 public class FederationClient extends AbstractClient {
 
 	/**
-	 * @param theTarget 
-	 * @param theClient 
+	 * @param theTarget
+	 *            Target
+	 * @param theClient
+	 *            HttpClient
 	 */
 	public FederationClient(String theTarget, HttpClient theClient) {
 		super(theTarget, theClient);
@@ -129,8 +131,10 @@ public class FederationClient extends AbstractClient {
 
 	/**
 	 * 
-	 * @param theSolutionId 
-	 * @param theRevisionId 
+	 * @param theSolutionId
+	 *            Solution ID
+	 * @param theRevisionId
+	 *            Revision ID
 	 * @return List of MLPArtifacts from Remote Acumos
 	 * @throws HttpStatusCodeException
 	 *             Throws HttpStatusCodeException is remote acumos is not available
@@ -156,9 +160,11 @@ public class FederationClient extends AbstractClient {
 	}
 
 	/**
-	 * @param theArtifactId 
+	 * @param theArtifactId
+	 *            Artifact ID
 	 * @return Resource
-	 * @throws HttpStatusCodeException On failure 
+	 * @throws HttpStatusCodeException
+	 *             On failure
 	 */
 	public Resource downloadArtifact(String theArtifactId) throws HttpStatusCodeException {
 		URI uri = API.ARTIFACT_DOWNLOAD.buildUri(this.baseUrl, theArtifactId);
