@@ -185,7 +185,7 @@ public class PeerGatewayTest {
 		assertTrue(response.getStatusCodeValue() == 200);
 		assertTrue(response.getBody().getResponseBody().size() == 1); //no errors
 	}
-/*
+
 	@Test
 	public void testPeersForbidden() {
 
@@ -203,7 +203,7 @@ public class PeerGatewayTest {
 
 		assertTrue(response.getStatusCodeValue() == 403);
 	}
-*/
+
 	private HttpEntity prepareRequest(String theResourceName) {
 		String content = new Scanner(
     									   Thread.currentThread().getContextClassLoader().getResourceAsStream(theResourceName), "UTF-8")

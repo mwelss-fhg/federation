@@ -26,24 +26,21 @@ package org.acumos.federation.gateway.service;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.core.io.InputStreamResource;
-
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
-import org.acumos.cds.transport.RestPageResponse;
-
+import org.springframework.core.io.InputStreamResource;
 
 /**
- * Handles access to the solutions catalog 
+ * Handles access to the solutions catalog
  */
 public interface CatalogService {
-	
-	
-	/**
+
+	/*
 	 * 
-	 *  API to be invoked by Peer Acumos to fetch the Catalog Solutions Information.
-	 *  Pageable Response allowing Peer Acumos's to Specify the Page Numb\er and the maximum results of the Solutions list.
+	 * API to be invoked by Peer Acumos to fetch the Catalog Solutions Information.
+	 * Pageable Response allowing Peer Acumos's to Specify the Page Numb\er and the
+	 * maximum results of the Solutions list.
 	 * 
 	 * @param pageNumber : Page Number for the a specific set of the Solution List
 	 * 
@@ -51,57 +48,79 @@ public interface CatalogService {
 	 * 
 	 * @param sortingOrder : Sorting Order Type for the Response
 	 * 
-	 * @param mlpModelTypes : List of the ML Model Types for which Catalog Solutions needs to be returned
+	 * @param mlpModelTypes : List of the ML Model Types for which Catalog Solutions
+	 * needs to be returned
 	 * 
 	 * @return Pageable List of the Catalog Solutions
 	 */
 	/*
-	RestPageResponse<MLPSolution>  getPeerCatalogSolutions(Integer pageNumber, Integer maxSize, String sortingOrder, 
-			List<String> mlpModelTypes);
-	*/
-
-	/**
-	 * 
-	 *  API to be invoked by Peer Acumos to fetch the Catalog Solutions List.
-	 * 
-	 * @param mlpModelTypes : Comma Separate value of the ML Model Types for which Catalog Solutions needs to be returned
-	 * 
-	 * @return List of the Catalog Solutions for the specified list of query parameters
+	 * RestPageResponse<MLPSolution> getPeerCatalogSolutions(Integer pageNumber,
+	 * Integer maxSize, String sortingOrder, List<String> mlpModelTypes);
 	 */
-	List<MLPSolution> getSolutions(Map<String,?> theSelector, ServiceContext theContext);
-	
 
 	/**
+	 * API to be invoked by Peer Acumos to fetch the Catalog Solutions List.
+	 * 
+	 * @param theSelector
+	 *            Comma Separate value of the ML Model Types for which Catalog
+	 *            Solutions needs to be returned
+	 * @param theContext
+	 *            ServiceContext
+	 * @return List of the Catalog Solutions for the specified list of query
+	 *         parameters
+	 */
+	List<MLPSolution> getSolutions(Map<String, ?> theSelector, ServiceContext theContext);
+
+	/**
+	 * @param theSolutionId
+	 *            SolutionId for which Solution Needs to be returned
+	 * @param theContext
+	 *            ServiceContext
+	 * @return MLPSolution
 	 */
 	MLPSolution getSolution(String theSolutionId, ServiceContext theContext);
-	
-	
+
 	/**
-	 * @param solutionId : SolutionId for which Solution Revision Needs to be returned
-	 * 
+	 * @param theSolutionId
+	 *            SolutionId for which Solution Revision Needs to be returned
+	 * @param theContext
+	 *            ServiceContext
 	 * @return List of the Solution Revision for the specified solution Id
 	 */
 	List<MLPSolutionRevision> getSolutionRevisions(String theSolutionId, ServiceContext theContext);
-	
+
 	/**
+	 * @param theSolutionId
+	 *            SolutionId for which Solution Revision Needs to be returned
+	 * @param theRevisionId
+	 *            RevisionId of the Solution
+	 * @param theContext
+	 *            ServiceContext
+	 * @return MLPSolutionRevision
 	 */
 	MLPSolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId, ServiceContext theContext);
 
 	/**
-	 * @param solutionId : SolutionId for which Solution Revision Artifacts Needs to be returned
-	 * 
-	 * @param revisionid : RevisionId of the Solution for which List of Artifacts are needed.
-	 * 
-	 * @return List of the Solution Artifacts for the specified solution Id & revisionId
+	 * @param theSolutionId
+	 *            SolutionId for which Solution Revision Artifacts Needs to be
+	 *            returned
+	 * @param theRevisionId
+	 *            RevisionId of the Solution for which List of Artifacts are needed.
+	 * @param theContext
+	 *            ServiceContext
+	 * @return List of the Solution Artifacts for the specified solution Id and
+	 *         revisionId
 	 */
-	List<MLPArtifact> getSolutionRevisionArtifacts(String theSolutionId, String theRevisionId, ServiceContext theContext);
-	
-	
-	
+	List<MLPArtifact> getSolutionRevisionArtifacts(String theSolutionId, String theRevisionId,
+			ServiceContext theContext);
+
 	/**
-	 * @param artifactId of the File stored in Nexus repository
-	 * @return Artifact File for the Machine Learning Solution 
+	 * @param theArtifactId
+	 *            of the File stored in Nexus repository
+	 * @param theContext
+	 *            ServiceContext
+	 * @return Artifact File for the Machine Learning Solution
 	 */
 	InputStreamResource getSolutionRevisionArtifactContent(String theArtifactId, ServiceContext theContext);
-	
+
 }

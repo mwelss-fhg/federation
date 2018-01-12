@@ -26,17 +26,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.acumos.cds.domain.MLPAccessType;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
-import org.acumos.cds.domain.MLPAccessType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Utils {
@@ -44,10 +38,6 @@ public class Utils {
 	private final static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(Utils.class);
 	
 	public static ObjectMapper objectMapper = new ObjectMapper();
-	
-	
-	@Autowired
-	private Environment env;
 	
 	public Utils() {
 	}
@@ -96,6 +86,7 @@ public class Utils {
 	/**
 	 * 
 	 * @param accessType
+	 * Access type
 	 * @return
 	 * 		MLPAccessType object for Storing in DB
 	 */

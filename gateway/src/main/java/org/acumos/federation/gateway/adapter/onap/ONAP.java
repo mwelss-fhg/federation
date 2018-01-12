@@ -21,54 +21,43 @@
 package org.acumos.federation.gateway.adapter.onap;
 
 import java.net.URI;
-
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpClientErrorException;
-
-import org.springframework.stereotype.Component;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import org.acumos.federation.gateway.adapter.onap.ONAPAdapterCondition;
+import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPPeer;
+import org.acumos.cds.domain.MLPSolution;
+import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.federation.gateway.adapter.onap.sdc.ASDC;
+import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.ArtifactGroupType;
+import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.ArtifactType;
+import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.AssetType;
+import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.LifecycleState;
+import org.acumos.federation.gateway.adapter.onap.sdc.ASDCException;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.acumos.federation.gateway.service.impl.Clients;
 import org.acumos.federation.gateway.service.impl.FederationClient;
-
-import org.acumos.cds.domain.MLPPeer;
-import org.acumos.cds.domain.MLPArtifact;
-import org.acumos.cds.domain.MLPSolution;
-import org.acumos.cds.domain.MLPSolutionRevision;
-
-import org.acumos.federation.gateway.adapter.onap.sdc.ASDC;
-import org.acumos.federation.gateway.adapter.onap.sdc.ASDCException;
-import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.AssetType;
-import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.ArtifactType;
-import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.ArtifactGroupType;
-import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.LifecycleState;
-import org.acumos.federation.gateway.util.MapBuilder;
-
-import org.json.JSONObject;
-import org.json.JSONArray;
-
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 
 
 @Component("onap")
@@ -225,9 +214,16 @@ public class ONAP {
 		}
 		
 		/**
-		 * There is no such thing as updating an asset in the ASDC REST API, we can only update the artifacts ..
+		 * There is no such thing as updating an asset in the ASDC REST API, we can only
+		 * update the artifacts ..
+		 * 
+		 * @param theAssetInfo
+		 * Asset info
+		 * @param theSolution
+		 * solution
+		 * @return SDC Asset info
 		 */
-		public JSONObject updateSdcAsset(JSONObject theAssetInfo, MLPSolution theSolution) throws Exception {
+		public JSONObject updateSdcAsset(JSONObject theAssetInfo, MLPSolution theSolution) { 
 			logger.info(EELFLoggerDelegate.debugLogger, "Updating ONAP SDC VF " + theAssetInfo.optString("uuid") + " for Acumosb solution " + theSolution);
 			return theAssetInfo;
 		}
@@ -276,7 +272,7 @@ public class ONAP {
 			//acumos artifacts that do not exist locally need to be added
 			List<MLPArtifact> 						newArtifacts = new LinkedList<MLPArtifact>();
 			Map<MLPArtifact, JSONObject>	updatedArtifacts = new HashMap<MLPArtifact, JSONObject>();
-			List<JSONObject>							oldArtifacts = new LinkedList<JSONObject>();
+			//List<JSONObject> oldArtifacts = new LinkedList<JSONObject>();
 
 			logger.info(EELFLoggerDelegate.debugLogger, "Acumos artifacts: " + acumosArtifacts);
 			logger.info(EELFLoggerDelegate.debugLogger, "ONAP SDC artifacts: " + sdcArtifacts);
@@ -404,9 +400,11 @@ public class ONAP {
 		}
 
 		//only safe to call if 'same' returned true
+		/*
 		private boolean sameVersion(MLPArtifact theAcumosArtifact, JSONObject theSDCArtifact) {
 			return theSDCArtifact.optString("artifactDescription","@").split("@")[1].equals(theAcumosArtifact.getVersion());
 		}
+		*/
 
 		private boolean isAcumosOriginated(JSONObject theSDCArtifact) {
 			boolean isAcumos = theSDCArtifact.optString("artifactType").equals(ArtifactType.OTHER.toString()) &&

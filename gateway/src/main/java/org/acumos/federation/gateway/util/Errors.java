@@ -20,33 +20,31 @@
 
 package org.acumos.federation.gateway.util;
 
-
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
-
 
 /** */
 public class Errors {
 
 	private Errors() {
 	}
-	
 
 	/**
 	 * CDS provides a 400 error with a particular error message
+	 * 
+	 * @param theError
+	 *            Error to parse
+	 * @return true or false
 	 */
 	public static boolean isCDSNotFound(HttpStatusCodeException theError) {
 
 		if (theError.getStatusCode() == HttpStatus.BAD_REQUEST) {
 			String msg = theError.getResponseBodyAsString();
 			if (msg != null) {
-				return ((String)Utils
-													.jsonStringToMap(msg)
-														.getOrDefault("error", ""))
-												.startsWith("No entry for ID");
+				return ((String) Utils.jsonStringToMap(msg).getOrDefault("error", "")).startsWith("No entry for ID");
 			}
 		}
 		return false;
 	}
 
-}	
+}

@@ -13,14 +13,9 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>1.5.4.RELEASE</version>
+    <!-- silence warning about parent relative path -->
+    <relativePath />
 	</parent>
-	<!--
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.4.RELEASE</version>
-	</parent>
-	-->
 
 	<properties>
 		<encoding>UTF-8</encoding>
@@ -80,6 +75,17 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.acumos</groupId>
+			<artifactId>acumos-nexus-client</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.acumos.common-dataservice</groupId>
+			<artifactId>cmn-data-svc-client</artifactId>
+			<version>1.10.1-SNAPSHOT</version>
+			<!-- <version>1.12.0-SNAPSHOT</version> -->
+		</dependency>
+		<dependency>
 	      <groupId>org.json</groupId>
 	      <artifactId>json</artifactId>
 	      <version>20160212</version>
@@ -99,18 +105,6 @@
 			<artifactId>logback-core</artifactId>
 			<version>${logback.version}</version>
 		</dependency>
-		<!--
-		<dependency>
-			<groupId>org.acumos</groupId>
-			<artifactId>acumos-docker-client</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		-->
-		<dependency>
-			<groupId>org.acumos</groupId>
-			<artifactId>acumos-nexus-client</artifactId>
-			<version>1.10.9</version>
-		</dependency>
 		<dependency>
     	<groupId>org.springframework.boot</groupId>
      		<artifactId>spring-boot-starter-security</artifactId>
@@ -120,13 +114,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 			<version>${spring.boot.starter.web.version}</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<version>${spring.boot.starter.test.version}</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -143,11 +130,6 @@
     	<groupId>org.springframework.shell</groupId>
     	<artifactId>spring-shell</artifactId>
     	<version>1.2.0.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.acumos.common-dataservice</groupId>
-			<artifactId>cmn-data-svc-client</artifactId>
-			<version>1.9.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>io.springfox</groupId>
@@ -211,9 +193,16 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<version>1.5.3.RELEASE</version>
+			<version>${spring.boot.starter.test.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+    	<groupId>org.aspectj</groupId>
+    	<artifactId>aspectjweaver</artifactId>
+    	<version>1.8.13</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 	
 	<build>
@@ -336,7 +325,7 @@
 								</assembly>
 								<!-- This is the same CMD used in a Dockerfile -->
 								<cmd>
-									<shell>cd /maven; java -Djavax.net.debug=ssl -Djava.security.egd=file:/dev/./urandom -jar ${project.artifactId}-${project.version}.${project.packaging}</shell>
+									<shell><![CDATA[	cd /maven; java -Djava.security.egd=file:/dev/./urandom -jar ${project.artifactId}-${project.version}.${project.packaging}]]></shell>
 								</cmd>
 							</build>
 						</image>
@@ -400,10 +389,10 @@
 								</assembly>
 								<!-- This is the same CMD used in a Dockerfile -->
 								<cmd>
-									<shell>cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStore=/app/certs/acumosTrustStore.jks -Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher</shell>
+									<shell><![CDATA[	cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djavax.net.ssl.trustStore=/app/certs/acumosTrustStore.jks -Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher]]></shell>
 
 <!--
-									<shell>cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStore=acumosTrustStore.jks -Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher</shell>
+									<shell><![CDATA[	cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djavax.net.ssl.trustStore=acumosTrustStore.jks -Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher]]></shell>
 -->
 								</cmd>
 							</build>
