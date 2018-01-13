@@ -178,6 +178,11 @@
 	    	<artifactId>commons-lang3</artifactId>
 	    	<version>3.6</version>
 		</dependency>
+		<dependency>
+    	<groupId>org.aspectj</groupId>
+    	<artifactId>aspectjweaver</artifactId>
+    	<version>1.8.13</version>
+		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
@@ -197,13 +202,6 @@
 			<version>${spring.boot.starter.test.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-    	<groupId>org.aspectj</groupId>
-    	<artifactId>aspectjweaver</artifactId>
-    	<version>1.8.13</version>
-			<scope>test</scope>
-		</dependency>
-
 	</dependencies>
 	
 	<build>
@@ -263,8 +261,8 @@
             </goals>
             <configuration>
               <outputDirectory>${project.build.directory}/deps</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteReleases>true</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
             </configuration>
           </execution>
@@ -378,7 +376,7 @@
 										</files>
 										<fileSets>
                       <fileSet>
-                        <directory>${basedir}/target/deps/</directory>
+                        <directory>${project.build.directory}/deps/</directory>
                         <outputDirectory>/libs/</outputDirectory>
                         <includes>
                           <include>*</include>
