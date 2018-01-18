@@ -80,7 +80,7 @@ public class CatalogServiceImpl
 		baseSelector.put("active", true); //Fetch all active solutions
 		baseSelector.put("accessTypeCode", AccessTypeCode.PB.toString()); // Fetch allowed only for Public models
 		baseSelector.put("validationStatusCode", ValidationStatusCode.PS.toString()); // Validation status should be Passed locally
-//		baseSelector.put("provider", env.getProperty("federated.instance.name"));
+//		baseSelector.put("source", "");
 	
 	}
 
@@ -149,9 +149,9 @@ public class CatalogServiceImpl
 		String theSolutionId, ServiceContext theContext) {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisions");
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
+		ICommonDataServiceRestClient cdsClient = getClient();
 		List<MLPSolutionRevision> mlpSolutionRevisions =
-			dataServiceRestClient.getSolutionRevisions(theSolutionId);
+			cdsClient.getSolutionRevisions(theSolutionId);
 		return mlpSolutionRevisions;
 	}
 
@@ -160,9 +160,9 @@ public class CatalogServiceImpl
 		String theSolutionId, String theRevisionId, ServiceContext theContext) {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
+		ICommonDataServiceRestClient cdsClient = getClient();
 		MLPSolutionRevision mlpSolutionRevision =
-			dataServiceRestClient.getSolutionRevision(theSolutionId, theRevisionId);
+			cdsClient.getSolutionRevision(theSolutionId, theRevisionId);
 		return mlpSolutionRevision;
 	}
 
@@ -171,12 +171,8 @@ public class CatalogServiceImpl
 		String theSolutionId, String theRevisionId, ServiceContext theContext) {
 		
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts");
-		List<MLPArtifact> mlpArtifacts = new ArrayList<>();
-		FederationDataClient commonDataClient = getCommonDataClient();
-		Iterable<MLPArtifact> artifacts = commonDataClient.getSolutionRevisionArtifacts(theSolutionId, theRevisionId);
-		for (MLPArtifact mlpArtifact : artifacts) {
-			mlpArtifacts.add(mlpArtifact);
-		}
+		ICommonDataServiceRestClient cdsClient = getClient();
+		List<MLPArtifact> mlpArtifacts = cdsClient.getSolutionRevisionArtifacts(theSolutionId, theRevisionId);
 		return mlpArtifacts;
 	}
 

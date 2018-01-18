@@ -95,7 +95,6 @@ public class PeerCommunicationTask implements Runnable {
 		try {
 			logger.info(EELFLoggerDelegate.debugLogger, "Peer task: " + mlpPeer);
     		
-        			
       logger.info(EELFLoggerDelegate.debugLogger, "Peer task: invoking getSolutions from Remote instance " + mlpPeer.getApiUrl());
       FederationClient fedClient =
           clients.getFederationClient(this.mlpPeer.getApiUrl());      
@@ -117,7 +116,6 @@ public class PeerCommunicationTask implements Runnable {
 			}
     }
 		catch (Exception x) {
-			// TODO: handle exception
 			logger.info(EELFLoggerDelegate.errorLogger, "Peer task for " + this.mlpPeer + " failed", x);
 		}
     //	System.out.println(mlpPeer.getName() + " : Runnable Task with " + message + " on thread " + Thread.currentThread().getName() + ", id:"+ Thread.currentThread().getId());

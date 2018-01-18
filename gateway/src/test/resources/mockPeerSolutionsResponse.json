@@ -1,0 +1,18 @@
+{
+ "status": true,
+ "response_code": 200,
+ "response_detail": "Success",
+ "response_body": [{
+  "solutionId":"6793411f-c7a1-4e93-85bc-f91d267541d8",
+  "name":"mock model",
+  "description":"Test mock model",
+  "ownerId":"admin",
+  "active":"true",
+  "modelTypeCode":"CL",
+  "toolkitTypeCode":"",
+  "validationStatusCode":"",
+  "metadata":"acumosa",
+  "created":"2017-08-10",
+  "modified":"2017-08-11"
+ }]
+}

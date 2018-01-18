@@ -42,7 +42,4 @@ public abstract class AbstractServiceImpl {
 		return clients.getClient();
 	}
 	
-	public FederationDataClient getCommonDataClient() {
-		return clients.getCommonDataClient();
-	}
 }

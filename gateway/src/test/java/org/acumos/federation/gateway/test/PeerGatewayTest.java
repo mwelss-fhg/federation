@@ -19,9 +19,17 @@
  */
 package org.acumos.federation.gateway.test;
 
+import java.io.InputStream;
+
+import java.util.Map;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Collections;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
+
+import org.junit.Before;
 import static org.junit.Assert.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat; 
 
@@ -32,10 +40,19 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
+import org.springframework.context.annotation.Bean;
+
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -44,19 +61,46 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.ClassPathResource;
 
+import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.*;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.stubbing.Answer;
+import org.mockito.invocation.InvocationOnMock;
+
+import org.apache.http.ProtocolVersion;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.message.BasicStatusLine;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 
 /* this is not good for unit testing .. */
 import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.common.HttpClientConfigurationBuilder;
+import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
+import org.acumos.federation.gateway.service.impl.Clients;
+import org.acumos.federation.gateway.service.impl.FederationClient;
 import static org.acumos.federation.gateway.common.HttpClientConfigurationBuilder.SSLBuilder;
 
 import org.acumos.cds.domain.MLPPeer;
+import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.client.ICommonDataServiceRestClient;
 
+import org.acumos.nexus.client.NexusArtifactClient;
+import org.acumos.nexus.client.data.UploadArtifactInfo;
 
 
 /**
@@ -67,10 +111,9 @@ import org.acumos.cds.domain.MLPArtifact;
 @SpringBootTest(classes = org.acumos.federation.gateway.Application.class,
 								webEnvironment = WebEnvironment.RANDOM_PORT,
 								properties = {
-									"federation.instance=adapter",
-									"federation.instance.name=Ghost",
-									"peersLocal.source=classpath:/test-peers.json",
-									"catalogLocal.source=classpath:/test-catalog.json",
+									"federation.instance=gateway",
+									"federation.instance.name=test",
+									"federation.operator=admin",
 									"server.ssl.key-store=classpath:acumosa.pkcs12",
 									"server.ssl.key-store-password=acumosa",
 									"server.ssl.key-store-type=PKCS12",
@@ -78,160 +121,322 @@ import org.acumos.cds.domain.MLPArtifact;
 									"server.ssl.trust-store=classpath:acumosTrustStore.jks",
 									"server.ssl.trust-store-password=acumos",
 									"server.ssl.client-auth=need"
+									//no actual cds info needed as we mock the cds client
 								})
+@ContextConfiguration(classes = {TaskTest.TaskTestConfiguration.class})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PeerGatewayTest {
 
+	@Mock
+	private ICommonDataServiceRestClient cdsClient;
+
+	@Mock
+	private NexusArtifactClient nexusClient;
+
+	@MockBean(name = "federationClient")
+	private HttpClient	federationClient;
+
+	@MockBean(name = "clients")
+	private Clients	clients;
+
 	@Autowired
-	private TestRestTemplate restTemplate;
+	private ApplicationContext context;
 
-	@Test
-	public void testSolutions() {
+	//initialize with the number of checkpoints
+	private CountDownLatch stepLatch = new CountDownLatch(4);
 
-    ((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
-		
-		ResponseEntity<JsonResponse<List<MLPSolution>>> response =
-			this.restTemplate.exchange("/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
-		
-		if (response != null)	{
-			System.out.println("testSolutions: " + response.getBody());
-			System.out.println("testSolutions: " + response);
-		}
-		
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getResponseBody().size() == 1);
+	@Before
+	public void initTest() {
+		MockitoAnnotations.initMocks(this);
 	}
 
-
+	/**
+	 * The gateway behaviour is triggered by the availability of other solutions
+	 * in a peer, as provided by the federation client.  
+	 */
 	@Test
-	public void testSolutionSuccess() {
+	public void testGateway() {
 
-    ((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
+		try {
+			BasicHttpResponse mockSolutionsResponse = 
+				new BasicHttpResponse(
+					new BasicStatusLine(
+						new ProtocolVersion("HTTP",1,1), 200, "Success"));
 
-		ResponseEntity<JsonResponse<MLPSolution>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
+			ClassPathResource mockSolutions =
+				new ClassPathResource("mockPeerSolutionsResponse.json");
+
+			mockSolutionsResponse.setEntity(
+				new InputStreamEntity(mockSolutions.getInputStream()));
+			mockSolutionsResponse
+				.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
+			mockSolutionsResponse
+				.addHeader("Content-Length", String.valueOf(mockSolutions.contentLength()));
+
+			BasicHttpResponse mockSolutionRevisionsResponse = 
+				new BasicHttpResponse(
+					new BasicStatusLine(
+						new ProtocolVersion("HTTP",1,1), 200, "Success"));
+
+			ClassPathResource mockSolutionRevisions =
+				new ClassPathResource("mockPeerSolutionRevisionsResponse.json");
+
+			mockSolutionRevisionsResponse.setEntity(
+				new InputStreamEntity(mockSolutionRevisions.getInputStream()));
+			mockSolutionRevisionsResponse
+				.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
+			mockSolutionRevisionsResponse
+				.addHeader("Content-Length", String.valueOf(mockSolutionRevisions.contentLength()));
+
+			BasicHttpResponse mockSolutionRevisionArtifactsResponse = 
+				new BasicHttpResponse(
+					new BasicStatusLine(
+						new ProtocolVersion("HTTP",1,1), 200, "Success"));
+
+			ClassPathResource mockSolutionRevisionArtifacts =
+				new ClassPathResource("mockPeerSolutionRevisionArtifactsResponse.json");
+
+			mockSolutionRevisionArtifactsResponse.setEntity(
+				new InputStreamEntity(mockSolutionRevisionArtifacts.getInputStream()));
+			mockSolutionRevisionArtifactsResponse
+				.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
+			mockSolutionRevisionArtifactsResponse
+				.addHeader("Content-Length", String.valueOf(mockSolutionRevisionArtifacts.contentLength()));
+
+			BasicHttpResponse mockDownloadResponse = 
+				new BasicHttpResponse(
+					new BasicStatusLine(
+						new ProtocolVersion("HTTP",1,1), 200, "Success"));
+
+			mockDownloadResponse.setEntity(
+				new ByteArrayEntity(new byte[] {}));
+			mockDownloadResponse
+				.addHeader("Content-Type", ContentType.APPLICATION_OCTET_STREAM.toString());
+			mockDownloadResponse
+				.addHeader("Content-Length", String.valueOf(0));
+
+			//prepare the clients
+			when(
+				this.clients.getClient()
+			)
+			//.thenReturn(cdsClient);
+			.thenAnswer(new Answer<ICommonDataServiceRestClient>() {
+					public ICommonDataServiceRestClient answer(InvocationOnMock theInvocation) {
+						return cdsClient;
+					}
+				});
+
+			when(
+				this.clients.getFederationClient(
+					any(String.class)
+				)
+			)
+			.thenAnswer(new Answer<FederationClient>() {
+					public FederationClient answer(InvocationOnMock theInvocation) {
+						//this should end up providing a client based on the mocked http
+						//client
+					  return new FederationClient(
+                  (String)theInvocation.getArguments()[0]/*the URI*/,
+                  federationClient);
+					/* not working as real method relies on the application context
+						 which is not set because we work on a  mock
+						try {
+							return (FederationClient)theInvocation.callRealMethod();
+						}
+						catch (Throwable t) {
+							t.printStackTrace();
+							return null;
+						}
+					*/
+					}
+				});
+
+			when(
+				this.clients.getNexusClient()
+			)
+			.thenReturn(nexusClient);
+
+			when(
+				this.nexusClient.uploadArtifact(
+					any(String.class),any(String.class),any(String.class),any(String.class),any(Long.class),any(InputStream.class)
+				)
+			)
+			.thenReturn(new UploadArtifactInfo("","","","","",0));
+
+			when(
+				this.cdsClient.searchPeers(
+					any(Map.class), any(Boolean.class)
+				)
+			)
+			.thenAnswer(new Answer<List<MLPPeer>>() {
+					public List<MLPPeer> answer(InvocationOnMock theInvocation) {
+						MLPPeer peer = new MLPPeer();
+						peer.setPeerId("1");
+						peer.setName("testPeer");
+						peer.setSubjectName("test.org");
+						peer.setActive(true);
+						peer.setSelf(false);
+						peer.setApiUrl("https://localhost:1111");
+
+						return Collections.singletonList(peer);
+					}
+				});
+		
+			when(
+				this.cdsClient.getPeerSubscriptions(
+					any(String.class)
+				)
+			)
+			.thenAnswer(new Answer<List<MLPPeerSubscription>>() {
+					public List<MLPPeerSubscription> answer(InvocationOnMock theInvocation) {
+						MLPPeerSubscription sub = new MLPPeerSubscription();
+						sub.setSubId(Long.valueOf(12));
+						sub.setPeerId("1");
+						sub.setSelector("");
+						sub.setRefreshInterval(Long.valueOf(300));
+
+						return Collections.singletonList(sub);
+					}
+				});
 	
-		if (response != null)	{
-			System.out.println("testSolution: " + response.getBody());
-			System.out.println("testSolution: " + response);
+ 
+			//pretend the solution does not exist locally .. 
+			when(
+				this.cdsClient.getSolution(
+					any(String.class)
+				)
+			) 
+			.thenReturn(null);
+
+			//as a result the gateway should attempt to create a local solution
+			//with the information it got from the 'peer' (see the mock response)
+			when(
+				this.cdsClient.createSolution(
+					any(MLPSolution.class)
+				)
+			)
+			//.thenReturn(mockSolution);
+			.thenAnswer(new Answer<MLPSolution>() {
+					public MLPSolution answer(InvocationOnMock theInvocation) {
+						stepLatch.countDown();
+						return (MLPSolution)theInvocation.getArguments()[0];
+					}
+				});
+
+			//the gateway should attempt to get the revisions from the peer	and
+			//compare them against locally available ones (based on the last one)
+			when(
+				this.cdsClient.getSolutionRevision(
+					any(String.class), any(String.class)
+				)
+			) 
+			.thenAnswer(new Answer<MLPSolutionRevision>() {
+					public MLPSolutionRevision answer(InvocationOnMock theInvocation) {
+						stepLatch.countDown();
+						//pretend we do not have a local match so that we trigger
+						//an insert
+						return null; //Collections.EMPTY_LIST;
+					}
+				});
+
+			when(
+				this.cdsClient.createSolutionRevision(
+					any(MLPSolutionRevision.class)
+				)
+			)
+			.thenAnswer(new Answer<MLPSolutionRevision>() {
+					public MLPSolutionRevision answer(InvocationOnMock theInvocation) {
+						stepLatch.countDown();
+						return (MLPSolutionRevision)theInvocation.getArguments()[0];
+					}
+				});
+
+			//pretend artifact is not available locally
+			when(
+				this.cdsClient.getArtifact(
+					any(String.class)
+				)
+			) 
+			.thenReturn(null);
+
+			when(
+				this.cdsClient.createArtifact(
+					any(MLPArtifact.class)
+				)
+			) 
+			.thenAnswer(new Answer<MLPArtifact>() {
+					public MLPArtifact answer(InvocationOnMock theInvocation) {
+						stepLatch.countDown();
+						return (MLPArtifact)theInvocation.getArguments()[0];
+					}
+				});
+
+			doAnswer(new Answer<Void>() {
+					public Void answer(InvocationOnMock theInvocation) {
+						//enable this when download mocking is complete
+						//stepLatch.countDown();
+						return null;
+					}
+				}).when(this.cdsClient).updateArtifact(any(MLPArtifact.class));
+
+			doAnswer(new Answer<Void>() {
+					public Void answer(InvocationOnMock theInvocation) {
+						//stepLatch.countDown();
+						return null;
+					}
+				}).when(this.cdsClient)
+				.addSolutionRevisionArtifact(
+					any(String.class),any(String.class),any(String.class));
+
+
+			//see TaskTest for full mocking of the http client. this is thte method
+			//that gets used by the RestTemplate so we'll keep it short here
+			//we need to 
+			when(
+				this.federationClient.execute(
+					any(HttpUriRequest.class), any(HttpContext.class)
+				)
+			//).thenReturn(mockResponse);
+			).thenAnswer(new Answer<HttpResponse>() {
+					public HttpResponse answer(InvocationOnMock theInvocation) {
+						HttpUriRequest req = (HttpUriRequest)
+							theInvocation.getArguments()[0];
+						String path = req.getURI().getPath();
+						if (path.equals("/solutions"))
+							return mockSolutionsResponse;
+						if (path.endsWith("/revisions"))
+							return mockSolutionRevisionsResponse;
+						if (path.endsWith("/artifacts"))
+							return mockSolutionRevisionArtifactsResponse;
+						if (path.endsWith("/download"))
+							return mockDownloadResponse;
+
+	System.out.println(" *** Mock unhandled path " + path);
+						return null;
+					}
+				});
+					
+		}
+		catch(Exception x) {
+			System.out.println(" *** Failed to setup mock : " + x);
+			x.printStackTrace();
+			assertTrue(1 == 0);
 		}
 
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getResponseBody().getModelTypeCode().equals("CL")); //no errors
-	}
-
-	@Test
-	public void testSolutionRevisionsSuccess() {
-    
-		((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
-
-		ResponseEntity<JsonResponse<List<MLPSolutionRevision>>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {});
-		
-		if (response != null)	{
-			System.out.println("testSolutionRevisions: " + response.getBody());
-			System.out.println("testSolutionRevisions: " + response);
+		//let the test wait for a few seconds so that the expected
+		//behaviour kicks in
+		boolean completed = false;
+		try {
+			completed = stepLatch.await(10, TimeUnit.SECONDS);
 		}
-
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getResponseBody().size() == 1); //no errors
-	}
-
-	@Test
-	public void testSolutionRevisionSuccess() {
-
-    ((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
-
-		ResponseEntity<JsonResponse<MLPSolution>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
-	
-		if (response != null)	{
-			System.out.println("testSolution: " + response.getBody());
-			System.out.println("testSolution: " + response);
+		catch (InterruptedException ix) {
+			assertTrue(1 == 0);
 		}
-
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getResponseBody().getOwnerId().equals("admin")); //no errors
+		if (!completed)
+			System.out.println(" *** Failed to complete,  " + stepLatch.getCount() + " steps left");
+			
+		//if we are here is that all steps that we expected took place
+		assertTrue(completed);
 	}
 
-	@Test
-	public void testSolutionRevisionArtifactsSuccess() {
-    
-		((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
-
-		ResponseEntity<JsonResponse<List<MLPArtifact>>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101/artifacts", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {});
-		
-		if (response != null)	{
-			System.out.println("testSolutionRevisionsArtifacts: " + response.getBody());
-			System.out.println("testSolutionRevisionsArtifacts: " + response);
-		}
-
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getResponseBody().size() == 1); //no errors
-	}
-
-	@Test
-	public void testPeersForbidden() {
-
-    ((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
-
-		ResponseEntity<JsonResponse<List<MLPPeer>>> response =
-			this.restTemplate.exchange("/peers", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {} );
-	
-		if (response != null)	{
-			System.out.println("testPeers: " + response.getBody());
-			System.out.println("testPeers: " + response);
-		}
-
-		assertTrue(response.getStatusCodeValue() == 403);
-	}
-
-	private HttpEntity prepareRequest(String theResourceName) {
-		String content = new Scanner(
-    									   Thread.currentThread().getContextClassLoader().getResourceAsStream(theResourceName), "UTF-8")
-											.useDelimiter("\\Z").next();
-
-		HttpHeaders headers = new HttpHeaders();
- 		headers.setContentType(MediaType.APPLICATION_JSON);
- 		return new HttpEntity<String>(content, headers);
-	}
-	
-	private HttpEntity prepareRequest() {
-		HttpHeaders headers = new HttpHeaders();
- 		headers.setContentType(MediaType.APPLICATION_JSON);
- 		return new HttpEntity<String>(headers);
-	}
-
-	private HttpClient prepareHttpClient() {
-		return new HttpClientConfigurationBuilder()
-								.withSSL(new SSLBuilder()
-															.withKeyStore("classpath:/acumosb.pkcs12")
-															.withKeyStorePassword("acumosb")
-															//.withKeyPassword("acumosb")
-															.withTrustStore("classpath:/acumosTrustStore.jks")
-															.withTrustStoreType("JKS")
-															.withTrustStorePassword("acumos")
-															.build())
-								.buildConfig()
-								.buildClient();
-	}
 }
-

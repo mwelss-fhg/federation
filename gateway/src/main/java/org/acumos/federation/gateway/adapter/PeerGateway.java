@@ -153,33 +153,35 @@ public class PeerGateway {
 			
 			logger.info(EELFLoggerDelegate.debugLogger, "Received peer " + this.peer + " solutions: " + this.solutions);
 
-			for (MLPSolution acumosSolution: this.solutions) {
+			for (MLPSolution peerSolution: this.solutions) {
 				try {
 					//Check if the Model already exists in the Local Acumos
-					MLPSolution mlpSolution  = null;
+					MLPSolution localSolution  = null;
 					try {
-						mlpSolution = cdsClient.getSolution(acumosSolution.getSolutionId());
-					} catch (Exception e) {
-						logger.info(EELFLoggerDelegate.debugLogger, "Solution Id : " + acumosSolution.getSolutionId() + " does not exists locally, Adding it to local catalog ");
+						localSolution = cdsClient.getSolution(peerSolution.getSolutionId());
 					}
-					
+					catch (Exception e) {
+						logger.info(EELFLoggerDelegate.debugLogger, "Solution Id : " + peerSolution.getSolutionId() + " does not exists locally, Adding it to local catalog ");
+					}
+			
 					//Verify if MLPSolution is not same
-					if(mlpSolution != null &&
-						 isSameMLPSolution(acumosSolution, mlpSolution)) {
+					if(localSolution != null &&
+						 isSameMLPSolution(peerSolution, localSolution)) {
 						//if already exists locally then loop through next
-						mlpSolution = updateMLPSolution(acumosSolution, mlpSolution, cdsClient);
+						localSolution = updateMLPSolution(peerSolution, localSolution, cdsClient);
 						
 					} 
 					else {
-						mlpSolution = createMLPSolution(acumosSolution, cdsClient);
+						localSolution = createMLPSolution(peerSolution, cdsClient);
 					}
 
-					if (mlpSolution != null) {	
-						updateMLPSolution(mlpSolution, cdsClient);
+					if (localSolution != null) {	
+						updateMLPSolution(localSolution, cdsClient);
 					}
 				}
 				catch (Exception x) {
-					logger.warn(EELFLoggerDelegate.debugLogger, "Mapping of acumos solution failed for: " + acumosSolution, x);
+					x.printStackTrace();
+					logger.warn(EELFLoggerDelegate.debugLogger, "Mapping of acumos solution failed for: " + peerSolution, x);
 				}
 			}
 		}
@@ -367,6 +369,13 @@ public class PeerGateway {
 				throw x;
 			}
 
+			//this should not happen as any solution should have at least one
+			//revision (but that's an assumption on how on-boarding works)
+			if (peerRevisions == null || peerRevisions.size() == 0) {
+				logger.warn(EELFLoggerDelegate.debugLogger, "No revisions were retrieved");
+				return;
+			} 
+
 			//check if we have locally the latest revision available on the peer
 			//TODO: this is just one possible policy regarding the handling of
 			//such a mismatch
@@ -434,7 +443,7 @@ public class PeerGateway {
 							localArtifact = updateMLPArtifact(peerArtifact, localArtifact, cdsClient);
 						}
 						else {
-							//mark the fact that loca artifact does not need an update
+							//mark the fact that local artifact does not need an update
 							localArtifact = null;
 						}
 					}
@@ -443,11 +452,19 @@ public class PeerGateway {
 
 					if (localArtifact == null) {
 						//the artifact does not need an update
+						logger.info(EELFLoggerDelegate.debugLogger, "Artifact does not need an update");
 						continue;
 					}
 
-					//artifacts file download and push it to nexus: we continue here 
-					//as we persisted the peer URI 
+					if (localArtifact.getUri() == null) {
+						//the peer does not want us to gain access to the artifact content	
+						logger.info(EELFLoggerDelegate.debugLogger, "Artifact uri not available");
+						continue;
+					}
+
+					//TODO: we are trying to access the artifact by its identifier which
+					//is fine in the common case but the uri specified in the artifact
+					//data is a more flexible approach.
 					Resource artifactContent = null;
 					try {
 						artifactContent = fedClient.downloadArtifact(peerArtifact.getArtifactId());

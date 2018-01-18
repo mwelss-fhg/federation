@@ -1,0 +1,36 @@
+[{
+  "solutionId":"00000000-0000-0000-0000-000000000000",
+  "name":"traffic-ram",
+  "description":"Round about traffic model",
+  "ownerId":"admin",
+  "active":"true",
+  "modelTypeCode":"CL",
+  "toolkitTypeCode":"",
+  "validationStatusCode":"",
+  "metadata":"acumosa",
+  "created":"2017-08-10",
+  "modified":"2017-08-11",
+  "revisions":[
+   {
+    "revisionId":"01010101-0101-0101-0101-010101010101",
+    "solutionId":"00000000-0000-0000-0000-000000000000",
+    "description":"First attempt",
+    "version":"1.0",
+    "metadata":"acumosa",
+    "ownerId":"admin",
+  	"created":"2017-08-10",
+  	"modified":"2017-08-11",
+    "artifacts":[
+     {
+      "artifactId":"a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0",
+      "name":"configuration",
+      "uri":"classpath:/application-acumosa.properties",
+      "metadata":"acumosa",
+  	  "created":"2017-08-10",
+  	  "modified":"2017-08-11"
+     }
+    ]
+   }
+  ]
+ }
+]

@@ -26,8 +26,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties({FederationClientConfiguration.class,
-				FederationDataClientConfiguration.class})
+@EnableConfigurationProperties({FederationClientConfiguration.class})
 public class GatewayConfiguration {
 
 }

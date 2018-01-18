@@ -18,7 +18,7 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.controller;
+package org.acumos.federation.gateway.task;
 
 import java.util.Calendar;
 
@@ -134,7 +134,7 @@ public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware 
 					 );
 	}
 
-	@Scheduled(fixedRateString = "${peer.jobchecker.interval:400}000")
+	@Scheduled(initialDelay = 1000,fixedRateString = "${peer.jobchecker.interval:400}000")
 	public void checkPeerJobs() {
 
 		//Get the List of MLP Peers

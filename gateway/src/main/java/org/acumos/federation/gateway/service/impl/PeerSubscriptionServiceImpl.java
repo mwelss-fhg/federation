@@ -62,21 +62,22 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscriptions:{}", peerId);
 		List<MLPPeerSubscription> mlpPeerSubscriptions  = null;
 		//Temporary Fix as COmmon Data Service does not handle proper Serialization
-		mlpPeerSubscriptions =	getCommonDataClient().getPeerSubscriptions(peerId);
+		mlpPeerSubscriptions =	getClient().getPeerSubscriptions(peerId);
+/*
 		if(!Utils.isEmptyList(mlpPeerSubscriptions)) {
 			//mlpPeerSubscriptions = mlpPeerSubscriptionPaged.getContent();
 			mlpPeerSubscriptions = mlpPeerSubscriptions.stream().filter(mlpPeerSubscription -> (mlpPeerSubscription.getPeerId().contains(peerId))).collect(Collectors.toList());
-			log.debug(EELFLoggerDelegate.debugLogger, "getPeers size:{}", mlpPeerSubscriptions.size());
-		}
+		}*/
+		log.debug(EELFLoggerDelegate.debugLogger, "getPeers size:{}", mlpPeerSubscriptions.size());
 		return mlpPeerSubscriptions;
 	}
 
 	@Override
 	public MLPPeerSubscription getPeerSubscription(Long subId) {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription:{}", subId);
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
+		ICommonDataServiceRestClient cdsClient = getClient();
 		MLPPeerSubscription existingMLPPeerSubscription = null;
-		existingMLPPeerSubscription = dataServiceRestClient.getPeerSubscription(subId);
+		existingMLPPeerSubscription = cdsClient.getPeerSubscription(subId);
 		if(existingMLPPeerSubscription != null) {
 			log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription :{}", existingMLPPeerSubscription.toString());
 		}
@@ -86,9 +87,9 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 	@Override
 	public MLPPeerSubscription savePeerSubscription(MLPPeerSubscription mlpPeerSubscription) {
 		log.debug(EELFLoggerDelegate.debugLogger, "savePeerSubscription");
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
+		ICommonDataServiceRestClient cdsClient = getClient();
 		MLPPeerSubscription mlPeerSubscriptionCreated = null;
-		mlPeerSubscriptionCreated = dataServiceRestClient.createPeerSubscription(mlpPeerSubscription);
+		mlPeerSubscriptionCreated = cdsClient.createPeerSubscription(mlpPeerSubscription);
 		if(mlPeerSubscriptionCreated !=null) {
 			log.debug(EELFLoggerDelegate.debugLogger, "savePeerSubscription :{}", mlPeerSubscriptionCreated.toString());
 		}
@@ -98,14 +99,14 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 	@Override
 	public boolean updatePeerSubscription(MLPPeerSubscription mlpPeerSubscription) {
 		log.debug(EELFLoggerDelegate.debugLogger, "updatePeerSubscription");
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
+		ICommonDataServiceRestClient cdsClient = getClient();
 		boolean isUpdatedSuccessfully = false;
 		MLPPeerSubscription existingMLPPeerSubscription = null;
 		try{
 			existingMLPPeerSubscription = getPeerSubscription(mlpPeerSubscription.getSubId());
 			if(existingMLPPeerSubscription != null) {
 				if(mlpPeerSubscription.getPeerId().equalsIgnoreCase(existingMLPPeerSubscription.getPeerId()))
-					dataServiceRestClient.updatePeerSubscription(mlpPeerSubscription);
+					cdsClient.updatePeerSubscription(mlpPeerSubscription);
 					isUpdatedSuccessfully = true;
 			}
 		} catch (Exception e) {
@@ -119,9 +120,9 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 	public boolean deletePeerSubscription(MLPPeerSubscription mlpPeerSubscription) {
 		log.debug(EELFLoggerDelegate.debugLogger, "deletePeerSubscription");
 		boolean isDeletedSuccessfully = false;
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
+		ICommonDataServiceRestClient cdsClient = getClient();
 		try {
-			dataServiceRestClient.deletePeerSubscription(mlpPeerSubscription.getSubId());
+			cdsClient.deletePeerSubscription(mlpPeerSubscription.getSubId());
 			isDeletedSuccessfully = true;
 		} catch (Exception e) {
 			isDeletedSuccessfully = false;

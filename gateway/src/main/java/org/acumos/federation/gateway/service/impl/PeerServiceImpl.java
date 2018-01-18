@@ -59,8 +59,8 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	@Override
 	public List<MLPPeer> getPeers() {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeers");
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
-		List<MLPPeer> mlpPeers = dataServiceRestClient.searchPeers(Collections.EMPTY_MAP, false);
+		ICommonDataServiceRestClient cdsClient = getClient();
+		List<MLPPeer> mlpPeers = cdsClient.searchPeers(Collections.EMPTY_MAP,false);
 		if(mlpPeers !=null) {
 			log.debug(EELFLoggerDelegate.debugLogger, "getPeers size:{}", mlpPeers.size());
 		}
@@ -76,11 +76,11 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	@Override
 	public List<MLPPeer> getPeer(String subjectName) {
 		log.debug(EELFLoggerDelegate.debugLogger, "savePeer");
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
+		ICommonDataServiceRestClient cdsClient = getClient();
 		Map<String, Object> queryParameters = new HashMap<String, Object>();
 		queryParameters.put("subjectName", subjectName); //I believe it should be unique
 		List<MLPPeer> existingMLPPeers = null;
-		existingMLPPeers = dataServiceRestClient.searchPeers(queryParameters, false);
+		existingMLPPeers = cdsClient.searchPeers(queryParameters, false);
 		if(existingMLPPeers != null && existingMLPPeers.size() > 0) {
 			log.debug(EELFLoggerDelegate.debugLogger, "getPeer size:{}", existingMLPPeers.size());
 		}
@@ -90,8 +90,8 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	@Override
 	public MLPPeer getOnePeer(String peerId) {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeer: {}", peerId);
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
-		MLPPeer mlpPeer = dataServiceRestClient.getPeer(peerId);
+		ICommonDataServiceRestClient cdsClient = getClient();
+		MLPPeer mlpPeer = cdsClient.getPeer(peerId);
 		if(mlpPeer !=null) {
 			log.error(EELFLoggerDelegate.debugLogger, "getOnePeer: {}", mlpPeer.toString());
 		}
@@ -101,7 +101,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	@Override
 	public MLPPeer savePeer(MLPPeer mlpPeer) {
 		log.debug(EELFLoggerDelegate.debugLogger, "savePeer");
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
+		ICommonDataServiceRestClient cdsClient = getClient();
 		Map<String, Object> queryParameters = new HashMap<String, Object>();
 		queryParameters.put("subjectName", mlpPeer.getSubjectName()); //I believe it should be unique
 		boolean isPeerExists = false;
@@ -119,7 +119,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 		}
 		
 		if(!isPeerExists) {
-			mlpPeerCreated = dataServiceRestClient.createPeer(mlpPeer);
+			mlpPeerCreated = cdsClient.createPeer(mlpPeer);
 			if(mlpPeerCreated !=null) {
 				log.debug(EELFLoggerDelegate.debugLogger, "savePeer :{}", mlpPeer.toString());
 			}
@@ -130,13 +130,13 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	@Override
 	public boolean updatePeer(MLPPeer mlpPeer) {
 		log.debug(EELFLoggerDelegate.debugLogger, "updatePeer");
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
+		ICommonDataServiceRestClient cdsClient = getClient();
 		boolean isUpdatedSuccessfully = false;
 		List<MLPPeer> existingMLPPeers = null;
 		try{
 			existingMLPPeers = getPeer(mlpPeer.getSubjectName());
 			if(existingMLPPeers != null && existingMLPPeers.size() > 0) {
-				dataServiceRestClient.updatePeer(mlpPeer);
+				cdsClient.updatePeer(mlpPeer);
 				isUpdatedSuccessfully = true;
 			}
 		} catch (Exception e) {
@@ -150,9 +150,9 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	public boolean deletePeer(MLPPeer mlpPeer) {
 		log.debug(EELFLoggerDelegate.debugLogger, "deletePeer");
 		boolean isDeletedSuccessfully = false;
-		ICommonDataServiceRestClient dataServiceRestClient = getClient();
+		ICommonDataServiceRestClient cdsClient = getClient();
 		try {
-			dataServiceRestClient.deletePeer(mlpPeer.getPeerId());
+			cdsClient.deletePeer(mlpPeer.getPeerId());
 			isDeletedSuccessfully = true;
 		} catch (Exception e) {
 			isDeletedSuccessfully = false;

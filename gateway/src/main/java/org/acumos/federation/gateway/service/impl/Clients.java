@@ -37,7 +37,6 @@ import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.nexus.client.NexusArtifactClient;
 import org.acumos.nexus.client.RepositoryLocation;
 
-
 /**
  * Unique entry point for building clients: peer access clients, cds clients
  */
@@ -62,13 +61,6 @@ public class Clients implements ApplicationContextAware {
 								env.getProperty("cdms.client.password"));
 	}
 	
-	/** Federation oriented CDS layer */	
-	public FederationDataClient getCommonDataClient() {
-    return new FederationDataClient(
-									this.env.getProperty("cdms.client.url"),
-                  (HttpClient)this.appCtx.getBean("federationDataClient"));
-	}
-
 	public FederationClient getFederationClient(String thePeerURI) {
     return new FederationClient(
 									thePeerURI,
@@ -76,15 +68,14 @@ public class Clients implements ApplicationContextAware {
 	}
 
 	public NexusArtifactClient getNexusClient() {
-
 		RepositoryLocation repositoryLocation = new RepositoryLocation();
+      
 		repositoryLocation.setId("1");
-		repositoryLocation.setUrl(this.env.getProperty("nexus.url"));
-		repositoryLocation.setUsername(this.env.getProperty("nexus.username"));
-		repositoryLocation.setPassword(this.env.getProperty("nexus.password"));
-		repositoryLocation.setProxy(this.env.getProperty("nexus.proxy"));
-			
-		// if you need a proxy to access the Nexus
+		repositoryLocation.setUrl(env.getProperty("nexus.url"));
+		repositoryLocation.setUsername(env.getProperty("nexus.username"));
+		repositoryLocation.setPassword(env.getProperty("nexus.password"));
+		repositoryLocation.setProxy(env.getProperty("nexus.proxy"));
+
 		return new NexusArtifactClient(repositoryLocation);
 	}
 }
