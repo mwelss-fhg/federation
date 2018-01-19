@@ -20,27 +20,23 @@
 
 package org.acumos.federation.gateway.task;
 
-import java.util.Calendar;
-
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 
 import javax.annotation.PreDestroy;
 
-import com.google.common.collect.Table;
-import com.google.common.collect.HashBasedTable;
-
+import org.acumos.cds.domain.MLPPeer;
+import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.task.PeerCommunicationTask;
 import org.acumos.federation.gateway.util.Utils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -48,11 +44,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
-import org.acumos.cds.domain.MLPPeer;
-import org.acumos.cds.domain.MLPPeerSubscription;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 
 /**
  * 
@@ -77,10 +71,6 @@ public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware 
 	private ApplicationContext			appCtx;
 
 	private static Table<String, Long, PeerTaskHandler> peersSubsTask = HashBasedTable.create();
-
-	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
-			"MM/dd/yyyy HH:mm:ss");
-
 
 	public void setApplicationContext(ApplicationContext theCtx) { //throws BeansException {
     this.appCtx = theCtx;

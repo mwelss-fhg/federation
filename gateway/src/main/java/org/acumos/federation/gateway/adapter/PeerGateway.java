@@ -20,15 +20,19 @@
 
 package org.acumos.federation.gateway.adapter;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.acumos.cds.AccessTypeCode;
+import org.acumos.cds.ValidationStatusCode;
+import org.acumos.cds.client.ICommonDataServiceRestClient;
+import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPPeer;
+import org.acumos.cds.domain.MLPPeerSubscription;
+import org.acumos.cds.domain.MLPSolution;
+import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.federation.gateway.common.GatewayCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
@@ -36,33 +40,19 @@ import org.acumos.federation.gateway.service.impl.Clients;
 import org.acumos.federation.gateway.service.impl.FederationClient;
 import org.acumos.federation.gateway.util.Errors;
 import org.acumos.federation.gateway.util.Utils;
-
 import org.acumos.nexus.client.data.UploadArtifactInfo;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
-
-import org.acumos.cds.AccessTypeCode;
-import org.acumos.cds.ValidationStatusCode;
-import org.acumos.cds.client.CommonDataServiceRestClientImpl;
-import org.acumos.cds.client.ICommonDataServiceRestClient;
-import org.acumos.cds.domain.MLPArtifact;
-import org.acumos.cds.domain.MLPPeer;
-import org.acumos.cds.domain.MLPPeerSubscription;
-import org.acumos.cds.domain.MLPSolution;
-import org.acumos.cds.domain.MLPSolutionRevision;
 
 
 @Component("peergateway")
@@ -72,7 +62,6 @@ import org.acumos.cds.domain.MLPSolutionRevision;
 public class PeerGateway {
 
 	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(PeerGateway.class);
-	private String				operator;
 	private TaskExecutor	taskExecutor; 
 	@Autowired
 	private Environment env;

@@ -13,28 +13,19 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>1.5.4.RELEASE</version>
-    <!-- silence warning about parent relative path -->
-    <relativePath />
+		<!-- silence warning about parent relative path -->
+		<relativePath />
 	</parent>
 
 	<properties>
-		<encoding>UTF-8</encoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<!-- Stand-alone RESTFul application -->
 		<start-class>org.acumos.federation.gateway.Application</start-class>
 		<!-- Jenkins invokes mvn with argument -Dbuild.number=${BUILD_NUMBER} -->
 		<build.number>0</build.number>
-		<eelf.version>1.0.0</eelf.version>
 		<!-- tests require database to be running -->
 		<skipTests>false</skipTests>
-		<!-- Docker daemon -->
-		<docker.host.url>unix:/var/run/docker.sock</docker.host.url>
-		<!-- Docker image registry -->
-		<docker.registry.url>Set by Jenkins</docker.registry.url>
-		<docker.registry.login>Registry userId - supplied by jenkins</docker.registry.login>
-		<docker.registry.password>Registry password - supplied by jenkins</docker.registry.password>
-		<!--
-		<docker.registry.url>registry.hub.docker.io</docker.registry.url>
-		--> 
 		<!-- dependencies versions -->
 		<slf4j.version>1.7.25</slf4j.version>
 		<logback.version>1.2.3</logback.version>
@@ -43,42 +34,24 @@
 		<spring.boot.starter.security.version>1.5.8.RELEASE</spring.boot.starter.security.version>
 		<spring.boot.starter.test.version>1.5.8.RELEASE</spring.boot.starter.test.version>
 		<spring.boot.configuration.processor.version>1.5.8.RELEASE</spring.boot.configuration.processor.version>
-		<!-- All acumos.nexus.* are overridden by Jenkins settings -->
-		<acumos.nexus.url>http://cognita-nexus01.eastus.cloudapp.azure.com:8081</acumos.nexus.url>
-		<acumos.nexus.snapshot.path>repository/repo_cognita_platform_maven_snapshots</acumos.nexus.snapshot.path>
-		<acumos.nexus.release.path>repository/repo_cognita_platform_maven</acumos.nexus.release.path>
+		<!-- Not supplied to all jobs; e.g., Javadoc -->
+		<docker.pull.registry>nexus3.acumos.org:10001</docker.pull.registry>
+		<!-- Supplied by Jenkins -->
+		<docker.push.registry>${env.NEXUS3_PUSH_REGISTRY}</docker.push.registry>
 		<maven.build.timestamp.format>yyyy.MM.dd_HH.mm</maven.build.timestamp.format>
 	</properties>
 
-	<repositories>
-		<repository>
-			<id>acumos-snapshots</id>
-			<name>acumos-repository-snapshots</name>
-			<url>${acumos.nexus.url}/${acumos.nexus.snapshot.path}</url>
-		</repository>
-		<repository>
-			<id>acumos-releases</id>
-			<name>acumos-repository-releases</name>
-			<url>${acumos.nexus.url}/${acumos.nexus.release.path}</url>
-		</repository>
-		<repository>
-			<id>onap-snapshots</id>
-			<name>ONAP Snapshot Repository</name>
-			<url>${onap.nexus.url}/${onap.nexus.snapshot.path}</url>
-		</repository>
-		<repository>
-			<id>onap-releases</id>
-			<name>ONAP Release Repository</name>
-			<url>${onap.nexus.url}/${onap.nexus.release.path}</url>
-		</repository>
-	</repositories>
+	<!-- Some dependencies are specific to Acumos, but this POM defines no repositories 
+		section. The Jenkins server specifies Acumos repositories. Developers should 
+		ensure their ~/.m2/settings.xml file has the following URLs in both the repositories 
+		and pluginRepositories sections or in a profile: https://nexus.acumos.org/content/repositories/snapshots/ 
+		https://nexus.acumos.org/content/repositories/releases/ -->
 
 	<dependencies>
 		<dependency>
-			<groupId>org.acumos</groupId>
+			<groupId>org.acumos.acumos-nexus-client</groupId>
 			<artifactId>acumos-nexus-client</artifactId>
-			<!-- <version>1.0.0-SNAPSHOT</version> -->
-			<version>1.12.0</version>
+			<version>2.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.acumos.common-dataservice</groupId>
@@ -86,50 +59,50 @@
 			<version>1.12.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-	      <groupId>org.json</groupId>
-	      <artifactId>json</artifactId>
-	      <version>20160212</version>
-	    </dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20160212</version>
+		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
+			<!-- spring sets the <version>${slf4j.version}</version> -->
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>${logback.version}</version>
+			<!-- spring sets the <version>${logback.version}</version> -->
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>${logback.version}</version>
+			<!-- spring sets the <version>${logback.version}</version> -->
 		</dependency>
 		<dependency>
-    	<groupId>org.springframework.boot</groupId>
-     		<artifactId>spring-boot-starter-security</artifactId>
-			<version>${spring.boot.starter.security.version}</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+			<!-- spring sets the ${spring.boot.starter.security.version}</version> -->
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<version>${spring.boot.starter.web.version}</version>
+			<!-- spring sets the <version>${spring.boot.starter.web.version}</version> -->
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
-			<version>${spring.boot.configuration.processor.version}</version>
+			<!-- spring sets the <version>${spring.boot.configuration.processor.version}</version> -->
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.httpcomponents</groupId>
-		    <artifactId>httpclient</artifactId>
-		    <version>4.5</version>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<!-- spring sets the <version>4.5</version> -->
 		</dependency>
 		<dependency>
-    	<groupId>org.springframework.shell</groupId>
-    	<artifactId>spring-shell</artifactId>
-    	<version>1.2.0.RELEASE</version>
+			<groupId>org.springframework.shell</groupId>
+			<artifactId>spring-shell</artifactId>
+			<version>1.2.0.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>io.springfox</groupId>
@@ -144,7 +117,7 @@
 		<dependency>
 			<groupId>com.att.eelf</groupId>
 			<artifactId>eelf-core</artifactId>
-			<version>${eelf.version}</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.inject</groupId>
@@ -157,63 +130,60 @@
 			<version>0.6.0</version>
 		</dependency>
 		<dependency>
-	    	<groupId>org.python</groupId>
-	    	<artifactId>jython-standalone</artifactId>
-	    	<version>2.7.1-rc3</version>
+			<groupId>org.python</groupId>
+			<artifactId>jython-standalone</artifactId>
+			<version>2.7.1-rc3</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
+			<!-- spring sets the <version>3.8.1</version> -->
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-	    	<groupId>commons-cli</groupId>
-	    	<artifactId>commons-cli</artifactId>
-	    	<version>1.2</version>
+			<groupId>commons-cli</groupId>
+			<artifactId>commons-cli</artifactId>
+			<version>1.2</version>
 		</dependency>
 		<dependency>
-	    	<groupId>org.apache.commons</groupId>
-	    	<artifactId>commons-lang3</artifactId>
-	    	<version>3.6</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.6</version>
 		</dependency>
 		<dependency>
-    	<groupId>org.aspectj</groupId>
-    	<artifactId>aspectjweaver</artifactId>
-    	<version>1.8.13</version>
-		</dependency>
-
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.12</version>
-			<scope>test</scope>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+			<version>1.8.13</version>
 		</dependency>
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
-			<version>3.8.0</version>
+			<!-- spring sets the <version>3.8.0</version> -->
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<version>${spring.boot.starter.test.version}</version>
+			<!-- spring sets the <version>1.5.3.RELEASE</version> -->
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.0</version>
+				<!-- spring sets the <version>3.0</version> -->
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
 			</plugin>
+			<!-- Add the build number to the jar manifest. Spring-Boot uses a complex 
+				packaging process that makes access to the original Manifest.MF very difficult. 
+				However, Java provides access to the implementation version for a package, 
+				so cram the build number into there. -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -223,8 +193,7 @@
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 						</manifest>
 						<manifestEntries>
-							<Build-Number>${project.version}.${build.number}</Build-Number>
-							<Build-Time>${maven.build.timestamp}</Build-Time>
+							<Implementation-Version>${project.version}-b${build.number}</Implementation-Version>
 						</manifestEntries>
 					</archive>
 				</configuration>
@@ -247,30 +216,39 @@
 					</execution>
 				</executions>
 			</plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.10</version>
-        <executions>
-          <execution>
-            <id>copy-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/deps</outputDirectory>
-              <overWriteReleases>true</overWriteReleases>
-              <overWriteSnapshots>true</overWriteSnapshots>
-              <overWriteIfNewer>true</overWriteIfNewer>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.10</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/deps</outputDirectory>
+							<overWriteReleases>true</overWriteReleases>
+							<overWriteSnapshots>true</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- No need to deploy Spring super-boot -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<!-- Spring sets the <version>2.8</version> -->
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
-				<version>0.21.0</version>
+				<version>0.23.0</version>
 				<configuration>
 					<verbose>true</verbose>
 					<dockerHost>${docker.host.url}</dockerHost>
@@ -281,15 +259,13 @@
 					</authConfig>
 					<images>
 						<image>
+							<!-- Specify a tag to avoid default tag "latest" -->
 							<name>federation-gateway:${project.version}</name>
 							<build>
-								<!-- This is the same FROM used in a Dockerfile -->
-								<!-- <from>openjdk:8-jdk</from> -->
 								<from>frolvlad/alpine-oraclejdk8:slim</from>
 								<tags>
-   	 							<tag>latest</tag>
-    							<tag>${project.version}</tag>
-   	 							<tag>${maven.build.timestamp}</tag>
+									<!-- Add tag with build number -->
+									<tag>${project.version}-b${build.number}</tag>
 								</tags>
 								<assembly>
 									<inline>
@@ -323,20 +299,19 @@
 								</assembly>
 								<!-- This is the same CMD used in a Dockerfile -->
 								<cmd>
-									<shell><![CDATA[	cd /maven; java -Djava.security.egd=file:/dev/./urandom -jar ${project.artifactId}-${project.version}.${project.packaging}]]></shell>
+									<!-- CDATA prevents Eclipse formatter from breaking line -->
+									<shell><![CDATA[cd /maven; java -Djavax.net.debug=ssl -Djava.security.egd=file:/dev/./urandom -jar ${project.artifactId}-${project.version}.${project.packaging}]]></shell>
 								</cmd>
 							</build>
 						</image>
 						<image>
+							<!-- Specify a tag to avoid default tag "latest" -->
 							<name>federation-gateway-test:${project.version}</name>
 							<build>
-								<!-- This is the same FROM used in a Dockerfile -->
-								<!-- <from>openjdk:8-jdk</from> -->
 								<from>frolvlad/alpine-oraclejdk8:slim</from>
 								<tags>
-   	 							<tag>latest</tag>
-    							<tag>${project.version}</tag>
-   	 							<tag>${maven.build.timestamp}</tag>
+									<!-- Add tag with build number -->
+									<tag>${project.version}-b${build.number}</tag>
 								</tags>
 								<assembly>
 									<inline>
@@ -346,9 +321,7 @@
 												<outputDirectory />
 												<destName>application.properties</destName>
 											</file>
-<!--
-	need the following two for server config
--->
+											<!-- need the following two for server config -->
 											<file>
 												<source>src/test/resources/acumosa.pkcs12</source>
 												<outputDirectory />
@@ -374,24 +347,24 @@
 											</file>
 										</files>
 										<fileSets>
-                      <fileSet>
-                        <directory>${project.build.directory}/deps/</directory>
-                        <outputDirectory>/libs/</outputDirectory>
-                        <includes>
-                          <include>*</include>
-                        </includes>
-                        <fileMode>0755</fileMode>
+											<fileSet>
+												<directory>${project.build.directory}/deps/</directory>
+												<outputDirectory>/libs/</outputDirectory>
+												<includes>
+													<include>*</include>
+												</includes>
+												<fileMode>0755</fileMode>
 											</fileSet>
 										</fileSets>
 									</inline>
 								</assembly>
-								<!-- This is the same CMD used in a Dockerfile -->
 								<cmd>
-									<shell><![CDATA[	cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djavax.net.ssl.trustStore=/app/certs/acumosTrustStore.jks -Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher]]></shell>
-
-<!--
-									<shell><![CDATA[	cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djavax.net.ssl.trustStore=acumosTrustStore.jks -Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher]]></shell>
--->
+									<!-- CDATA prevents Eclipse formatter from breaking line -->
+									<shell><![CDATA[cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStore=/app/certs/acumosTrustStore.jks -Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher]]></shell>
+									<!-- <shell>cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* 
+										-Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStore=acumosTrustStore.jks 
+										-Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom 
+										org.springframework.boot.loader.PropertiesLauncher</shell> -->
 								</cmd>
 							</build>
 						</image>
@@ -420,7 +393,8 @@
 					<processEndTag>===============LICENSE_END=========================================================</processEndTag>
 					<sectionDelimiter>===================================================================================</sectionDelimiter>
 					<inceptionYear>2017</inceptionYear>
-					<organizationName>AT&amp;T Intellectual Property &amp; Tech Mahindra. All rights reserved.</organizationName>
+					<organizationName>AT&amp;T Intellectual Property &amp; Tech
+						Mahindra. All rights reserved.</organizationName>
 					<projectName>Acumos</projectName>
 					<canUpdateCopyright>true</canUpdateCopyright>
 					<canUpdateDescription>true</canUpdateDescription>
@@ -430,22 +404,13 @@
 						<include>**/*.java</include>
 					</includes>
 				</configuration>
-<!--
-				<executions>
-					<execution>
-						<id>first</id>
-						<goals>
-							<goal>update-file-header</goal>
-						</goals>
-						<phase>process-sources</phase>
-					</execution>
-				</executions>
--->
+				<!-- <executions> <execution> <id>first</id> <goals> <goal>update-file-header</goal> 
+					</goals> <phase>process-sources</phase> </execution> </executions> -->
 			</plugin>
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.7.6.201602180812</version>
+				<version>0.7.9</version>
 				<executions>
 					<execution>
 						<id>default-prepare-agent</id>
@@ -465,18 +430,4 @@
 
 		</plugins>
 	</build>
-	<distributionManagement>
-		<snapshotRepository>
-			<!-- must match ID in Jenkins settings -->
-			<id>acumos-nexus</id>
-			<name>acumos-repository-snapshots</name>
-			<url>${acumos.nexus.url}/${acumos.nexus.snapshot.path}</url>
-		</snapshotRepository>
-		<repository>
-			<!-- must match ID in Jenkins settings -->
-			<id>acumos-nexus</id>
-			<name>acumos-repository-releases</name>
-			<url>${acumos.nexus.url}/${acumos.nexus.release.path}</url>
-		</repository>
-	</distributionManagement>
 </project>

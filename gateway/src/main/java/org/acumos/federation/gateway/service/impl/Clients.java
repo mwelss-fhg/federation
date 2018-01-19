@@ -20,22 +20,17 @@
 
 package org.acumos.federation.gateway.service.impl;
 
-import org.apache.http.client.HttpClient;
-
-import org.springframework.stereotype.Component;
-import org.springframework.context.annotation.Scope;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-
 import org.acumos.cds.client.CommonDataServiceRestClientImpl;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
-
 import org.acumos.nexus.client.NexusArtifactClient;
 import org.acumos.nexus.client.RepositoryLocation;
+import org.apache.http.client.HttpClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 /**
  * Unique entry point for building clients: peer access clients, cds clients
@@ -49,33 +44,31 @@ public class Clients implements ApplicationContextAware {
 
 	protected ApplicationContext appCtx = null;
 
-	public void	setApplicationContext(ApplicationContext theAppContext) {
+	public void setApplicationContext(ApplicationContext theAppContext) {
 		this.appCtx = theAppContext;
 	}
 
-	/** The standard CDS client */	
+	/**
+	 * @return The standard CDS client
+	 */
 	public ICommonDataServiceRestClient getClient() {
-		return new CommonDataServiceRestClientImpl(
-								env.getProperty("cdms.client.url"),
-								env.getProperty("cdms.client.username"),
-								env.getProperty("cdms.client.password"));
+		return new CommonDataServiceRestClientImpl(env.getProperty("cdms.client.url"),
+				env.getProperty("cdms.client.username"), env.getProperty("cdms.client.password"));
 	}
-	
+
 	public FederationClient getFederationClient(String thePeerURI) {
-    return new FederationClient(
-									thePeerURI,
-                  (HttpClient)this.appCtx.getBean("federationClient"));
+		return new FederationClient(thePeerURI, (HttpClient) this.appCtx.getBean("federationClient"));
 	}
 
 	public NexusArtifactClient getNexusClient() {
 		RepositoryLocation repositoryLocation = new RepositoryLocation();
-      
+
 		repositoryLocation.setId("1");
+
 		repositoryLocation.setUrl(env.getProperty("nexus.url"));
 		repositoryLocation.setUsername(env.getProperty("nexus.username"));
 		repositoryLocation.setPassword(env.getProperty("nexus.password"));
 		repositoryLocation.setProxy(env.getProperty("nexus.proxy"));
-
 		return new NexusArtifactClient(repositoryLocation);
 	}
 }

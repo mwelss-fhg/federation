@@ -20,60 +20,50 @@
 
 package org.acumos.federation.gateway.task;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.impl.Clients;
-import org.acumos.federation.gateway.service.impl.FederationClient;
-import org.acumos.federation.gateway.util.Utils;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-
-import org.acumos.cds.AccessTypeCode;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.cds.domain.MLPSolution;
-
+import org.acumos.federation.gateway.common.JsonResponse;
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
-
-import org.springframework.stereotype.Component;
+import org.acumos.federation.gateway.service.impl.Clients;
+import org.acumos.federation.gateway.service.impl.FederationClient;
+import org.acumos.federation.gateway.util.Utils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
  * 
- * Peer Acumos Task to Communicate to Remote Acumos and fetch Solutions & Catalogs
+ * Peer Acumos Task to Communicate to Remote Acumos and fetch Solutions and
+ * Catalogs
  */
 @Component("peerSubscriptionTask")
 @Scope("prototype")
 public class PeerCommunicationTask implements Runnable {
 
 	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(PeerCommunicationTask.class);
-	
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
-	
+
 	private MLPPeer mlpPeer;
 	private MLPPeerSubscription mlpSubscription;
 
-  @Autowired
-  private Clients clients;
+	@Autowired
+	private Clients clients;
 
-  public PeerCommunicationTask() {
-	}	
+	public PeerCommunicationTask() {
+	}
 
 	public PeerCommunicationTask handle(MLPPeer peer, MLPPeerSubscription subscription) {
 		this.mlpPeer = peer;
 		this.mlpSubscription = subscription;
 		return this;
-  }
+	}
 
 	public MLPPeer getPeer() {
 		return this.mlpPeer;
@@ -83,10 +73,9 @@ public class PeerCommunicationTask implements Runnable {
 		return this.mlpSubscription;
 	}
 
-
 	@Override
 	public void run() {
-    	
+
 		if (this.mlpPeer == null || this.mlpSubscription == null) {
 			logger.info(EELFLoggerDelegate.debugLogger, "Peer task has no peer subscription info");
 			return;
@@ -94,30 +83,32 @@ public class PeerCommunicationTask implements Runnable {
 
 		try {
 			logger.info(EELFLoggerDelegate.debugLogger, "Peer task: " + mlpPeer);
-    		
-      logger.info(EELFLoggerDelegate.debugLogger, "Peer task: invoking getSolutions from Remote instance " + mlpPeer.getApiUrl());
-      FederationClient fedClient =
-          clients.getFederationClient(this.mlpPeer.getApiUrl());      
 
-      //Map<String, Object> queryParameters = new HashMap<String, Object>();
-      //queryParameters.put("modelTypeCode", mlpSubscription.getSelector()); // Subscriptions
-     	logger.info(EELFLoggerDelegate.debugLogger, "Peer Task: filter " + mlpSubscription.getSelector());
-			
-     	JsonResponse<List<MLPSolution>> jsonResponse = 
-						fedClient.getSolutions(
-							Utils.jsonStringToMap(mlpSubscription.getSelector()));
-			if(jsonResponse != null && jsonResponse.getResponseBody() != null) {
+			logger.info(EELFLoggerDelegate.debugLogger,
+					"Peer task: invoking getSolutions from Remote instance " + mlpPeer.getApiUrl());
+			FederationClient fedClient = clients.getFederationClient(this.mlpPeer.getApiUrl());
+
+			// Map<String, Object> queryParameters = new HashMap<String, Object>();
+			// queryParameters.put("modelTypeCode", mlpSubscription.getSelector()); //
+			// Subscriptions
+			logger.info(EELFLoggerDelegate.debugLogger, "Peer Task: filter " + mlpSubscription.getSelector());
+
+			JsonResponse<List<MLPSolution>> jsonResponse = fedClient
+					.getSolutions(Utils.jsonStringToMap(mlpSubscription.getSelector()));
+			if (jsonResponse != null && jsonResponse.getResponseBody() != null) {
 				List<MLPSolution> mlpSolutions = jsonResponse.getResponseBody();
-        logger.debug(EELFLoggerDelegate.debugLogger, "Peer task: Number of Solutions fetch from Remote Instance: " + mlpSolutions.size());
+				logger.debug(EELFLoggerDelegate.debugLogger,
+						"Peer task: Number of Solutions fetch from Remote Instance: " + mlpSolutions.size());
 				if (mlpSolutions.size() > 0) {
 					this.eventPublisher.publishEvent(
-								new PeerSubscriptionEvent(this, this.mlpPeer, this.mlpSubscription, mlpSolutions));
-        }
+							new PeerSubscriptionEvent(this, this.mlpPeer, this.mlpSubscription, mlpSolutions));
+				}
 			}
-    }
-		catch (Exception x) {
+		} catch (Exception x) {
 			logger.info(EELFLoggerDelegate.errorLogger, "Peer task for " + this.mlpPeer + " failed", x);
 		}
-    //	System.out.println(mlpPeer.getName() + " : Runnable Task with " + message + " on thread " + Thread.currentThread().getName() + ", id:"+ Thread.currentThread().getId());
-   }
+		// System.out.println(mlpPeer.getName() + " : Runnable Task with " + message + "
+		// on thread " + Thread.currentThread().getName() + ", id:"+
+		// Thread.currentThread().getId());
+	}
 }

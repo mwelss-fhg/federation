@@ -34,36 +34,44 @@ public interface PeerService {
 	 * @return List of Peers configured in the Local Acumos Instance
 	 */
 	List<MLPPeer> getPeers();
-	
+
 	/**
 	 * Provide the list of locally registered peers to one of our peers
+	 * 
+	 * @param theContext
+	 *            Service context
+	 * @return List of peers
 	 */
 	List<MLPPeer> getPeers(ServiceContext theContext);
-	
+
 	/**
+	 * @param subjectName
+	 *            Subject name
 	 * @return Peer based on the configured Subject Name
 	 */
 	List<MLPPeer> getPeer(String subjectName);
-	
+
 	MLPPeer getOnePeer(String peerId);
-	
+
 	/**
-	 * @param mlpPeer MLPPeer Configuration that needs to be created on the Platform
+	 * @param mlpPeer
+	 *            MLPPeer Configuration that needs to be created on the Platform
 	 * 
 	 * @return Peer configuration that has been created.
 	 */
 	MLPPeer savePeer(MLPPeer mlpPeer);
-	
-	
+
 	/**
-	 * @param mlpPeer MLPPeer Configuration that needs to be updated on the Platform
+	 * @param mlpPeer
+	 *            MLPPeer Configuration that needs to be updated on the Platform
 	 * 
 	 * @return Peer configuration that has been updated.
 	 */
 	boolean updatePeer(MLPPeer mlpPeer);
-	
+
 	/**
-	 * @param mlpPeer MLPPeer Configuration that needs to be deleted on the Platform
+	 * @param mlpPeer
+	 *            MLPPeer Configuration that needs to be deleted on the Platform
 	 * 
 	 * @return true if successfully deleted else false.
 	 */

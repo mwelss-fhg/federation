@@ -23,7 +23,6 @@ package org.acumos.federation.gateway.service;
 import java.util.List;
 
 import org.acumos.cds.domain.MLPPeerSubscription;
-import org.acumos.cds.transport.RestPageResponse;
 
 /**
  * 
@@ -32,32 +31,38 @@ import org.acumos.cds.transport.RestPageResponse;
 public interface PeerSubscriptionService {
 
 	/**
+	 * @param peerId
+	 *            Peer ID
 	 * @return List of PeerSubscription configured in the Local Acumos Instance
 	 */
 	List<MLPPeerSubscription> getPeerSubscriptions(String peerId);
-	
+
 	/**
+	 * @param subId
+	 *            Peer subscription ID
 	 * @return Peer Subscription based on the configured Subject Name
 	 */
 	MLPPeerSubscription getPeerSubscription(Long subId);
-	
+
 	/**
-	 * @param mlpPeerSubscription MLPPeer Configuration that needs to be created on the Platform
+	 * @param mlpPeerSubscription
+	 *            MLPPeer Configuration that needs to be created on the Platform
 	 * 
 	 * @return MLPPeerSubscription configuration that has been created.
 	 */
 	MLPPeerSubscription savePeerSubscription(MLPPeerSubscription mlpPeerSubscription);
-	
-	
+
 	/**
-	 * @param mlpPeerSubscription MLPPeer Configuration that needs to be updated on the Platform
+	 * @param mlpPeerSubscription
+	 *            MLPPeer Configuration that needs to be updated on the Platform
 	 * 
 	 * @return MLPPeerSubscription configuration that has been updated.
 	 */
 	boolean updatePeerSubscription(MLPPeerSubscription mlpPeerSubscription);
-	
+
 	/**
-	 * @param mlpPeerSubscription MLPPeerSubscription that needs to be deleted on the Platform
+	 * @param mlpPeerSubscription
+	 *            MLPPeerSubscription that needs to be deleted on the Platform
 	 * 
 	 * @return true if successfully deleted else false.
 	 */
