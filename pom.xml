@@ -26,8 +26,8 @@
 				<artifactId>sonar-maven-plugin</artifactId>
 				<version>3.4.0.905</version>
 			</plugin>
-                        <!-- No "skip" configuration for maven-deploy-plugin. Let the pom be deployed 
-                        to LF Nexus repo, so that the final deploy step finds a file and succeeds. -->
+			<!-- No "skip" configuration for maven-deploy-plugin. Let the pom be deployed 
+			to LF Nexus repo, so that the final deploy step finds a file and succeeds. -->
 		</plugins>
 	</build>
 </project>

@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.acumos.cds.domain.MLPAccessType;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -50,7 +49,7 @@ public class Utils {
 		return isEmpty;
 	}
 	
-	public static boolean isEmptyList(List input) {
+	public static boolean isEmptyList(@SuppressWarnings("rawtypes") List input) {
 		boolean isEmpty = false;
 		if (null == input || 0 == input.size()) {
 			isEmpty = true;
@@ -82,36 +81,6 @@ public class Utils {
 			throw new IllegalArgumentException("Failed to convert", x);
 		}
 	}	
-	
-	/**
-	 * 
-	 * @param accessType
-	 * Access type
-	 * @return
-	 * 		MLPAccessType object for Storing in DB
-	 */
-	public static MLPAccessType getMLPAccessType(String accessType) {
-		MLPAccessType mlpAccessType = null;
-		
-		if(!isEmptyOrNullString(accessType)) {
-			mlpAccessType = new MLPAccessType();
-			if(accessType.equals("PB")) {
-				
-				mlpAccessType.setAccessCode("PB");
-				mlpAccessType.setAccessName("Public");
-			} else if(accessType.equals("OR")) {
-				mlpAccessType.setAccessCode("OR");
-				mlpAccessType.setAccessName("Organization");
-			} else if(accessType.equals("PR")) {
-				mlpAccessType.setAccessCode("PR");
-				mlpAccessType.setAccessName("Private");
-			} else {//Default
-				mlpAccessType.setAccessCode("PR");
-				mlpAccessType.setAccessName("Private");
-			}
-		} 
-		return mlpAccessType;
-	}
 	
 	public static String getTempFolderPath(String artifactName, String version, String nexusTempPath) {
 		logger.debug("--------------- getTempFolderPath() started --------------");
