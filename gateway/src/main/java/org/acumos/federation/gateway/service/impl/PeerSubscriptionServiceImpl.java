@@ -85,18 +85,6 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 	}
 	
 	@Override
-	public MLPPeerSubscription savePeerSubscription(MLPPeerSubscription mlpPeerSubscription) {
-		log.debug(EELFLoggerDelegate.debugLogger, "savePeerSubscription");
-		ICommonDataServiceRestClient cdsClient = getClient();
-		MLPPeerSubscription mlPeerSubscriptionCreated = null;
-		mlPeerSubscriptionCreated = cdsClient.createPeerSubscription(mlpPeerSubscription);
-		if(mlPeerSubscriptionCreated !=null) {
-			log.debug(EELFLoggerDelegate.debugLogger, "savePeerSubscription :{}", mlPeerSubscriptionCreated.toString());
-		}
-		return mlPeerSubscriptionCreated;
-	}
-
-	@Override
 	public boolean updatePeerSubscription(MLPPeerSubscription mlpPeerSubscription) {
 		log.debug(EELFLoggerDelegate.debugLogger, "updatePeerSubscription");
 		ICommonDataServiceRestClient cdsClient = getClient();
@@ -116,18 +104,4 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 		return isUpdatedSuccessfully;
 	}
 
-	@Override
-	public boolean deletePeerSubscription(MLPPeerSubscription mlpPeerSubscription) {
-		log.debug(EELFLoggerDelegate.debugLogger, "deletePeerSubscription");
-		boolean isDeletedSuccessfully = false;
-		ICommonDataServiceRestClient cdsClient = getClient();
-		try {
-			cdsClient.deletePeerSubscription(mlpPeerSubscription.getSubId());
-			isDeletedSuccessfully = true;
-		} catch (Exception e) {
-			isDeletedSuccessfully = false;
-			log.error(EELFLoggerDelegate.debugLogger, "deletePeerSubscription: Exception while deleting the MLPPeerSubscription record:", e);
-		}
-		return isDeletedSuccessfully;
-	}
 }

@@ -24,15 +24,55 @@ import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.acumos.federation.gateway.service.PeerService;
+
+import org.acumos.cds.domain.MLPPeer;
+
 /**
  */
 public class Peer extends User {
 
-	//private MLPPeer	peer;
+	private MLPPeer	peerInfo;
 
-	public Peer(String theName, Collection<? extends GrantedAuthority> theAuthorities) {
-		super (theName, "", true, true, true, true, theAuthorities);
+	public Peer(MLPPeer thePeerInfo, Role theRole) {
+		this(thePeerInfo, theRole.priviledges());
+	}	
+
+	public Peer(MLPPeer thePeerInfo, Collection<? extends GrantedAuthority> theAuthorities) {
+		super (thePeerInfo.getName(), "", true, true, true, true, theAuthorities);
+		this.peerInfo = thePeerInfo;
+	}
+
+	public MLPPeer getPeerInfo() {
+		return this.peerInfo;
+	}
+
+
+	private static PeerService peerService = null;
+
+	@Autowired
+	public void setPeerService(PeerService thePeerService) {
+		if (peerService != null)
+			throw new IllegalStateException("Already set");
+
+		peerService = thePeerService;
+	}
+
+
+	private static Peer self = null;
+	
+	public static Peer self() {
+		if (self == null) {
+			if (peerService == null) 
+				throw new IllegalStateException("Initialization not completed");
+			self = new Peer(peerService.getSelf(), Role.SELF.priviledges());
+		}
+
+		return self;
 	}
 
 }
+
 

@@ -18,38 +18,28 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.service;
+package org.acumos.federation.gateway.controller;
 
 import java.util.List;
 
-import org.acumos.cds.domain.MLPPeerSubscription;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import org.acumos.federation.gateway.service.ServiceContext;
+import org.acumos.federation.gateway.security.Peer;
+
 
 /**
  * 
  *
  */
-public interface PeerSubscriptionService {
+public class ControllerContext implements ServiceContext {
 
-	/**
-	 * @param peerId
-	 *            Peer ID
-	 * @return List of PeerSubscription configured in the Local Acumos Instance
-	 */
-	List<MLPPeerSubscription> getPeerSubscriptions(String peerId);
-
-	/**
-	 * @param subId
-	 *            Peer subscription ID
-	 * @return Peer Subscription based on the configured Subject Name
-	 */
-	MLPPeerSubscription getPeerSubscription(Long subId);
-
-	/**
-	 * @param mlpPeerSubscription
-	 *            MLPPeer Configuration that needs to be updated on the Platform
-	 * 
-	 * @return MLPPeerSubscription configuration that has been updated.
-	 */
-	boolean updatePeerSubscription(MLPPeerSubscription mlpPeerSubscription);
-
+	public Peer getPeer() {
+		return (Peer)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+	}
 }
+

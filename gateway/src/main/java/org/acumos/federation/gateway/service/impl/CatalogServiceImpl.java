@@ -84,16 +84,6 @@ public class CatalogServiceImpl
 	
 	}
 
-	/**
-	 * This needs to be implemented for future enhancement where pagination is allowed
-	 */
-/*
-	@Override
-	public RestPageResponse<MLPSolution>  getPeerCatalogSolutions(Integer pageNumber, Integer maxSize, String sortingOrder,
-			List<String> mlpModelTypes) {
-		return null;
-	}
-*/
 	@Override
 	public List<MLPSolution> getSolutions(
 		Map<String,?> theSelector, ServiceContext theContext) {
@@ -101,12 +91,6 @@ public class CatalogServiceImpl
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions");
 		List<MLPSolution> filteredMLPSolutions = null;
 		ICommonDataServiceRestClient cdsClient = getClient();
-
-//		String modelTypeSelector = theSelector.get("modelTypeCode");
-//		final List<String> modelTypes =
-//			modelTypeSelector == null ? null
-//																: Arrays.asList(modelTypeSelector.split(","));
-		//TODO: revisit this code to pass query parameters to CCDS Service
 	
 		Map<String, Object> selector =
 				new HashMap<String, Object>(this.baseSelector);
@@ -117,22 +101,6 @@ public class CatalogServiceImpl
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: cds solutions " + solutions);
 
 		return solutions;
-
-		/*
-		if(mlpSolutions != null && mlpSolutions.size() > 0 && !Utils.isEmptyOrNullString(mlpModelTypes)) {
-			//Filter List using Lamba to get solutions which matches the ML Model Type
-			filteredMLPSolutions = mlpSolutions.stream()
-																.filter(mlpSolution -> { String modelType = mlpSolution.getModelTypeCode();
-																												 return modelType == null || //for testing only
-																																mlpModelTypes.contains(modelType);	
-																											 })
-																.collect(Collectors.toList());
-		}
-		else {
-			filteredMLPSolutions = mlpSolutions;
-		}
-		return filteredMLPSolutions;
-		*/
 	}
 
 	@Override

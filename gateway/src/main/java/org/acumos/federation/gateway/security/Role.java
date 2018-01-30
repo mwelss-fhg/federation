@@ -39,15 +39,20 @@ public enum Role {
 	/**
 	 * Common peer, grants generic solution catalog access
 	 */
-	PEER(Arrays.asList(Priviledge.CATALOG_ACCESS)),
+	PEER(Collections.unmodifiableList(
+				Arrays.asList(Priviledge.CATALOG_ACCESS))),
 	/**
    * Enhanced peer, gains (some lovel of) read access to the local peer list
 	 */
-	PARTNER(Arrays.asList(Priviledge.CATALOG_ACCESS, Priviledge.PEERS_ACCESS)),
+	PARTNER(Collections.unmodifiableList(
+						Arrays.asList(Priviledge.CATALOG_ACCESS, Priviledge.PEERS_ACCESS))),
 	/**
-	 * The actual gateway system, used for local calls, grants all proviledges
+	 * The Acumos instance this gateway is serving, including local calls and
+	 * calls received through the gateways' private interface from other
+	 * components, grants all priviledges
 	 */
-	SYSTEM(Arrays.asList(Priviledge.class.getEnumConstants()));
+	SELF(Collections.unmodifiableList(
+					Arrays.asList(Priviledge.class.getEnumConstants())));
 
 
 	private Collection<Priviledge> priviledges;

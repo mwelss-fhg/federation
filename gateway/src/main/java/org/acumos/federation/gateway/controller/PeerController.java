@@ -62,7 +62,7 @@ public class PeerController extends AbstractController {
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of peers from local Acumos Instance .", response = MLPPeer.class, responseContainer = "List")
 	@RequestMapping(value = { API.Paths.PEERS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
-	public JsonResponse<List<MLPPeer>> getSolutions(
+	public JsonResponse<List<MLPPeer>> getPeers(
 			/* HttpServletRequest theHttpRequest, */
 			HttpServletResponse theHttpResponse) {
 
@@ -96,10 +96,4 @@ public class PeerController extends AbstractController {
 		return response;
 	}
 
-	protected class ControllerContext implements ServiceContext {
-
-		public Peer getPeer() {
-			return (Peer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		}
-	}
 }

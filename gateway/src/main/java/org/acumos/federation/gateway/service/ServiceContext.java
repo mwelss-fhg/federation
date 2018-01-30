@@ -34,9 +34,22 @@ import org.acumos.federation.gateway.security.Peer;
 public interface ServiceContext {
 	
 	/*
-	 * In who's behalf are we providing the service
+	 * In who's behalf are we providing the service.
 	 */
-	public Peer	getPeer();
+	public  Peer	getPeer(); 
 
+	/*
+	 * Is the service to be provided for the benefit of the local Acumos system? 
+	 */
+	public default boolean isSelf() {
+		return getPeer().getPeerInfo().isSelf();
+	}
+
+	/*
+	 * Only feasible for as long as this interface is down to 'getPeer'
+	 */
+	public static ServiceContext selfService() {
+		return () -> Peer.self();
+	}
 }
 

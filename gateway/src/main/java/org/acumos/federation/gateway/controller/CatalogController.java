@@ -321,10 +321,4 @@ public class CatalogController extends AbstractController {
 		return inputStreamResource;
 	}
 
-	protected class ControllerContext implements ServiceContext {
-
-		public Peer getPeer() {
-			return (Peer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		}
-	}
 }

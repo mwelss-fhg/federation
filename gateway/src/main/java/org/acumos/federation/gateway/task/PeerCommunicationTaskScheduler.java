@@ -133,7 +133,7 @@ public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware 
 			logger.info(EELFLoggerDelegate.debugLogger, "checkPeer : no peers from " + peerService);
 			return;
 		}
-		
+	
 		for(MLPPeer mlpPeer : mlpPeers){
 			logger.info(EELFLoggerDelegate.debugLogger, "checkPeer : " + mlpPeer);
 

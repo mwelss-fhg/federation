@@ -98,6 +98,8 @@ import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
+import org.acumos.cds.transport.RestPageRequest;
+import org.acumos.cds.transport.RestPageResponse;
 
 import org.acumos.nexus.client.NexusArtifactClient;
 import org.acumos.nexus.client.data.UploadArtifactInfo;
@@ -283,6 +285,26 @@ public class PeerGatewayTest {
 				});
 		
 			when(
+				this.cdsClient.getPeers(
+					any(RestPageRequest.class)
+				)
+			)
+			.thenAnswer(new Answer<RestPageResponse<MLPPeer>>() {
+					public RestPageResponse<MLPPeer>
+						answer(InvocationOnMock theInvocation) {
+						MLPPeer peer = new MLPPeer();
+						peer.setPeerId("1");
+						peer.setName("testPeer");
+						peer.setSubjectName("test.org");
+						peer.setActive(true);
+						peer.setSelf(false);
+						peer.setApiUrl("https://localhost:1111");
+
+						return new RestPageResponse(Collections.singletonList(peer));
+					}
+				});
+	
+			when(
 				this.cdsClient.getPeerSubscriptions(
 					any(String.class)
 				)
@@ -326,16 +348,16 @@ public class PeerGatewayTest {
 			//the gateway should attempt to get the revisions from the peer	and
 			//compare them against locally available ones (based on the last one)
 			when(
-				this.cdsClient.getSolutionRevision(
-					any(String.class), any(String.class)
+				this.cdsClient.getSolutionRevisions(
+					any(String.class)
 				)
 			) 
-			.thenAnswer(new Answer<MLPSolutionRevision>() {
-					public MLPSolutionRevision answer(InvocationOnMock theInvocation) {
+			.thenAnswer(new Answer<List<MLPSolutionRevision>>() {
+					public List<MLPSolutionRevision> answer(InvocationOnMock theInvocation) {
 						stepLatch.countDown();
 						//pretend we do not have a local match so that we trigger
 						//an insert
-						return null; //Collections.EMPTY_LIST;
+						return Collections.EMPTY_LIST;
 					}
 				});
 

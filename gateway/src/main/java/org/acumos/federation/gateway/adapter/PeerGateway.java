@@ -21,6 +21,9 @@
 package org.acumos.federation.gateway.adapter;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collections;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -119,6 +122,11 @@ public class PeerGateway {
 	}
 
 
+	/**
+	 * The list of solutions processed here represents the solutions (with 
+	 * respect to the subscription filter definition) that were
+	 * reported by the peer as being updated since the last check.
+	 */
 	public class PeerGatewayUpdateTask implements Runnable {
 
 		private MLPPeer							peer;
@@ -136,37 +144,31 @@ public class PeerGateway {
 
 		public void run() {
 
-			//list with category and subcategory currently used for onap
-			//more dynamic mapping to come: based on solution information it will provide sdc assettype, categoty and subcategoty
-			ICommonDataServiceRestClient cdsClient = PeerGateway.this.clients.getClient();
-			
 			logger.info(EELFLoggerDelegate.debugLogger, "Received peer " + this.peer + " solutions: " + this.solutions);
-
+			ICommonDataServiceRestClient cdsClient = PeerGateway.this.clients.getClient();
 			for (MLPSolution peerSolution: this.solutions) {
+				//Check if the Model already exists in the Local Acumos
+				MLPSolution localSolution  = null;
 				try {
-					//Check if the Model already exists in the Local Acumos
-					MLPSolution localSolution  = null;
-					try {
-						localSolution = cdsClient.getSolution(peerSolution.getSolutionId());
+					localSolution = cdsClient.getSolution(peerSolution.getSolutionId());
+				}
+				catch (HttpStatusCodeException x) {
+					if (!Errors.isCDSNotFound(x)) {
+						logger.warn(EELFLoggerDelegate.errorLogger, "Failed to check if solution with id " + peerSolution.getSolutionId() + " exists locally, skipping for now", x);
+						continue;
 					}
-					catch (Exception e) {
-						logger.info(EELFLoggerDelegate.debugLogger, "Solution Id : " + peerSolution.getSolutionId() + " does not exists locally, Adding it to local catalog ");
-					}
-			
-					//Verify if MLPSolution is not same
-					if(localSolution != null &&
-						 isSameMLPSolution(peerSolution, localSolution)) {
-						//if already exists locally then loop through next
-						localSolution = updateMLPSolution(peerSolution, localSolution, cdsClient);
-						
-					} 
-					else {
+				}
+
+				try {
+					if (localSolution == null) {	
+						logger.info(EELFLoggerDelegate.debugLogger, "Solution Id : " + peerSolution.getSolutionId() + " does not exists locally, adding it to local catalog ");
 						localSolution = createMLPSolution(peerSolution, cdsClient);
 					}
-
-					if (localSolution != null) {	
-						updateMLPSolution(localSolution, cdsClient);
+					else {
+						localSolution = updateMLPSolution(peerSolution, localSolution, cdsClient);
 					}
+
+					mapSolution(localSolution, cdsClient);
 				}
 				catch (Exception x) {
 					x.printStackTrace();
@@ -266,8 +268,7 @@ public class PeerGateway {
 			}
 		}
 		
-		private MLPArtifact updateMLPArtifact(MLPArtifact peerMLPArtifact, MLPArtifact localMLPArtifact, ICommonDataServiceRestClient cdsClient) {
-			logger.info(EELFLoggerDelegate.debugLogger, "Updating Local MLP Artifact for peer artifact " + peerMLPArtifact);
+		private MLPArtifact copyMLPArtifact(MLPArtifact peerMLPArtifact, MLPArtifact localMLPArtifact) {
 			
 			localMLPArtifact.setArtifactId(peerMLPArtifact.getArtifactId());
 			localMLPArtifact.setArtifactTypeCode(peerMLPArtifact.getArtifactTypeCode());
@@ -277,21 +278,10 @@ public class PeerGateway {
 			localMLPArtifact.setModified(peerMLPArtifact.getModified());
 			localMLPArtifact.setName(peerMLPArtifact.getName());
 			localMLPArtifact.setOwnerId(getOwnerId(this.sub));
-			localMLPArtifact.setSize(peerMLPArtifact.getSize());;
+			localMLPArtifact.setSize(peerMLPArtifact.getSize());
 			localMLPArtifact.setUri(peerMLPArtifact.getUri());
 			localMLPArtifact.setVersion(peerMLPArtifact.getVersion());
-			try {
-				cdsClient.updateArtifact(localMLPArtifact);
-				return localMLPArtifact;
-			}
-			catch (HttpStatusCodeException restx) {
-				logger.error(EELFLoggerDelegate.debugLogger, "updateArtifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(),  restx);
-				return null;
-			}
-			catch (Exception x) {
-				logger.error(EELFLoggerDelegate.debugLogger, "updateArtifact unexpected failure",  x);
-				return null;
-			}
+			return localMLPArtifact;
 		}
 		
 		private MLPSolution updateMLPSolution(MLPSolution peerMLPSolution, MLPSolution localMLPSolution, ICommonDataServiceRestClient cdsClient) {
@@ -344,29 +334,12 @@ public class PeerGateway {
 			}
 		}
 		
-		private boolean isSameMLPSolution(MLPSolution peerMLPSolution, MLPSolution localMLPSolution) {
-			boolean isSame = false;
-			if(peerMLPSolution != null && localMLPSolution != null) {
-				
-				if((!Utils.isEmptyOrNullString(peerMLPSolution.getName()) && !Utils.isEmptyOrNullString(localMLPSolution.getName()) && localMLPSolution.getName().equalsIgnoreCase(peerMLPSolution.getName()))
-					|| (!Utils.isEmptyOrNullString(peerMLPSolution.getDescription()) && !Utils.isEmptyOrNullString(localMLPSolution.getDescription()) && localMLPSolution.getDescription().equalsIgnoreCase(peerMLPSolution.getDescription()))
-					|| (!Utils.isEmptyOrNullString(peerMLPSolution.getAccessTypeCode()) && !Utils.isEmptyOrNullString(localMLPSolution.getAccessTypeCode()) && localMLPSolution.getAccessTypeCode().equalsIgnoreCase(peerMLPSolution.getAccessTypeCode()))
-					|| (!Utils.isEmptyOrNullString(peerMLPSolution.getMetadata()) && !Utils.isEmptyOrNullString(localMLPSolution.getMetadata()) && localMLPSolution.getMetadata().equalsIgnoreCase(peerMLPSolution.getMetadata()))
-					|| (!Utils.isEmptyOrNullString(peerMLPSolution.getModelTypeCode()) && !Utils.isEmptyOrNullString(localMLPSolution.getModelTypeCode()) && localMLPSolution.getModelTypeCode().equalsIgnoreCase(peerMLPSolution.getModelTypeCode())) 
-					|| (!Utils.isEmptyOrNullString(peerMLPSolution.getProvider()) && !Utils.isEmptyOrNullString(localMLPSolution.getProvider()) && localMLPSolution.getProvider().equalsIgnoreCase(peerMLPSolution.getProvider())) 
-					|| (!Utils.isEmptyOrNullString(peerMLPSolution.getToolkitTypeCode()) && !Utils.isEmptyOrNullString(localMLPSolution.getToolkitTypeCode()) && localMLPSolution.getToolkitTypeCode().equalsIgnoreCase(peerMLPSolution.getToolkitTypeCode()))
-					|| (Utils.isEmptyOrNullString(peerMLPSolution.getMetadata()) && Utils.isEmptyOrNullString(localMLPSolution.getMetadata()))
-					|| (Utils.isEmptyOrNullString(peerMLPSolution.getDescription()) && Utils.isEmptyOrNullString(localMLPSolution.getDescription()))
-					|| (Utils.isEmptyOrNullString(peerMLPSolution.getAccessTypeCode()) && Utils.isEmptyOrNullString(localMLPSolution.getAccessTypeCode()))
-					|| (Utils.isEmptyOrNullString(peerMLPSolution.getModelTypeCode()) && Utils.isEmptyOrNullString(localMLPSolution.getModelTypeCode()))
-					|| (Utils.isEmptyOrNullString(peerMLPSolution.getToolkitTypeCode()) && Utils.isEmptyOrNullString(localMLPSolution.getToolkitTypeCode()))) {
-					isSame = true;
-				}
-			}
-			return isSame;
-		}
-		
-		public void updateMLPSolution(MLPSolution theSolution,  ICommonDataServiceRestClient cdsClient) throws Exception {
+		/**
+		 * Here comes the core process of updating a local solution's related
+		 * information with what is available from a peer.
+		 */		
+		protected void mapSolution(MLPSolution theSolution, ICommonDataServiceRestClient cdsClient) throws Exception {
+
 			FederationClient fedClient =
 					clients.getFederationClient(this.peer.getApiUrl());
 
@@ -377,7 +350,7 @@ public class PeerGateway {
 						fedClient.getSolutionRevisions(theSolution.getSolutionId()).getResponseBody();
 			}
 			catch (Exception x) {
-				logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve acumos revisions", x);
+				logger.warn(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos revisions for solution "  + theSolution.getSolutionId() + " from peer " + this.peer, x);
 				throw x;
 			}
 
@@ -391,49 +364,64 @@ public class PeerGateway {
 			//check if we have locally the latest revision available on the peer
 			//TODO: this is just one possible policy regarding the handling of
 			//such a mismatch
-			MLPSolutionRevision localRevision = null;
+			List<MLPSolutionRevision> cdsRevisions = Collections.EMPTY_LIST;
 			try {
-				localRevision =
-					cdsClient.getSolutionRevision(
-						theSolution.getSolutionId(),
-						peerRevisions.get(peerRevisions.size()-1).getRevisionId());
+				cdsRevisions =
+					cdsClient.getSolutionRevisions(theSolution.getSolutionId());
 			}
 			catch (HttpStatusCodeException restx) {
 				if (!Errors.isCDSNotFound(restx)) {
-					logger.error(EELFLoggerDelegate.debugLogger, "getSolutionRevision CDS call failed. CDS message is " + restx.getResponseBodyAsString(),  restx);
+					logger.error(EELFLoggerDelegate.debugLogger, "getSolutionRevisions CDS call failed. CDS message is " + restx.getResponseBodyAsString(),  restx);
 					throw restx;
 				}
 			}
+			final List<MLPSolutionRevision> localRevisions = cdsRevisions;
 
-			if(localRevision == null) {
-				localRevision = createMLPSolutionRevision(
-													peerRevisions.get(peerRevisions.size()-1), cdsClient);
-			}
-			else {
-				//update the revision information
-			}
+			//map peer revisions to local ones; new peer revisions have a null mapping
+			Map<MLPSolutionRevision, MLPSolutionRevision> peerToLocalRevisions =
+			/*
+				Elegant but toMap uses map merging which does not allow null values
+				peerRevisions
+					.stream()
+					.collect(
+						Collectors.toMap(...)
+			*/
+						new HashMap<MLPSolutionRevision, MLPSolutionRevision>();
+			peerRevisions.forEach(
+				peerRevision -> peerToLocalRevisions.put(
+					peerRevision,	localRevisions
+													.stream()
+														.filter(localRevision -> 
+																			localRevision.getRevisionId().equals(
+																				peerRevision.getRevisionId()))
+														.findFirst()
+														.orElse(null)));
+	
 
-			//continue to verify that we have the latest version of the artifacts
-			//for this revision
-			List<MLPArtifact> peerArtifacts = null;
-			try {
+
+			for (Map.Entry<MLPSolutionRevision, MLPSolutionRevision> revisionEntry:
+						peerToLocalRevisions.entrySet()) {
+				MLPSolutionRevision peerRevision = revisionEntry.getKey(),
+														localRevision = revisionEntry.getValue();
+				//get peer artifacts
+				List<MLPArtifact> peerArtifacts = null;
+				try {
 					peerArtifacts = (List<MLPArtifact>)
-						fedClient.getArtifacts(
-							theSolution.getSolutionId(),
-							peerRevisions.get(peerRevisions.size()-1).getRevisionId())
-								.getResponseBody();
-			}
-			catch (Exception x) {
-				logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve peer acumos artifacts", x);
-				throw x;
-			}
-			
-			if(localRevision != null) {
-				for(MLPArtifact peerArtifact : peerArtifacts) {
-					MLPArtifact localArtifact = null;
+						fedClient.getArtifacts(theSolution.getSolutionId(), peerRevision.getRevisionId())
+							.getResponseBody();
+				}
+				catch (Exception x) {
+					logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve peer acumos artifacts", x);
+					throw x;
+				}	
+
+				List<MLPArtifact>	cdsArtifacts = Collections.EMPTY_LIST;
+				if (localRevision == null) {
+					localRevision =	createMLPSolutionRevision(peerRevision, cdsClient);
+				}
+				else {
 					try {
-						localArtifact =
-							cdsClient.getArtifact(peerArtifact.getArtifactId());
+						cdsArtifacts = cdsClient.getSolutionRevisionArtifacts(theSolution.getSolutionId(), localRevision.getRevisionId());
 					}
 					catch (HttpStatusCodeException restx) {
 						if (!Errors.isCDSNotFound(restx)) {
@@ -441,85 +429,95 @@ public class PeerGateway {
 							throw restx;
 						}
 					}
+				}
 
-					if(localArtifact == null) {
-						localArtifact = createMLPArtifact(
-														theSolution.getSolutionId(),
-														localRevision.getRevisionId(),
-														peerArtifact,
-														cdsClient);
-					}
-					else {
-						//check version
-						if (!peerArtifact.getVersion().equals(localArtifact.getVersion())) {
-							localArtifact = updateMLPArtifact(peerArtifact, localArtifact, cdsClient);
-						}
-						else {
-							//mark the fact that local artifact does not need an update
-							localArtifact = null;
-						}
-					}
+				final List<MLPArtifact>	localArtifacts = cdsArtifacts;
+				//map the artifacts
+				//TODO: track deleted artifacts
+				Map<MLPArtifact, MLPArtifact> peerToLocalArtifacts =
+						new HashMap<MLPArtifact, MLPArtifact>();
+				peerArtifacts.forEach(
+					peerArtifact -> peerToLocalArtifacts.put(
+						peerArtifact, localArtifacts
+														.stream()
+														.filter(localArtifact -> 
+																			localArtifact.getArtifactId().equals(
+																				peerArtifact.getArtifactId()))
+														.findFirst()
+														.orElse(null)));
 
-					//TODO: add the delete of those who are not available anymore
+				for (Map.Entry<MLPArtifact, MLPArtifact> artifactEntry:
+							peerToLocalArtifacts.entrySet()) {
+					MLPArtifact peerArtifact = artifactEntry.getKey(),
+											localArtifact = artifactEntry.getValue();
+					boolean doUpdate = false;
 
 					if (localArtifact == null) {
-						//the artifact does not need an update
-						logger.info(EELFLoggerDelegate.debugLogger, "Artifact does not need an update");
-						continue;
+						localArtifact = createMLPArtifact(
+															theSolution.getSolutionId(),
+															localRevision.getRevisionId(),
+															peerArtifact,
+															cdsClient);
+					}
+					else {
+						if (!peerArtifact.getVersion().equals(localArtifact.getVersion())) {
+							//update local artifact
+							copyMLPArtifact(peerArtifact, localArtifact);
+							doUpdate = true;
+						}	
 					}
 
-					if (localArtifact.getUri() == null) {
-						//the peer does not want us to gain access to the artifact content	
-						logger.info(EELFLoggerDelegate.debugLogger, "Artifact uri not available");
-						continue;
-					}
-
-					//TODO: we are trying to access the artifact by its identifier which
-					//is fine in the common case but the uri specified in the artifact
-					//data is a more flexible approach.
-					Resource artifactContent = null;
-					try {
-						artifactContent = fedClient.downloadArtifact(peerArtifact.getArtifactId());
-					}
-					catch (Exception x) {
-						logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve acumos artifact content", x);
-					}
-
-					UploadArtifactInfo uploadInfo = null;
-					if (artifactContent != null) {
+					//TODO: with CDS 1.13 check the subscription scope to decide if
+					//content is to be downloaded
+					boolean doContent = true;
+					if (doContent) {
+						//TODO: we are trying to access the artifact by its identifier which
+						//is fine in the common case but the uri specified in the artifact
+						//data is a more flexible approach.
+						Resource artifactContent = null;
 						try {
-							uploadInfo = 
-								PeerGateway.this.clients.getNexusClient()
-									.uploadArtifact(
+							artifactContent = fedClient.downloadArtifact(peerArtifact.getArtifactId());
+						}
+						catch (Exception x) {
+							logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve acumos artifact content", x);
+						}
+
+						UploadArtifactInfo uploadInfo = null;
+						if (artifactContent != null) {
+							try {
+								uploadInfo = 
+									PeerGateway.this.clients.getNexusClient()
+										.uploadArtifact(
 											PeerGateway.this.env.getProperty("nexus.groupId"),
 											localArtifact.getName(), /* probably wrong */
 											localArtifact.getVersion(),
 											"", /* should receive this from peer */
 											artifactContent.contentLength(),
 											artifactContent.getInputStream());
+							}
+							catch (Exception x) {
+								logger.warn(EELFLoggerDelegate.debugLogger, "Failed to push artifact content to local Nexus repo", x);
+							}
 						}
-						catch (Exception x) {
-							logger.warn(EELFLoggerDelegate.debugLogger, "Failed to push artifact content to local Nexus repo", x);
+
+						if (uploadInfo != null) {
+							//update artifact with local repo reference
+							localArtifact.setUri(uploadInfo.getArtifactMvnPath());
+							//the artifact info will need to be updated with local content uri
+							doUpdate = true;
 						}
 					}
 
-					if (uploadInfo != null) {
-						//update artifact with local repo reference
-						localArtifact.setUri(uploadInfo.getArtifactMvnPath());
+					if (doUpdate) {
 						try {
 							cdsClient.updateArtifact(localArtifact);
 						}
 						catch (HttpStatusCodeException restx) {
 							logger.error(EELFLoggerDelegate.debugLogger, "updateArtifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(),  restx);
 						}
-						catch (Exception x) {
-							logger.error(EELFLoggerDelegate.debugLogger, "updateArtifact unexpected failure",  x);
-						}
 					}
 				}
-				
 			}
-			
-		}
+		} //mapSolution
 	}
 }

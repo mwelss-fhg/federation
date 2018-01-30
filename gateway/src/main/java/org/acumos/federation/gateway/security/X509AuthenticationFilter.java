@@ -90,15 +90,18 @@ public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
 	public UserDetailsService userDetailsService() {
 		return (username -> {
 			log.info(EELFLoggerDelegate.debugLogger, " X509 subject : " + username);
-			List<MLPPeer> mlpPeers = peerService.getPeer(username);
+			List<MLPPeer> mlpPeers = peerService.getPeerBySubjectName(username);
 			log.info(EELFLoggerDelegate.debugLogger, " Peers matching X509 subject : " + mlpPeers);
       if(!Utils.isEmptyList(mlpPeers)) {
 				log.info(EELFLoggerDelegate.debugLogger, " We are providing a matching Use ");
-				return new Peer(username, Role.PEER.priviledges());
+				return new Peer(mlpPeers.get(0), Role.PEER);
 			}
 			else	{
-				return new Peer(username, Role.ANY.priviledges());
-				//return null;
+				MLPPeer unknown = new MLPPeer();
+				//set it up with available info
+				unknown.setSubjectName(username);
+
+				return new Peer(unknown, Role.ANY);
 			}
 		});
  	}

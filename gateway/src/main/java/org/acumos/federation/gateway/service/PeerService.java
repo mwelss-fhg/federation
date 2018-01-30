@@ -25,55 +25,68 @@ import java.util.List;
 import org.acumos.cds.domain.MLPPeer;
 
 /**
- * 
+ * Defines the interface of a service providing local peer information.
  *
  */
 public interface PeerService {
 
 	/**
-	 * @return List of Peers configured in the Local Acumos Instance
+	 * Strictly an internal service call.
+	 * Needs to avoid the 'chicken,egg' problem: one needs a context to access
+	 * peers, including the 'self' peer.
 	 */
-	List<MLPPeer> getPeers();
+	public MLPPeer getSelf();
 
 	/**
 	 * Provide the list of locally registered peers to one of our peers
-	 * 
-	 * @param theContext
-	 *            Service context
-	 * @return List of peers
+	 * It is the responsability of the implementation to decide which peer
+	 * information to expose in each case
 	 */
-	List<MLPPeer> getPeers(ServiceContext theContext);
-
+	public List<MLPPeer> getPeers(ServiceContext theContext);
+	
+	public default List<MLPPeer> getPeers() {
+		return getPeers(ServiceContext.selfService());
+	}
+	
 	/**
-	 * @param subjectName
-	 *            Subject name
 	 * @return Peer based on the configured Subject Name
 	 */
-	List<MLPPeer> getPeer(String subjectName);
-
-	MLPPeer getOnePeer(String peerId);
-
+	public List<MLPPeer> getPeerBySubjectName(
+													String theSubjectName, ServiceContext theContext);
+	
+	public default List<MLPPeer> getPeerBySubjectName(String theSubjectName) {
+		return getPeerBySubjectName(theSubjectName, ServiceContext.selfService());
+	}
+	
+	/** */
+	public MLPPeer getPeerById(String thePeerId, ServiceContext theContext);
+	
+	public default MLPPeer getPeerById(String thePeerId) {
+		return getPeerById(thePeerId, ServiceContext.selfService());
+	}
+	
 	/**
-	 * @param mlpPeer
-	 *            MLPPeer Configuration that needs to be created on the Platform
+	 * Optional operation allowing the gateway to provision a peer in some
+	 * initial state as part of a in-band peer handshake mechanism.
+	 * The whole handshake procedure is to be completed elsewhere (portal);
+	 * We do not pass a context as this operation is performed with
+	 * frespect to 'self' (to reconsider).
+	 *
+	 * @param mlpPeer MLPPeer New Peer info to be submitted to the platform
 	 * 
 	 * @return Peer configuration that has been created.
 	 */
-	MLPPeer savePeer(MLPPeer mlpPeer);
-
+	public void subscribePeer(MLPPeer mlpPeer) throws ServiceException;
+	
 	/**
-	 * @param mlpPeer
-	 *            MLPPeer Configuration that needs to be updated on the Platform
+	 * Optional operation allowing the gateway to update a peer and mark it for
+	 * removal as part of a in-band peer handshake mechanism.
+	 *
+	 * @param mlpPeer MLPPeer New Peer info to be submitted to the platform
 	 * 
-	 * @return Peer configuration that has been updated.
+	 * @return Peer configuration that has been created.
 	 */
-	boolean updatePeer(MLPPeer mlpPeer);
-
-	/**
-	 * @param mlpPeer
-	 *            MLPPeer Configuration that needs to be deleted on the Platform
-	 * 
-	 * @return true if successfully deleted else false.
-	 */
-	boolean deletePeer(MLPPeer mlpPeer);
+	public void unsubscribePeer(MLPPeer mlpPeer) throws ServiceException;
+	
+	
 }

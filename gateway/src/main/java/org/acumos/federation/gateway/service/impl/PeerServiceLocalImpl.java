@@ -117,9 +117,22 @@ public class PeerServiceLocalImpl
 		log.debug(EELFLoggerDelegate.debugLogger, "Local peer info service destroyed");
 	}
 
+  /** */
+  @Override
+  public MLPPeer getSelf() {
+    MLPPeer self =
+      this.peers
+            .stream()
+            .filter(peer -> peer.isSelf())
+            .findFirst()
+            .orElse(null);
+
+    return self;
+  }
 
 	/** */
-	public List<MLPPeer> getPeers() {
+  @Override
+	public List<MLPPeer> getPeers(ServiceContext theContext) {
 		synchronized (this) {
 			return this.peers == null ? null : 
 																this.peers.stream()
@@ -129,12 +142,8 @@ public class PeerServiceLocalImpl
 	}
 
 	/** */
-	public List<MLPPeer> getPeers(ServiceContext theContext) {
-		return getPeers();	
-	}
-
-	/** */
-	public List<MLPPeer> getPeer(final String theSubjectName) {
+  @Override
+	public List<MLPPeer> getPeerBySubjectName(final String theSubjectName, ServiceContext theContext) {
 		log.info(EELFLoggerDelegate.debugLogger, "Looking for peer " + theSubjectName);
 		return 
 			this.peers
@@ -146,7 +155,8 @@ public class PeerServiceLocalImpl
 	}
 	
 	/** */
-	public MLPPeer getOnePeer(final String thePeerId) {
+  @Override
+	public MLPPeer getPeerById(final String thePeerId, ServiceContext theContext) {
 		MLPPeer apeer =
 			this.peers
 						.stream()
@@ -160,20 +170,19 @@ public class PeerServiceLocalImpl
 	}
 	
 	/** */
-	public MLPPeer savePeer(MLPPeer mlpPeer) {
+  @Override
+	public void subscribePeer(MLPPeer mlpPeer) {
 		throw new UnsupportedOperationException();
 	}
 		
 	/** */
-	public boolean updatePeer(MLPPeer mlpPeer) {
+  @Override
+	public void unsubscribePeer(MLPPeer mlpPeer) {
 		throw new UnsupportedOperationException();
 	}
 
 	/** */
-	public boolean deletePeer(MLPPeer mlpPeer) {
-		throw new UnsupportedOperationException();
-	}
-
+  @Override
 	public List<MLPPeerSubscription> getPeerSubscriptions(final String thePeerId) {
 		FLPPeer peer =
 			this.peers
@@ -186,6 +195,7 @@ public class PeerServiceLocalImpl
 	}
 
 	/** */
+  @Override
 	public MLPPeerSubscription getPeerSubscription(Long theSubId) {
 		for (FLPPeer peer: this.peers) {
 			for (MLPPeerSubscription peerSub: peer.getSubscriptions()) {
@@ -197,21 +207,12 @@ public class PeerServiceLocalImpl
 	}
 
 	/** */
-	public MLPPeerSubscription savePeerSubscription(MLPPeerSubscription mlpPeerSubscription) {
-		throw new UnsupportedOperationException();
-	}
-	
-	/** */
-	public boolean updatePeerSubscription(MLPPeerSubscription mlpPeerSubscription) {
+  @Override
+	public boolean updatePeerSubscription(MLPPeerSubscription theSub) {
 		throw new UnsupportedOperationException();
 	}
 
 	/** */
-	public boolean deletePeerSubscription(MLPPeerSubscription mlpPeerSubscription) {
-		throw new UnsupportedOperationException();
-	}
-
-	  /** */
   public static class FLPPeer extends MLPPeer {
 
 		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

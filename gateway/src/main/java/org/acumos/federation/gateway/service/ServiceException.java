@@ -20,36 +20,21 @@
 
 package org.acumos.federation.gateway.service;
 
-import java.util.List;
-
-import org.acumos.cds.domain.MLPPeerSubscription;
 
 /**
- * 
  *
  */
-public interface PeerSubscriptionService {
+public class ServiceException extends Exception {
 
-	/**
-	 * @param peerId
-	 *            Peer ID
-	 * @return List of PeerSubscription configured in the Local Acumos Instance
-	 */
-	List<MLPPeerSubscription> getPeerSubscriptions(String peerId);
+	public ServiceException(String theMessage, Exception theCause) {
+		super(theMessage, theCause);
+	}
 
-	/**
-	 * @param subId
-	 *            Peer subscription ID
-	 * @return Peer Subscription based on the configured Subject Name
-	 */
-	MLPPeerSubscription getPeerSubscription(Long subId);
+	public ServiceException(Exception theCause) {
+		super("", theCause);
+	}
 
-	/**
-	 * @param mlpPeerSubscription
-	 *            MLPPeer Configuration that needs to be updated on the Platform
-	 * 
-	 * @return MLPPeerSubscription configuration that has been updated.
-	 */
-	boolean updatePeerSubscription(MLPPeerSubscription mlpPeerSubscription);
-
+	public ServiceException(String theMessage) {
+		super(theMessage);
+	}
 }
