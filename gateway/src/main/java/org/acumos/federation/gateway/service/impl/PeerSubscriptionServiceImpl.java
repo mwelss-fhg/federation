@@ -49,7 +49,7 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 
 	@Autowired
 	private Environment env;
-	
+
 	/**
 	 * 
 	 */
@@ -60,14 +60,16 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 	@Override
 	public List<MLPPeerSubscription> getPeerSubscriptions(String peerId) {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscriptions:{}", peerId);
-		List<MLPPeerSubscription> mlpPeerSubscriptions  = null;
-		//Temporary Fix as COmmon Data Service does not handle proper Serialization
-		mlpPeerSubscriptions =	getClient().getPeerSubscriptions(peerId);
-/*
-		if(!Utils.isEmptyList(mlpPeerSubscriptions)) {
-			//mlpPeerSubscriptions = mlpPeerSubscriptionPaged.getContent();
-			mlpPeerSubscriptions = mlpPeerSubscriptions.stream().filter(mlpPeerSubscription -> (mlpPeerSubscription.getPeerId().contains(peerId))).collect(Collectors.toList());
-		}*/
+		List<MLPPeerSubscription> mlpPeerSubscriptions = null;
+		// Temporary Fix as COmmon Data Service does not handle proper Serialization
+		mlpPeerSubscriptions = getClient().getPeerSubscriptions(peerId);
+		/*
+		 * if(!Utils.isEmptyList(mlpPeerSubscriptions)) { //mlpPeerSubscriptions =
+		 * mlpPeerSubscriptionPaged.getContent(); mlpPeerSubscriptions =
+		 * mlpPeerSubscriptions.stream().filter(mlpPeerSubscription ->
+		 * (mlpPeerSubscription.getPeerId().contains(peerId))).collect(Collectors.toList
+		 * ()); }
+		 */
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeers size:{}", mlpPeerSubscriptions.size());
 		return mlpPeerSubscriptions;
 	}
@@ -78,28 +80,30 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 		ICommonDataServiceRestClient cdsClient = getClient();
 		MLPPeerSubscription existingMLPPeerSubscription = null;
 		existingMLPPeerSubscription = cdsClient.getPeerSubscription(subId);
-		if(existingMLPPeerSubscription != null) {
-			log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription :{}", existingMLPPeerSubscription.toString());
+		if (existingMLPPeerSubscription != null) {
+			log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription :{}",
+					existingMLPPeerSubscription.toString());
 		}
 		return existingMLPPeerSubscription;
 	}
-	
+
 	@Override
 	public boolean updatePeerSubscription(MLPPeerSubscription mlpPeerSubscription) {
 		log.debug(EELFLoggerDelegate.debugLogger, "updatePeerSubscription");
 		ICommonDataServiceRestClient cdsClient = getClient();
 		boolean isUpdatedSuccessfully = false;
 		MLPPeerSubscription existingMLPPeerSubscription = null;
-		try{
+		try {
 			existingMLPPeerSubscription = getPeerSubscription(mlpPeerSubscription.getSubId());
-			if(existingMLPPeerSubscription != null) {
-				if(mlpPeerSubscription.getPeerId().equalsIgnoreCase(existingMLPPeerSubscription.getPeerId()))
+			if (existingMLPPeerSubscription != null) {
+				if (mlpPeerSubscription.getPeerId().equalsIgnoreCase(existingMLPPeerSubscription.getPeerId()))
 					cdsClient.updatePeerSubscription(mlpPeerSubscription);
-					isUpdatedSuccessfully = true;
+				isUpdatedSuccessfully = true;
 			}
 		} catch (Exception e) {
 			isUpdatedSuccessfully = false;
-			log.error(EELFLoggerDelegate.debugLogger, "updatePeer: Exception while deleting the MLPPeerSubscription record:", e);
+			log.error(EELFLoggerDelegate.debugLogger,
+					"updatePeer: Exception while deleting the MLPPeerSubscription record:", e);
 		}
 		return isUpdatedSuccessfully;
 	}

@@ -35,12 +35,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Utils {
 
 	private final static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(Utils.class);
-	
+
 	public static ObjectMapper objectMapper = new ObjectMapper();
-	
+
 	public Utils() {
 	}
-	
+
 	public static boolean isEmptyOrNullString(String input) {
 		boolean isEmpty = false;
 		if (null == input || 0 == input.trim().length()) {
@@ -48,7 +48,7 @@ public class Utils {
 		}
 		return isEmpty;
 	}
-	
+
 	public static boolean isEmptyList(@SuppressWarnings("rawtypes") List input) {
 		boolean isEmpty = false;
 		if (null == input || 0 == input.size()) {
@@ -56,32 +56,30 @@ public class Utils {
 		}
 		return isEmpty;
 	}
-	
+
 	public static Map<String, Object> jsonStringToMap(String jsonString) {
-		Map< String, Object> map = new HashMap<>();
-		
-		if(!isEmptyOrNullString(jsonString)) {
+		Map<String, Object> map = new HashMap<>();
+
+		if (!isEmptyOrNullString(jsonString)) {
 			try {
-				map = objectMapper.readValue(jsonString, new TypeReference<Map< String, Object>>() {
+				map = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {
 				});
-			}
-			catch (IOException x) {
+			} catch (IOException x) {
 				throw new IllegalArgumentException("Argument not a map", x);
 			}
 		}
 		return map;
 	}
 
-	public static String mapToJsonString(Map<String,?> theMap) {
+	public static String mapToJsonString(Map<String, ?> theMap) {
 
 		try {
 			return objectMapper.writeValueAsString(theMap);
-		}
-		catch (JsonProcessingException x) {
+		} catch (JsonProcessingException x) {
 			throw new IllegalArgumentException("Failed to convert", x);
 		}
-	}	
-	
+	}
+
 	public static String getTempFolderPath(String artifactName, String version, String nexusTempPath) {
 		logger.debug("--------------- getTempFolderPath() started --------------");
 		if (!isEmptyOrNullString(nexusTempPath)) {
@@ -98,7 +96,7 @@ public class Utils {
 		logger.debug("-------------  getTempFolderPath() ended ---------------");
 		return nexusTempPath;
 	}
-	
+
 	public static void deletetTempFiles(String tempFolder) throws Exception {
 		logger.info("--------  deletetTempFiles() Started ------------");
 
@@ -121,7 +119,7 @@ public class Utils {
 		}
 
 	}
-	
+
 	public static void delete(File file) throws IOException {
 		logger.debug("------------  delete() started ------------");
 		try {
@@ -166,8 +164,5 @@ public class Utils {
 
 		}
 	}
-	
-	
-	
-}
 
+}

@@ -20,23 +20,21 @@
 
 package org.acumos.federation.gateway.util;
 
-
-
 /**
  * Modeled after the vertx future
  */
 public interface Future<T> {
 
 	public T result();
-	
+
 	public Future<T> result(T theResult);
 
-//rename 'cause' to 'failure'
-	
+	// rename 'cause' to 'failure'
+
 	public Throwable cause();
-		
+
 	public Future<T> cause(Throwable theError);
-	
+
 	public boolean succeeded();
 
 	public boolean failed();
@@ -44,11 +42,11 @@ public interface Future<T> {
 	public boolean complete();
 
 	public T waitForResult() throws Exception;
-	
-	//public T waitForResult(long theTimeout) throws Exception;
+
+	// public T waitForResult(long theTimeout) throws Exception;
 
 	public Future<T> waitForCompletion() throws InterruptedException;
-	
- 	public Future<T> setHandler(FutureHandler<T> theHandler);
+
+	public Future<T> setHandler(FutureHandler<T> theHandler);
 
 }

@@ -104,8 +104,8 @@ public class EELFLoggerDelegate extends SLF4jWrapper implements EELFLogger {
 	}
 
 	/**
-	 * Gets a logger for the specified class name. If the logger does not
-	 * already exist in the map, this creates a new logger.
+	 * Gets a logger for the specified class name. If the logger does not already
+	 * exist in the map, this creates a new logger.
 	 * 
 	 * @param className
 	 *            If null or empty, uses EELFLoggerDelegate as the class name.

@@ -39,14 +39,10 @@ public class ASDCException extends Exception {
 
 		String body = theError.getResponseBodyAsString();
 		if (body != null) {
-			JSONObject error = new JSONObject(body)
-													.getJSONObject("requestError");
+			JSONObject error = new JSONObject(body).getJSONObject("requestError");
 			if (error != null) {
-				this.content = Arrays.stream(ERROR_CLASSES)
-															.map(c -> error.optJSONObject(c))
-															.filter(x -> x != null)
-															.findFirst()
-															.orElse(null);
+				this.content = Arrays.stream(ERROR_CLASSES).map(c -> error.optJSONObject(c)).filter(x -> x != null)
+						.findFirst().orElse(null);
 			}
 		}
 	}
@@ -64,12 +60,11 @@ public class ASDCException extends Exception {
 			JSONArray vars = content.optJSONArray("variables");
 			if (vars != null) {
 				for (int i = 0; i < vars.length(); i++) {
-					msg = msg.replaceAll("%"+(i+1), vars.optString(i));
+					msg = msg.replaceAll("%" + (i + 1), vars.optString(i));
 				}
 			}
 			return msg;
-		}
-		else
+		} else
 			return "";
 	}
 

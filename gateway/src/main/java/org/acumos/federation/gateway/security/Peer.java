@@ -34,21 +34,20 @@ import org.acumos.cds.domain.MLPPeer;
  */
 public class Peer extends User {
 
-	private MLPPeer	peerInfo;
+	private MLPPeer peerInfo;
 
 	public Peer(MLPPeer thePeerInfo, Role theRole) {
 		this(thePeerInfo, theRole.priviledges());
-	}	
+	}
 
 	public Peer(MLPPeer thePeerInfo, Collection<? extends GrantedAuthority> theAuthorities) {
-		super (thePeerInfo.getName(), "", true, true, true, true, theAuthorities);
+		super(thePeerInfo.getName(), "", true, true, true, true, theAuthorities);
 		this.peerInfo = thePeerInfo;
 	}
 
 	public MLPPeer getPeerInfo() {
 		return this.peerInfo;
 	}
-
 
 	private static PeerService peerService = null;
 
@@ -60,12 +59,11 @@ public class Peer extends User {
 		peerService = thePeerService;
 	}
 
-
 	private static Peer self = null;
-	
+
 	public static Peer self() {
 		if (self == null) {
-			if (peerService == null) 
+			if (peerService == null)
 				throw new IllegalStateException("Initialization not completed");
 			self = new Peer(peerService.getSelf(), Role.SELF.priviledges());
 		}
@@ -74,5 +72,3 @@ public class Peer extends User {
 	}
 
 }
-
-

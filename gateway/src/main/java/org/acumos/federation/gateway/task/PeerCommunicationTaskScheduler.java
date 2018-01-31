@@ -55,7 +55,7 @@ import com.google.common.collect.Table;
 @Component
 @EnableScheduling
 @Configuration
-public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware {
+public class PeerCommunicationTaskScheduler implements ApplicationContextAware {
 
 	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(PeerCommunicationTaskScheduler.class);
 
@@ -68,39 +68,39 @@ public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware 
 	@Autowired
 	private PeerSubscriptionService peerSubscriptionService;
 
-	private ApplicationContext			appCtx;
+	private ApplicationContext appCtx;
 
 	private static Table<String, Long, PeerTaskHandler> peersSubsTask = HashBasedTable.create();
 
-	public void setApplicationContext(ApplicationContext theCtx) { //throws BeansException {
-    this.appCtx = theCtx;
+	public void setApplicationContext(ApplicationContext theCtx) { // throws BeansException {
+		this.appCtx = theCtx;
 	}
 
-	//what was this for?
-	//@Bean(destroyMethod = "shutdown")
-	//public Executor taskExecutor() {
-	//	return Executors.newScheduledThreadPool(10);//Hardcode for now
-	//}
+	// what was this for?
+	// @Bean(destroyMethod = "shutdown")
+	// public Executor taskExecutor() {
+	// return Executors.newScheduledThreadPool(10);//Hardcode for now
+	// }
 
 	@Bean
 	public ThreadPoolTaskScheduler taskScheduler() {
-		String name = env.getProperty("federation.instance.name") + "-" + env.getProperty("federation.instance") + "-taskscheduler";
+		String name = env.getProperty("federation.instance.name") + "-" + env.getProperty("federation.instance")
+				+ "-taskscheduler";
 		ThreadPoolTaskScheduler threadPoolTaskScheduler = null;
 		try {
-			threadPoolTaskScheduler = (ThreadPoolTaskScheduler)this.appCtx.getBean(name);
-		}
-		catch (BeansException bix) {
-			//instantiation should fail the first time because we create teh bean below
+			threadPoolTaskScheduler = (ThreadPoolTaskScheduler) this.appCtx.getBean(name);
+		} catch (BeansException bix) {
+			// instantiation should fail the first time because we create teh bean below
 		}
 
 		if (threadPoolTaskScheduler == null) {
 			logger.debug(EELFLoggerDelegate.debugLogger, "creating task scheduler");
 			threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-			threadPoolTaskScheduler.setPoolSize(20);//Make it configurable later
+			threadPoolTaskScheduler.setPoolSize(20);// Make it configurable later
 			threadPoolTaskScheduler.setBeanName(name);
 			threadPoolTaskScheduler.initialize();
 		}
-		return threadPoolTaskScheduler; 
+		return threadPoolTaskScheduler;
 	}
 
 	@PreDestroy
@@ -116,86 +116,94 @@ public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware 
 	}
 
 	protected boolean same(MLPPeerSubscription theFirstSub, MLPPeerSubscription theSecondSub) {
-		logger.debug(EELFLoggerDelegate.debugLogger, "comparing subs : [" + theFirstSub.getSubId() + "," + theFirstSub.getCreated() + "," + theFirstSub.getModified() + "] vs. [" + theSecondSub.getSubId() + "," + theSecondSub.getCreated() + "," + theSecondSub.getModified() + "]");
-		return theFirstSub.getSubId() == theSecondSub.getSubId() &&
-					 theFirstSub.getCreated().equals(theSecondSub.getCreated()) &&
-					 ((theFirstSub.getModified() == null && theSecondSub.getModified() == null) ||
-					  (theFirstSub.getModified() != null && theSecondSub.getModified() != null && theFirstSub.getModified().equals(theSecondSub.getModified()))
-					 );
+		logger.debug(EELFLoggerDelegate.debugLogger,
+				"comparing subs : [" + theFirstSub.getSubId() + "," + theFirstSub.getCreated() + ","
+						+ theFirstSub.getModified() + "] vs. [" + theSecondSub.getSubId() + ","
+						+ theSecondSub.getCreated() + "," + theSecondSub.getModified() + "]");
+		return theFirstSub.getSubId() == theSecondSub.getSubId()
+				&& theFirstSub.getCreated().equals(theSecondSub.getCreated())
+				&& ((theFirstSub.getModified() == null && theSecondSub.getModified() == null)
+						|| (theFirstSub.getModified() != null && theSecondSub.getModified() != null
+								&& theFirstSub.getModified().equals(theSecondSub.getModified())));
 	}
 
-	@Scheduled(initialDelay = 1000,fixedRateString = "${peer.jobchecker.interval:400}000")
+	@Scheduled(initialDelay = 1000, fixedRateString = "${peer.jobchecker.interval:400}000")
 	public void checkPeerJobs() {
 
-		//Get the List of MLP Peers
+		// Get the List of MLP Peers
 		List<MLPPeer> mlpPeers = peerService.getPeers();
-		if(Utils.isEmptyList(mlpPeers)) {
+		if (Utils.isEmptyList(mlpPeers)) {
 			logger.info(EELFLoggerDelegate.debugLogger, "checkPeer : no peers from " + peerService);
 			return;
 		}
-	
-		for(MLPPeer mlpPeer : mlpPeers){
+
+		for (MLPPeer mlpPeer : mlpPeers) {
 			logger.info(EELFLoggerDelegate.debugLogger, "checkPeer : " + mlpPeer);
 
-			//cancel peer tasks for inactive peers 
-			if(!mlpPeer.isActive()) {
-				//cancel all peer sub tasks for this peer
-				logger.debug(EELFLoggerDelegate.debugLogger, "checkPeer : peer no longer active, removing active tasks");
+			// cancel peer tasks for inactive peers
+			if (!mlpPeer.isActive()) {
+				// cancel all peer sub tasks for this peer
+				logger.debug(EELFLoggerDelegate.debugLogger,
+						"checkPeer : peer no longer active, removing active tasks");
 				Map<Long, PeerTaskHandler> subsTask = this.peersSubsTask.row(mlpPeer.getPeerId());
 				if (subsTask != null) {
-					for (Map.Entry<Long, PeerTaskHandler> subTaskEntry: subsTask.entrySet()) {
+					for (Map.Entry<Long, PeerTaskHandler> subTaskEntry : subsTask.entrySet()) {
 						subTaskEntry.getValue().stopTask();
 						this.peersSubsTask.remove(mlpPeer.getPeerId(), subTaskEntry.getKey());
 					}
 				}
 
-				//or peers that have been removed
+				// or peers that have been removed
 				//
 				continue;
 			}
 
 			List<MLPPeerSubscription> mlpSubs = peerSubscriptionService.getPeerSubscriptions(mlpPeer.getPeerId());
-			if(Utils.isEmptyList(mlpSubs)) {
-				//the peer is still there but has no subscriptions: cancel any ongoing tasks
+			if (Utils.isEmptyList(mlpSubs)) {
+				// the peer is still there but has no subscriptions: cancel any ongoing tasks
 
 				continue;
 			}
 
-			for(MLPPeerSubscription mlpSub : mlpSubs) {
+			for (MLPPeerSubscription mlpSub : mlpSubs) {
 				logger.info(EELFLoggerDelegate.debugLogger, "checkSub " + mlpSub);
 				PeerTaskHandler peerSubTask = peersSubsTask.get(mlpPeer.getPeerId(), mlpSub.getSubId());
 				if (peerSubTask != null) {
-					//was the subscription updated? if yes, cancel current task. 
+					// was the subscription updated? if yes, cancel current task.
 					MLPPeerSubscription mlpCurrentSub = peerSubTask.getSubscription();
 					if (!same(mlpSub, mlpCurrentSub)) {
-						logger.debug(EELFLoggerDelegate.debugLogger, "checkSub: subscription was updated, stopping current task");
+						logger.debug(EELFLoggerDelegate.debugLogger,
+								"checkSub: subscription was updated, stopping current task");
 						peerSubTask.stopTask();
-						peerSubTask = null; //in order to trigger its reset below: no need to remove the entry as we are about
-																//to replace it with a new one.
+						peerSubTask = null; // in order to trigger its reset below: no need to remove the entry as we
+											// are about
+											// to replace it with a new one.
 					}
 				}
 
 				if (peerSubTask == null) {
 					logger.info(EELFLoggerDelegate.debugLogger, "Scheduled peer sub task for " + mlpPeer.getApiUrl());
-					this.peersSubsTask.put(mlpPeer.getPeerId(), mlpSub.getSubId(), new PeerTaskHandler().startTask(mlpPeer, mlpSub));
+					this.peersSubsTask.put(mlpPeer.getPeerId(), mlpSub.getSubId(),
+							new PeerTaskHandler().startTask(mlpPeer, mlpSub));
 				}
 			}
 		}
 	}
 
 	/**
-	 * We need this contraption simply because we cannot retrieve the task (in order to check the subscription it is
-	 * working on) from the ScheduledFuture ..
+	 * We need this contraption simply because we cannot retrieve the task (in order
+	 * to check the subscription it is working on) from the ScheduledFuture ..
 	 */
 	private class PeerTaskHandler {
 
-		private ScheduledFuture 			future;
-		private PeerCommunicationTask	task;
+		private ScheduledFuture future;
+		private PeerCommunicationTask task;
 
 		public synchronized PeerTaskHandler startTask(MLPPeer thePeer, MLPPeerSubscription theSub) {
-			this.task =	(PeerCommunicationTask)PeerCommunicationTaskScheduler.this.appCtx.getBean("peerSubscriptionTask");
-			this.future = PeerCommunicationTaskScheduler.this.taskScheduler().scheduleAtFixedRate(
-																			this.task.handle(thePeer, theSub), theSub.getRefreshInterval());
+			this.task = (PeerCommunicationTask) PeerCommunicationTaskScheduler.this.appCtx
+					.getBean("peerSubscriptionTask");
+			this.future = PeerCommunicationTaskScheduler.this.taskScheduler()
+					.scheduleAtFixedRate(this.task.handle(thePeer, theSub), theSub.getRefreshInterval());
 			return this;
 		}
 
@@ -206,7 +214,7 @@ public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware 
 			this.future.cancel(true);
 			return this;
 		}
-		
+
 		public synchronized MLPPeerSubscription getSubscription() {
 			if (this.task == null)
 				throw new IllegalStateException("Not started");
@@ -215,26 +223,23 @@ public class PeerCommunicationTaskScheduler implements 	ApplicationContextAware 
 		}
 	}
 
-	//TODO Make it dynamic to add jobs and track them
-	/*@Override
-	public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
-		taskRegistrar.setTaskScheduler(taskScheduler());
-		taskRegistrar.addTriggerTask( new Runnable() {
-                    @Override public void run() {
-                    	System.out.println("blah");
-                        System.out.println(System.currentTimeMillis());
-                    }
-                },
-                new Trigger() {
-                    @Override public Date nextExecutionTime(TriggerContext triggerContext) {
-                        Calendar nextExecutionTime =  new GregorianCalendar();
-                        Date lastActualExecutionTime = triggerContext.lastActualExecutionTime();
-                        nextExecutionTime.setTime(lastActualExecutionTime != null ? lastActualExecutionTime : new Date());
-                        nextExecutionTime.add(Calendar.MILLISECOND,1000); //you can get the value from wherever you want
-                        return nextExecutionTime.getTime();
-                    }
-                }
-        );
-
-	}*/
+	// TODO Make it dynamic to add jobs and track them
+	/*
+	 * @Override public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+	 * taskRegistrar.setTaskScheduler(taskScheduler());
+	 * taskRegistrar.addTriggerTask( new Runnable() {
+	 * 
+	 * @Override public void run() { System.out.println("blah");
+	 * System.out.println(System.currentTimeMillis()); } }, new Trigger() {
+	 * 
+	 * @Override public Date nextExecutionTime(TriggerContext triggerContext) {
+	 * Calendar nextExecutionTime = new GregorianCalendar(); Date
+	 * lastActualExecutionTime = triggerContext.lastActualExecutionTime();
+	 * nextExecutionTime.setTime(lastActualExecutionTime != null ?
+	 * lastActualExecutionTime : new Date());
+	 * nextExecutionTime.add(Calendar.MILLISECOND,1000); //you can get the value
+	 * from wherever you want return nextExecutionTime.getTime(); } } );
+	 * 
+	 * }
+	 */
 }

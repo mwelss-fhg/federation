@@ -51,13 +51,14 @@ public class ListBuilder<T> {
 	public ListBuilder addAll(final List<? extends T> theList) {
 		this.list.addAll(theList);
 		return this;
-	}  
+	}
 
 	public ListBuilder addAll(final T[] theArray) {
-		for (T t: theArray) this.list.add(t);
+		for (T t : theArray)
+			this.list.add(t);
 		return this;
 	}
-  
+
 	public List build() {
 		return this.list;
 	}
@@ -69,7 +70,7 @@ public class ListBuilder<T> {
 	public static <V> List<V> asList(V[] theArray) {
 		return Arrays.asList(theArray);
 	}
-	
+
 	public static <V> List<V> asListOpt(V[] theArray) {
 		return (theArray != null && theArray.length > 0) ? Arrays.asList(theArray) : null;
 	}

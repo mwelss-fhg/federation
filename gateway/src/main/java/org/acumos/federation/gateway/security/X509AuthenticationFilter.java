@@ -44,7 +44,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
  * 
- * X.509 certificate authentication :  verifying the identity of a communication peer when using the HTTPS (HTTP over SSL) protocol.
+ * X.509 certificate authentication : verifying the identity of a communication
+ * peer when using the HTTPS (HTTP over SSL) protocol.
  *
  */
 
@@ -52,7 +53,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
-	
+
 	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
 	@Autowired
@@ -64,46 +65,39 @@ public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
 	public X509AuthenticationFilter() {
 	}
 
-/*
-	public X509AuthenticationFilter(boolean disableDefaults) {
-		super(disableDefaults);
-	}
-*/
+	/*
+	 * public X509AuthenticationFilter(boolean disableDefaults) {
+	 * super(disableDefaults); }
+	 */
 	/**
-     * subjectPrincipalRegex("CN=(.*?)(?:,|$)") :- The regular expression used to extract a username from the client certificates subject name.
-     * (CN value of the client certificate)
-     */
+	 * subjectPrincipalRegex("CN=(.*?)(?:,|$)") :- The regular expression used to
+	 * extract a username from the client certificates subject name. (CN value of
+	 * the client certificate)
+	 */
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 
-		http
-		.authorizeRequests()
-			.anyRequest().authenticated()
-		.and()
-			.x509()
-				.subjectPrincipalRegex("CN=(.*?)(?:,|$)")
+		http.authorizeRequests().anyRequest().authenticated().and().x509().subjectPrincipalRegex("CN=(.*?)(?:,|$)")
 				.userDetailsService(userDetailsService());
 
 	}
-	
-	//@Bean
+
+	// @Bean
 	public UserDetailsService userDetailsService() {
 		return (username -> {
 			log.info(EELFLoggerDelegate.debugLogger, " X509 subject : " + username);
 			List<MLPPeer> mlpPeers = peerService.getPeerBySubjectName(username);
 			log.info(EELFLoggerDelegate.debugLogger, " Peers matching X509 subject : " + mlpPeers);
-      if(!Utils.isEmptyList(mlpPeers)) {
+			if (!Utils.isEmptyList(mlpPeers)) {
 				log.info(EELFLoggerDelegate.debugLogger, " We are providing a matching Use ");
 				return new Peer(mlpPeers.get(0), Role.PEER);
-			}
-			else	{
+			} else {
 				MLPPeer unknown = new MLPPeer();
-				//set it up with available info
+				// set it up with available info
 				unknown.setSubjectName(username);
 
 				return new Peer(unknown, Role.ANY);
 			}
 		});
- 	}
+	}
 }
-

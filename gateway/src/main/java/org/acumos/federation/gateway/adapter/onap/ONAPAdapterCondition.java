@@ -31,13 +31,11 @@ import org.acumos.federation.gateway.common.AdapterCondition;
 public class ONAPAdapterCondition extends AdapterCondition {
 
 	@Override
-	public boolean matches(ConditionContext theContext, 
-												 AnnotatedTypeMetadata theMetadata) {
+	public boolean matches(ConditionContext theContext, AnnotatedTypeMetadata theMetadata) {
 
 		Environment env = theContext.getEnvironment();
-    return super.matches(theContext, theMetadata) &&
-					 null != env &&
-					 "ONAP".equals(env.getProperty("federation.instance.name"));
-  }
+		return super.matches(theContext, theMetadata) && null != env
+				&& "ONAP".equals(env.getProperty("federation.instance.name"));
+	}
 
 }

@@ -59,41 +59,38 @@ import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.transport.RestPageResponse;
 
 /**
- * CDS based implementation of the CatalogService. 
+ * CDS based implementation of the CatalogService.
  *
  */
 @Service
 @Conditional(GatewayCondition.class)
-public class CatalogServiceImpl 
-								extends AbstractServiceImpl
-								implements CatalogService {
+public class CatalogServiceImpl extends AbstractServiceImpl implements CatalogService {
 
 	@Autowired
 	private Environment env;
 
 	private Map<String, Object> baseSelector;
-	
+
 	@PostConstruct
 	public void initService() {
 		baseSelector = new HashMap<String, Object>();
 
-		baseSelector.put("active", true); //Fetch all active solutions
+		baseSelector.put("active", true); // Fetch all active solutions
 		baseSelector.put("accessTypeCode", AccessTypeCode.PB.toString()); // Fetch allowed only for Public models
-		baseSelector.put("validationStatusCode", ValidationStatusCode.PS.toString()); // Validation status should be Passed locally
-//		baseSelector.put("source", "");
-	
+		baseSelector.put("validationStatusCode", ValidationStatusCode.PS.toString()); // Validation status should be
+																						// Passed locally
+		// baseSelector.put("source", "");
+
 	}
 
 	@Override
-	public List<MLPSolution> getSolutions(
-		Map<String,?> theSelector, ServiceContext theContext) {
-		
+	public List<MLPSolution> getSolutions(Map<String, ?> theSelector, ServiceContext theContext) {
+
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions");
 		List<MLPSolution> filteredMLPSolutions = null;
 		ICommonDataServiceRestClient cdsClient = getClient();
-	
-		Map<String, Object> selector =
-				new HashMap<String, Object>(this.baseSelector);
+
+		Map<String, Object> selector = new HashMap<String, Object>(this.baseSelector);
 		if (theSelector != null)
 			selector.putAll(theSelector);
 
@@ -104,40 +101,36 @@ public class CatalogServiceImpl
 	}
 
 	@Override
-	public MLPSolution getSolution(
-		String theSolutionId, ServiceContext theContext) {
-		
+	public MLPSolution getSolution(String theSolutionId, ServiceContext theContext) {
+
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolution");
 		ICommonDataServiceRestClient cdsClient = getClient();
 		return cdsClient.getSolution(theSolutionId);
 	}
-	
+
 	@Override
-	public List<MLPSolutionRevision> getSolutionRevisions(
-		String theSolutionId, ServiceContext theContext) {
+	public List<MLPSolutionRevision> getSolutionRevisions(String theSolutionId, ServiceContext theContext) {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisions");
 		ICommonDataServiceRestClient cdsClient = getClient();
-		List<MLPSolutionRevision> mlpSolutionRevisions =
-			cdsClient.getSolutionRevisions(theSolutionId);
+		List<MLPSolutionRevision> mlpSolutionRevisions = cdsClient.getSolutionRevisions(theSolutionId);
 		return mlpSolutionRevisions;
 	}
 
 	@Override
-	public MLPSolutionRevision getSolutionRevision(
-		String theSolutionId, String theRevisionId, ServiceContext theContext) {
+	public MLPSolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
+			ServiceContext theContext) {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
 		ICommonDataServiceRestClient cdsClient = getClient();
-		MLPSolutionRevision mlpSolutionRevision =
-			cdsClient.getSolutionRevision(theSolutionId, theRevisionId);
+		MLPSolutionRevision mlpSolutionRevision = cdsClient.getSolutionRevision(theSolutionId, theRevisionId);
 		return mlpSolutionRevision;
 	}
 
 	@Override
-	public List<MLPArtifact> getSolutionRevisionArtifacts(
-		String theSolutionId, String theRevisionId, ServiceContext theContext) {
-		
+	public List<MLPArtifact> getSolutionRevisionArtifacts(String theSolutionId, String theRevisionId,
+			ServiceContext theContext) {
+
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts");
 		ICommonDataServiceRestClient cdsClient = getClient();
 		List<MLPArtifact> mlpArtifacts = cdsClient.getSolutionRevisionArtifacts(theSolutionId, theRevisionId);
@@ -145,36 +138,35 @@ public class CatalogServiceImpl
 	}
 
 	@Override
-	public InputStreamResource getSolutionRevisionArtifactContent(
-		String theArtifactId, ServiceContext theContext) {
+	public InputStreamResource getSolutionRevisionArtifactContent(String theArtifactId, ServiceContext theContext) {
 
 		InputStreamResource streamResource = null;
-		ByteArrayOutputStream byteArrayOutputStream  = null;
-		try{
+		ByteArrayOutputStream byteArrayOutputStream = null;
+		try {
 			ICommonDataServiceRestClient cdsClient = getClient();
 			MLPArtifact mlpArtifact = cdsClient.getArtifact(theArtifactId);
-			
+
 			NexusArtifactClient artifactClient = this.clients.getNexusClient();
-			
+
 			byteArrayOutputStream = artifactClient.getArtifact(mlpArtifact.getUri());
 			InputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-			
-			//Plain Old Java. Sprint 3 will use try resource handling
-			if(inputStream != null) {
+
+			// Plain Old Java. Sprint 3 will use try resource handling
+			if (inputStream != null) {
 				streamResource = new InputStreamResource(inputStream
-																								 /*, some_description
-																									*/);
+				/*
+				 * , some_description
+				 */);
 			}
-			if(byteArrayOutputStream != null) {
+			if (byteArrayOutputStream != null) {
 				byteArrayOutputStream.close();
 			}
-			
+
 		} catch (Exception e) {
 			log.error(EELFLoggerDelegate.errorLogger, "getSolutionRevisionArtifactiContent", e);
-		} 
+		}
 		// TODO Auto-generated method stub
 		return streamResource;
 	}
 
-	
 }

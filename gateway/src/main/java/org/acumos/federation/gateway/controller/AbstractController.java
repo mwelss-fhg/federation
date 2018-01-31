@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
-
 /**
  * 
  *

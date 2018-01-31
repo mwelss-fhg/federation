@@ -20,7 +20,6 @@
 
 package org.acumos.federation.gateway.common;
 
-
 /**
 * This class represents a common format set for the response send to the client.
 * Getters and setters encapsulate the fields of a class by making them accessible 
@@ -59,7 +58,7 @@ public class JsonResponse<T> implements Serializable {
 	 */
 	@JsonProperty(value = JSONTags.TAG_RESPONSE_BODY)
 	private T responseBody;
-	
+
 	public Boolean getStatus() {
 		return status;
 	}
@@ -93,15 +92,8 @@ public class JsonResponse<T> implements Serializable {
 	}
 
 	public String toString() {
-		return new StringBuilder("JsonResponse")
-								.append(System.identityHashCode(this))
-								.append('(')
-								.append(this.responseCode)
-								.append(' ')
-								.append(this.responseDetail)
-								.append(", ")
-								.append(this.responseBody == null ? "null" : this.responseBody)
-								.append(')')
-								.toString();
+		return new StringBuilder("JsonResponse").append(System.identityHashCode(this)).append('(')
+				.append(this.responseCode).append(' ').append(this.responseDetail).append(", ")
+				.append(this.responseBody == null ? "null" : this.responseBody).append(')').toString();
 	}
 }

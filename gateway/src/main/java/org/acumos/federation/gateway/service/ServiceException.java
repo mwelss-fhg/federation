@@ -20,7 +20,6 @@
 
 package org.acumos.federation.gateway.service;
 
-
 /**
  *
  */

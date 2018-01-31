@@ -19,7 +19,6 @@
  */
 package org.acumos.federation.gateway.security;
 
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Arrays;
@@ -32,28 +31,24 @@ import org.springframework.security.core.GrantedAuthority;
 public enum Role {
 
 	/**
-   * Un-authenticated client. Will at most be granted access to subscribe
+	 * Un-authenticated client. Will at most be granted access to subscribe
 	 * functionality
 	 */
 	ANY(Collections.EMPTY_LIST),
 	/**
 	 * Common peer, grants generic solution catalog access
 	 */
-	PEER(Collections.unmodifiableList(
-				Arrays.asList(Priviledge.CATALOG_ACCESS))),
+	PEER(Collections.unmodifiableList(Arrays.asList(Priviledge.CATALOG_ACCESS))),
 	/**
-   * Enhanced peer, gains (some lovel of) read access to the local peer list
+	 * Enhanced peer, gains (some lovel of) read access to the local peer list
 	 */
-	PARTNER(Collections.unmodifiableList(
-						Arrays.asList(Priviledge.CATALOG_ACCESS, Priviledge.PEERS_ACCESS))),
+	PARTNER(Collections.unmodifiableList(Arrays.asList(Priviledge.CATALOG_ACCESS, Priviledge.PEERS_ACCESS))),
 	/**
-	 * The Acumos instance this gateway is serving, including local calls and
-	 * calls received through the gateways' private interface from other
-	 * components, grants all priviledges
+	 * The Acumos instance this gateway is serving, including local calls and calls
+	 * received through the gateways' private interface from other components,
+	 * grants all priviledges
 	 */
-	SELF(Collections.unmodifiableList(
-					Arrays.asList(Priviledge.class.getEnumConstants())));
-
+	SELF(Collections.unmodifiableList(Arrays.asList(Priviledge.class.getEnumConstants())));
 
 	private Collection<Priviledge> priviledges;
 
@@ -66,4 +61,3 @@ public enum Role {
 	}
 
 }
-

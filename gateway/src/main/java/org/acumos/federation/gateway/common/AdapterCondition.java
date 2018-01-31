@@ -31,11 +31,9 @@ import org.springframework.core.env.Environment;
 public class AdapterCondition implements Condition {
 
 	@Override
-	public boolean matches(ConditionContext theContext, 
-												 AnnotatedTypeMetadata theMetadata) {
+	public boolean matches(ConditionContext theContext, AnnotatedTypeMetadata theMetadata) {
 
 		Environment env = theContext.getEnvironment();
-    return null != env &&
-					 "adapter".equals(env.getProperty("federation.instance"));
-  }
+		return null != env && "adapter".equals(env.getProperty("federation.instance"));
+	}
 }

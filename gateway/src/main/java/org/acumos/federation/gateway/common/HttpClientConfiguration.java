@@ -20,7 +20,6 @@
 
 package org.acumos.federation.gateway.common;
 
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
@@ -59,117 +58,144 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 //import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.SSLContextBuilder;
-		
+
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 @Configuration
-//@PropertySource("classpath:configprops.properties")
+// @PropertySource("classpath:configprops.properties")
 @ConfigurationProperties(prefix = "client")
 public class HttpClientConfiguration {
 
 	@Autowired
 	private ResourceLoader resourceLoader;
-	
-	protected final EELFLoggerDelegate log =
-											EELFLoggerDelegate.getLogger(getClass().getName());
+
+	protected final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
 	private String username;
 	private String passwd;
-	private int		 poolSize = 10;
-	private SSL		 ssl;
-	  
-	public String getUsername() { return this.username; }
- 	public void 	setUsername(String theUsername)
-																{ this.username = theUsername; }
-	
-	public String getPassword() { return this.username; }
- 	public void 	setPassword(String thePassword)
-																{ this.passwd = thePassword; }
-	
-	public int getPoolSize() { return this.poolSize; }
- 	public void 	setPoolSize(int thePoolSize)
-																{ this.poolSize = thePoolSize; }
-	
-	public SSL getSSL() { return this.ssl; }
- 	public void 	setSSL(SSL theSSL)
-																{ this.ssl = theSSL; }
+	private int poolSize = 10;
+	private SSL ssl;
+
+	public String getUsername() {
+		return this.username;
+	}
+
+	public void setUsername(String theUsername) {
+		this.username = theUsername;
+	}
+
+	public String getPassword() {
+		return this.username;
+	}
+
+	public void setPassword(String thePassword) {
+		this.passwd = thePassword;
+	}
+
+	public int getPoolSize() {
+		return this.poolSize;
+	}
+
+	public void setPoolSize(int thePoolSize) {
+		this.poolSize = thePoolSize;
+	}
+
+	public SSL getSSL() {
+		return this.ssl;
+	}
+
+	public void setSSL(SSL theSSL) {
+		this.ssl = theSSL;
+	}
 
 	public static class SSL {
 
-  	private String keyStore;
-  	private String keyStoreType = "JKS";
-  	private String keyStorePasswd;
-  	private String keyAlias;
-  	private String trustStore;
-  	private String trustStoreType = "JKS";
-  	private String trustStorePasswd;
+		private String keyStore;
+		private String keyStoreType = "JKS";
+		private String keyStorePasswd;
+		private String keyAlias;
+		private String trustStore;
+		private String trustStoreType = "JKS";
+		private String trustStorePasswd;
 
-	  public String getKeyStore() { return this.keyStore; }
-  	public void 	setKeyStore(String theKeyStore)
-																{ this.keyStore = theKeyStore; }
-	  
-	  public String getKeyStoreType() { return this.keyStoreType; }
-  	public void 	setKeyStoreType(String theKeyStoreType)
-																{ this.keyStoreType = theKeyStoreType; }
+		public String getKeyStore() {
+			return this.keyStore;
+		}
 
-		public String getKeyStorePassword() { return this.keyStorePasswd; }
-  	public void 	setKeyStorePassword(String theKeyStorePassword)
-																{ this.keyStorePasswd = theKeyStorePassword; }
-	  
-		public String getKeyAlias() { return this.keyAlias; }
-  	public void 	setKeyAlias(String theKeyAlias)
-																{ this.keyAlias = theKeyAlias; }
-	  
-		public String getTrustStore() { return this.trustStore; }
-  	public void 	setTrustStore(String theTrustStore)
-																{ this.trustStore = theTrustStore; }
-		
-		public String getTrustStoreType() { return this.trustStoreType; }
-  	public void 	setTrustStoreType(String theTrustStoreType)
-																{ this.trustStoreType = theTrustStoreType; }
+		public void setKeyStore(String theKeyStore) {
+			this.keyStore = theKeyStore;
+		}
 
-		public String getTrustStorePassword() { return this.trustStorePasswd; }
-  	public void 	setTrustStorePassword(String theTrustStorePassword)
-															{ this.trustStorePasswd = theTrustStorePassword; }
+		public String getKeyStoreType() {
+			return this.keyStoreType;
+		}
+
+		public void setKeyStoreType(String theKeyStoreType) {
+			this.keyStoreType = theKeyStoreType;
+		}
+
+		public String getKeyStorePassword() {
+			return this.keyStorePasswd;
+		}
+
+		public void setKeyStorePassword(String theKeyStorePassword) {
+			this.keyStorePasswd = theKeyStorePassword;
+		}
+
+		public String getKeyAlias() {
+			return this.keyAlias;
+		}
+
+		public void setKeyAlias(String theKeyAlias) {
+			this.keyAlias = theKeyAlias;
+		}
+
+		public String getTrustStore() {
+			return this.trustStore;
+		}
+
+		public void setTrustStore(String theTrustStore) {
+			this.trustStore = theTrustStore;
+		}
+
+		public String getTrustStoreType() {
+			return this.trustStoreType;
+		}
+
+		public void setTrustStoreType(String theTrustStoreType) {
+			this.trustStoreType = theTrustStoreType;
+		}
+
+		public String getTrustStorePassword() {
+			return this.trustStorePasswd;
+		}
+
+		public void setTrustStorePassword(String theTrustStorePassword) {
+			this.trustStorePasswd = theTrustStorePassword;
+		}
 
 		protected boolean hasKeyStoreInfo() {
-			return this.keyStore != null &&
-						 this.keyStoreType != null &&
-						 this.keyStorePasswd != null;
+			return this.keyStore != null && this.keyStoreType != null && this.keyStorePasswd != null;
 		}
 
 		protected boolean hasTrustStoreInfo() {
-			return this.trustStore != null &&
-						 this.trustStoreType != null /*&&
-						 this.trustStorePasswd != null*/;
+			return this.trustStore != null && this.trustStoreType != null /*
+																			 * && this.trustStorePasswd != null
+																			 */;
 		}
 
 		public String toString() {
-			return new StringBuilder("")	
-							.append("SSL(")
-							.append(this.keyStore)
-							.append(",")
-							.append(this.keyStoreType)
-							.append(",")
-							.append(this.keyAlias)
-							.append("/")
-							.append(this.trustStore)
-							.append(",")
-							.append(this.trustStoreType)
-							.append(")")
-							.toString();
+			return new StringBuilder("").append("SSL(").append(this.keyStore).append(",").append(this.keyStoreType)
+					.append(",").append(this.keyAlias).append("/").append(this.trustStore).append(",")
+					.append(this.trustStoreType).append(")").toString();
 		}
 	}
 
 	public String toString() {
-		return new StringBuilder("")	
-						.append("ClientConfiguration(")
-						.append(this.ssl)
-						.append(")")
-						.toString();
+		return new StringBuilder("").append("ClientConfiguration(").append(this.ssl).append(")").toString();
 	}
 
-  public HttpClient buildClient() {
+	public HttpClient buildClient() {
 
 		SSLContext sslContext = null;
 		log.info(EELFLoggerDelegate.debugLogger, "Build HttpClient with " + this);
@@ -179,21 +205,17 @@ public class HttpClientConfiguration {
 
 		if (this.ssl == null) {
 			log.info(EELFLoggerDelegate.debugLogger, "No ssl config was provided");
-		}
-		else {
+		} else {
 			KeyStore keyStore = null;
 			if (this.ssl.hasKeyStoreInfo()) {
 				try {
 					keyStore = KeyStore.getInstance(this.ssl.keyStoreType);
-					keyStore.load(this.resourceLoader.getResource(this.ssl.keyStore)
-														.getURL().openStream(),
-												//new URI(this.ssl.keyStore).toURL().openStream(),
-												this.ssl.keyStorePasswd.toCharArray());
+					keyStore.load(this.resourceLoader.getResource(this.ssl.keyStore).getURL().openStream(),
+							// new URI(this.ssl.keyStore).toURL().openStream(),
+							this.ssl.keyStorePasswd.toCharArray());
 					log.info(EELFLoggerDelegate.debugLogger, "Loaded key store: " + this.ssl.keyStore);
-				}
-				catch (Exception x) {
-					throw new IllegalStateException(
-										"Error loading key material: " + x, x);
+				} catch (Exception x) {
+					throw new IllegalStateException("Error loading key material: " + x, x);
 				}
 			}
 
@@ -201,58 +223,45 @@ public class HttpClientConfiguration {
 			if (this.ssl.hasTrustStoreInfo()) {
 				try {
 					trustStore = KeyStore.getInstance(this.ssl.trustStoreType);
-					trustStore.load(this.resourceLoader.getResource(this.ssl.trustStore)
-															.getURL().openStream(),
-													//new URI(this.ssl.trustStore).toURL().openStream(),
-													this.ssl.trustStorePasswd.toCharArray());
+					trustStore.load(this.resourceLoader.getResource(this.ssl.trustStore).getURL().openStream(),
+							// new URI(this.ssl.trustStore).toURL().openStream(),
+							this.ssl.trustStorePasswd.toCharArray());
 					log.info(EELFLoggerDelegate.debugLogger, "Loaded trust store: " + this.ssl.trustStore);
-				}
-				catch (Exception x) {
-					throw new IllegalStateException(
-										"Error loading trust material: " + x, x);
+				} catch (Exception x) {
+					throw new IllegalStateException("Error loading trust material: " + x, x);
 				}
 			}
 
 			SSLContextBuilder contextBuilder = SSLContexts.custom();
 			try {
 				if (keyStore != null) {
-  	  	  contextBuilder.loadKeyMaterial(
-														keyStore,
-														this.ssl.keyStorePasswd.toCharArray()/*,
-														(aliases, socket) -> { 
-																
-																	return this.ssl.keyAlias;
-														}*/);
+					contextBuilder.loadKeyMaterial(keyStore,
+							this.ssl.keyStorePasswd.toCharArray()/*
+																	 * , (aliases, socket) -> {
+																	 * 
+																	 * return this.ssl.keyAlias; }
+																	 */);
 				}
 
-				if (trustStore != null) {				
-  	     	contextBuilder.loadTrustMaterial(
-														trustStore,
-														(x509Certificates, s) -> false);
+				if (trustStore != null) {
+					contextBuilder.loadTrustMaterial(trustStore, (x509Certificates, s) -> false);
 				}
 
 				sslContext = contextBuilder.build();
-			}
-			catch (Exception x) {
-				throw new IllegalStateException(
-										"Error building ssl context", x);
+			} catch (Exception x) {
+				throw new IllegalStateException("Error building ssl context", x);
 			}
 		}
-//!!TODO: teh default hostname verifier needs to be changed!!
-    
-    SSLConnectionSocketFactory sslSocketFactory = null;
+		// !!TODO: teh default hostname verifier needs to be changed!!
+
+		SSLConnectionSocketFactory sslSocketFactory = null;
 		if (sslContext != null) {
-			sslSocketFactory =
-							new SSLConnectionSocketFactory(
-      							sslContext,
-            				new String[] { "TLSv1.2" },
-            				null,
-            				SSLConnectionSocketFactory.getDefaultHostnameVerifier());
-				log.info(EELFLoggerDelegate.debugLogger, "SSL connection factory configured");
+			sslSocketFactory = new SSLConnectionSocketFactory(sslContext, new String[] { "TLSv1.2" }, null,
+					SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+			log.info(EELFLoggerDelegate.debugLogger, "SSL connection factory configured");
 		}
 
-		RegistryBuilder<ConnectionSocketFactory> registryBuilder = 
-						RegistryBuilder.<ConnectionSocketFactory>create();
+		RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create();
 		registryBuilder.register("http", PlainConnectionSocketFactory.getSocketFactory());
 		if (sslSocketFactory != null) {
 			registryBuilder.register("https", sslSocketFactory);
@@ -260,36 +269,32 @@ public class HttpClientConfiguration {
 		Registry<ConnectionSocketFactory> registry = registryBuilder.build();
 
 		/*
-		PoolingHttpClientConnectionManager connectionManager = 
-			new PoolingHttpClientConnectionManager(registry);
-		connectionManager.setMaxTotal(this.poolSize);
-		connectionManager.setDefaultMaxPerRoute(this.poolSize);
-		*/
+		 * PoolingHttpClientConnectionManager connectionManager = new
+		 * PoolingHttpClientConnectionManager(registry);
+		 * connectionManager.setMaxTotal(this.poolSize);
+		 * connectionManager.setDefaultMaxPerRoute(this.poolSize);
+		 */
 
 		CredentialsProvider credsProvider = null;
-    if (this.username != null && this.passwd != null) {
+		if (this.username != null && this.passwd != null) {
 			credsProvider = new BasicCredentialsProvider();
-			credsProvider.setCredentials(
-				AuthScope.ANY, new UsernamePasswordCredentials(
-																		this.username, this.passwd));
+			credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(this.username, this.passwd));
 			log.info(EELFLoggerDelegate.debugLogger, "Credentials configured");
-		}
-		else {
+		} else {
 			log.info(EELFLoggerDelegate.debugLogger, "No credentials were provided");
 		}
 
 		HttpClientBuilder clientBuilder = HttpClients.custom();
 
-		//clientBuilder.setConnectionManager(connectionManager);
+		// clientBuilder.setConnectionManager(connectionManager);
 		clientBuilder.setConnectionManager(new BasicHttpClientConnectionManager(registry));
 
 		if (sslSocketFactory != null)
-    	clientBuilder.setSSLSocketFactory(sslSocketFactory);
+			clientBuilder.setSSLSocketFactory(sslSocketFactory);
 
 		if (credsProvider != null)
 			clientBuilder.setDefaultCredentialsProvider(credsProvider);
 
 		return clientBuilder.build();
-  }	
+	}
 }
-

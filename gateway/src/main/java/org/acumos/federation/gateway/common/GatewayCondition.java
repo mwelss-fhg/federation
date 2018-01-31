@@ -31,10 +31,9 @@ import org.springframework.core.env.Environment;
 public class GatewayCondition implements Condition {
 
 	@Override
-	public boolean matches(ConditionContext theContext, 
-												 AnnotatedTypeMetadata theMetadata) {
+	public boolean matches(ConditionContext theContext, AnnotatedTypeMetadata theMetadata) {
 
 		Environment env = theContext.getEnvironment();
-    return null != env && "gateway".equals(env.getProperty("federation.instance"));
-  }
+		return null != env && "gateway".equals(env.getProperty("federation.instance"));
+	}
 }

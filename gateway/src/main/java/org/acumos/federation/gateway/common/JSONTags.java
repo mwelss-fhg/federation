@@ -21,12 +21,12 @@
 package org.acumos.federation.gateway.common;
 
 public class JSONTags {
-	
+
 	public static final String TAG_STATUS_SUCCESS = "success";
 	public static final String TAG_RESPONSE_STATUS = "status";
 	public static final String TAG_REQUEST_FROM = "request_from";
 	public static final String TAG_REQUEST_ID = "request_id";
- 
+
 	public static final String TAG_REQUEST_BODY = "request_body";
 	public static final String TAG_STATUS_FAILURE = "failure";
 
@@ -37,5 +37,5 @@ public class JSONTags {
 	public static final String TAG_ERROR_CODE_SUCCESS = "200";
 	public static final String TAG_ERROR_CODE_FAILURE = "403";
 	public static final String TAG_ERROR_CODE_EXCEPTION = "500";
-	
+
 }

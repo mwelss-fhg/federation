@@ -64,17 +64,17 @@ import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.apache.commons.io.IOUtils;
 
 /**
- * Local implementations get their info from local file(s), we help them
- * here a bit.
+ * Local implementations get their info from local file(s), we help them here a
+ * bit.
  */
 @Service
 public class LocalWatchService {
 
-	private Map<URI, Consumer<URI>>		sources = new HashMap<URI, Consumer<URI>>();
-	private WatchService							sourceWatcher = null;
+	private Map<URI, Consumer<URI>> sources = new HashMap<URI, Consumer<URI>>();
+	private WatchService sourceWatcher = null;
 
 	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(LocalWatchService.class);
-	
+
 	public void watchOn(URI theUri, Consumer<URI> theHandler) {
 		this.sources.put(theUri, theHandler);
 		setupSourceWatcher(theUri);
@@ -84,17 +84,16 @@ public class LocalWatchService {
 
 		if (this.sourceWatcher == null)
 			logger.warn(EELFLoggerDelegate.errorLogger, "source watcher not available ");
-			
+
 		if ("file".equals(theSource.getScheme())) {
-			//we can only watch directories ..
+			// we can only watch directories ..
 			Path sourcePath = Paths.get(theSource).getParent();
 			try {
 				sourcePath.register(this.sourceWatcher, StandardWatchEventKinds.ENTRY_MODIFY);
-			}
-			catch (IOException iox) {
+			} catch (IOException iox) {
 				logger.warn(EELFLoggerDelegate.errorLogger, "Failed to setup source watcher for " + theSource, iox);
 			}
-		} 
+		}
 	}
 
 	@PostConstruct
@@ -103,8 +102,7 @@ public class LocalWatchService {
 
 		try {
 			this.sourceWatcher = FileSystems.getDefault().newWatchService();
-		}
-		catch (IOException iox) {
+		} catch (IOException iox) {
 			logger.warn(EELFLoggerDelegate.debugLogger, "Failed to setup source watcher: " + iox);
 			this.sourceWatcher = null;
 		}
@@ -112,19 +110,18 @@ public class LocalWatchService {
 		// Done
 		logger.debug(EELFLoggerDelegate.debugLogger, "local service available");
 	}
-	
+
 	@PreDestroy
 	public void cleanupLocalService() {
 		if (this.sourceWatcher != null) {
 			try {
 				this.sourceWatcher.close();
-			}
-			catch (IOException iox) {
+			} catch (IOException iox) {
 			}
 		}
 	}
 
-  @Scheduled(fixedRateString = "${peer.local.interval:60}000")
+	@Scheduled(fixedRateString = "${peer.local.interval:60}000")
 	protected void updatePeersSubscriptionInfo() {
 		logger.info(EELFLoggerDelegate.debugLogger, "ckecking for updates");
 		if (this.sourceWatcher == null) {
@@ -132,15 +129,15 @@ public class LocalWatchService {
 			return;
 		}
 
-		//we are looking for modifications in the parent, now we have to match them
-		//to the actual URIs
+		// we are looking for modifications in the parent, now we have to match them
+		// to the actual URIs
 
 		WatchKey key = null;
 		while ((key = this.sourceWatcher.poll()) != null) {
 
-			//Path sourcePath = Paths.get(this.sourceUri).getFileName();       
-			for (WatchEvent<?> event: key.pollEvents()) {
- 				final Path changedPath = (Path) event.context();
+			// Path sourcePath = Paths.get(this.sourceUri).getFileName();
+			for (WatchEvent<?> event : key.pollEvents()) {
+				final Path changedPath = (Path) event.context();
 				URI uri = changedPath.toUri();
 				logger.info(EELFLoggerDelegate.debugLogger, "Local update: " + uri);
 				Consumer c = sources.get(uri);

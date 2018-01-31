@@ -69,111 +69,89 @@ import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.transport.RestPageResponse;
 
-
 /**
  * 
  *
  */
 @Service
-@ConfigurationProperties(prefix="catalogLocal")
+@ConfigurationProperties(prefix = "catalogLocal")
 @Conditional(AdapterCondition.class)
-public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl
-																		 implements CatalogService {
+public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements CatalogService {
 
-	private List<FLPSolution>					solutions;
-
+	private List<FLPSolution> solutions;
 
 	@PostConstruct
 	public void initService() {
 
 		checkResource();
 		try {
-	    watcher.watchOn(this.resource.getURL().toURI(),
-  	                  (uri) -> { loadSolutionsCatalogInfo(); });
+			watcher.watchOn(this.resource.getURL().toURI(), (uri) -> {
+				loadSolutionsCatalogInfo();
+			});
 
-    }
-    catch (IOException | URISyntaxException iox) {
-      log.info(EELFLoggerDelegate.errorLogger, "Catalog watcher registration failed for " + this.resource, iox);
-    }
+		} catch (IOException | URISyntaxException iox) {
+			log.info(EELFLoggerDelegate.errorLogger, "Catalog watcher registration failed for " + this.resource, iox);
+		}
 
 		loadSolutionsCatalogInfo();
 
-    // Done
-    log.debug(EELFLoggerDelegate.debugLogger, "Local CatalogService available");
+		// Done
+		log.debug(EELFLoggerDelegate.debugLogger, "Local CatalogService available");
 	}
 
 	@PreDestroy
 	public void cleanupService() {
-	}		
+	}
 
 	/** */
 	private void loadSolutionsCatalogInfo() {
 		synchronized (this) {
 			try {
-				ObjectReader objectReader = 
-														new ObjectMapper().reader(FLPSolution.class);
-				MappingIterator objectIterator =
-														objectReader.readValues(this.resource.getURL());
+				ObjectReader objectReader = new ObjectMapper().reader(FLPSolution.class);
+				MappingIterator objectIterator = objectReader.readValues(this.resource.getURL());
 				this.solutions = objectIterator.readAll();
 				log.info(EELFLoggerDelegate.debugLogger, "loaded " + this.solutions.size() + " solutions");
-			}
-			catch (Exception x) {
+			} catch (Exception x) {
 				throw new BeanInitializationException("Failed to load solutions catalog from " + this.resource, x);
 			}
 		}
 	}
 
-
 	@Override
-	public List<MLPSolution> getSolutions(
-		Map<String,?> theSelector, ServiceContext theContext) {
+	public List<MLPSolution> getSolutions(Map<String, ?> theSelector, ServiceContext theContext) {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions");
-		String modelTypeSelector = theSelector == null ? null
-																									 :(String)theSelector.get("modelTypeCode");
-		final List<String> modelTypes =
-			modelTypeSelector == null ? null
-																: Arrays.asList(modelTypeSelector.split(","));
-		return solutions.stream()
-							.filter(solution -> {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerCatalogSolutionsList: looking for " + modelTypes + ", has " + solution.getModelTypeCode());
-												return modelTypes == null ||
-															 modelTypes.contains(solution.getModelTypeCode());
-											})
-							.collect(Collectors.toList());
+		String modelTypeSelector = theSelector == null ? null : (String) theSelector.get("modelTypeCode");
+		final List<String> modelTypes = modelTypeSelector == null ? null : Arrays.asList(modelTypeSelector.split(","));
+		return solutions.stream().filter(solution -> {
+			log.debug(EELFLoggerDelegate.debugLogger,
+					"getPeerCatalogSolutionsList: looking for " + modelTypes + ", has " + solution.getModelTypeCode());
+			return modelTypes == null || modelTypes.contains(solution.getModelTypeCode());
+		}).collect(Collectors.toList());
 	}
 
 	@Override
-	public MLPSolution getSolution(
-		final String theSolutionId, ServiceContext theContext) {
+	public MLPSolution getSolution(final String theSolutionId, ServiceContext theContext) {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolution");
-		return solutions.stream()
-							.filter(solution -> {
-												return theSolutionId.equals(solution.getSolutionId());
-											})
-							.findFirst()
-							.orElse(null);
+		return solutions.stream().filter(solution -> {
+			return theSolutionId.equals(solution.getSolutionId());
+		}).findFirst().orElse(null);
 	}
-	
+
 	@Override
-	public List<MLPSolutionRevision> getSolutionRevisions(
-		final String theSolutionId, ServiceContext theContext) {
+	public List<MLPSolutionRevision> getSolutionRevisions(final String theSolutionId, ServiceContext theContext) {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisions");
-		FLPSolution solution =
-						this.solutions.stream()
-							.filter(sol ->
-												sol.getSolutionId().equals(theSolutionId))
-							.findFirst()
-							.orElse(null);
-		
+		FLPSolution solution = this.solutions.stream().filter(sol -> sol.getSolutionId().equals(theSolutionId))
+				.findFirst().orElse(null);
+
 		return (solution == null) ? null : solution.getMLPRevisions();
 	}
-	
+
 	@Override
-	public MLPSolutionRevision getSolutionRevision(
-		String theSolutionId, String theRevisionId, ServiceContext theContext) {
+	public MLPSolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
+			ServiceContext theContext) {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
 		List<MLPSolutionRevision> revisions = getSolutionRevisions(theSolutionId, theContext);
@@ -181,40 +159,33 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl
 		if (revisions == null)
 			return null;
 
-		return revisions.stream()
-							.filter(rev ->
-												rev.getRevisionId().equals(theRevisionId))
-							.findFirst()
-							.orElse(null);
+		return revisions.stream().filter(rev -> rev.getRevisionId().equals(theRevisionId)).findFirst().orElse(null);
 	}
 
 	@Override
-	public List<MLPArtifact> getSolutionRevisionArtifacts(
-		final String theSolutionId,	final String theRevisionId, ServiceContext theContext) {
+	public List<MLPArtifact> getSolutionRevisionArtifacts(final String theSolutionId, final String theRevisionId,
+			ServiceContext theContext) {
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts");
 
-		FLPRevision revision = (FLPRevision)
-			getSolutionRevision(theSolutionId, theRevisionId, theContext);
+		FLPRevision revision = (FLPRevision) getSolutionRevision(theSolutionId, theRevisionId, theContext);
 
 		return (revision == null) ? null : revision.getArtifacts();
 	}
 
 	@Override
-	public InputStreamResource getSolutionRevisionArtifactContent(
-		String theArtifactId, ServiceContext theContext) {
+	public InputStreamResource getSolutionRevisionArtifactContent(String theArtifactId, ServiceContext theContext) {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifactContent");
-		//cumbersome
-		for (FLPSolution solution: this.solutions) {
-			for (FLPRevision revision: solution.getRevisions()) {
-				for (MLPArtifact artifact: revision.getArtifacts()) {
+		// cumbersome
+		for (FLPSolution solution : this.solutions) {
+			for (FLPRevision revision : solution.getRevisions()) {
+				for (MLPArtifact artifact : revision.getArtifacts()) {
 					if (artifact.getArtifactId().equals(theArtifactId)) {
 						try {
-							return new InputStreamResource(
-													new URI(artifact.getUri()).toURL().openStream());
-						}
-						catch (Exception x) {
-							log.debug(EELFLoggerDelegate.debugLogger, "failed to load content from " + artifact.getUri(), x);
+							return new InputStreamResource(new URI(artifact.getUri()).toURL().openStream());
+						} catch (Exception x) {
+							log.debug(EELFLoggerDelegate.debugLogger,
+									"failed to load content from " + artifact.getUri(), x);
 						}
 					}
 				}
@@ -227,20 +198,18 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl
 	/** */
 	public static class FLPSolution extends MLPSolution {
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 		private List<FLPRevision> revisions;
 
-		//@JsonIgnore
+		// @JsonIgnore
 		public List<FLPRevision> getRevisions() {
 			return this.revisions;
 		}
-		
-		//@JsonIgnore
+
+		// @JsonIgnore
 		protected List<MLPSolutionRevision> getMLPRevisions() {
-			return this.revisions == null ? null :
-								this.revisions.stream()
-											.map(rev -> (MLPSolutionRevision)rev)
-											.collect(Collectors.toList());
+			return this.revisions == null ? null
+					: this.revisions.stream().map(rev -> (MLPSolutionRevision) rev).collect(Collectors.toList());
 		}
 
 		public void setRevisions(List<FLPRevision> theRevisions) {
@@ -248,18 +217,18 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl
 		}
 
 	}
-	
+
 	/** */
 	public static class FLPRevision extends MLPSolutionRevision {
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 		private List<MLPArtifact> artifacts;
 
-		//@JsonIgnore
-		//we send a deep clone as the client can modify them and we only have one copy
+		// @JsonIgnore
+		// we send a deep clone as the client can modify them and we only have one copy
 		public List<MLPArtifact> getArtifacts() {
 			List<MLPArtifact> copy = new LinkedList<MLPArtifact>();
-			for (MLPArtifact artifact: this.artifacts) {
+			for (MLPArtifact artifact : this.artifacts) {
 				MLPArtifact acopy = new MLPArtifact();
 				acopy.setArtifactId(artifact.getArtifactId());
 				acopy.setArtifactTypeCode(artifact.getArtifactTypeCode());
@@ -281,6 +250,5 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl
 			this.artifacts = theArtifacts;
 		}
 	}
-
 
 }

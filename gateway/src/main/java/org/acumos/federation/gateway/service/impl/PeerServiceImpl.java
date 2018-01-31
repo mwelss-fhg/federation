@@ -22,6 +22,7 @@
  * 
  */
 package org.acumos.federation.gateway.service.impl;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -58,17 +59,10 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	public PeerServiceImpl() {
 	}
 
-  @Override
-  public MLPPeer getSelf() {
-    return (MLPPeer)
-            getClient().searchPeers(
-                        new MapBuilder()
-                          .put("isSelf", Boolean.TRUE)
-                          .build(),
-                        false)
-                      .get(0);
-  }
-
+	@Override
+	public MLPPeer getSelf() {
+		return (MLPPeer) getClient().searchPeers(new MapBuilder().put("isSelf", Boolean.TRUE).build(), false).get(0);
+	}
 
 	/**
 	 * ToDo:
@@ -78,47 +72,40 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeers");
 		ICommonDataServiceRestClient cdsClient = getClient();
 		List<MLPPeer> mlpPeers = null;
-/*
-											cdsClient.searchPeers(
-                   					     new MapBuilder()
-                          				.put("status", PeerStatus.ACTIVE)
-                          				.build(),
-                        				false);
-*/
+		/*
+		 * cdsClient.searchPeers( new MapBuilder() .put("status", PeerStatus.ACTIVE)
+		 * .build(), false);
+		 */
 		RestPageResponse<MLPPeer> mlpPeersPage = cdsClient.getPeers(null);
 		if (mlpPeersPage != null)
 			mlpPeers = mlpPeersPage.getContent();
-		if(mlpPeers !=null) {
+		if (mlpPeers != null) {
 			log.debug(EELFLoggerDelegate.debugLogger, "getPeers size:{}", mlpPeers.size());
 		}
 		return mlpPeers;
 	}
 
 	@Override
-	public List<MLPPeer> getPeerBySubjectName(String theSubjectName,
-																						ServiceContext theContext) {
+	public List<MLPPeer> getPeerBySubjectName(String theSubjectName, ServiceContext theContext) {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerBySubjectName");
-		List<MLPPeer> mlpPeers = 
-			getClient().searchPeers(new MapBuilder()
-																.put("subjectName", theSubjectName)
-																.build(),
-															false);
-		if(mlpPeers != null && mlpPeers.size() > 0) {
+		List<MLPPeer> mlpPeers = getClient().searchPeers(new MapBuilder().put("subjectName", theSubjectName).build(),
+				false);
+		if (mlpPeers != null && mlpPeers.size() > 0) {
 			log.debug(EELFLoggerDelegate.debugLogger, "getPeerBySubjectName size:{}", mlpPeers.size());
 		}
 		return mlpPeers;
 	}
-	
+
 	@Override
 	public MLPPeer getPeerById(String thePeerId, ServiceContext theContext) {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerById: {}", thePeerId);
 		MLPPeer mlpPeer = getClient().getPeer(thePeerId);
-		if(mlpPeer !=null) {
+		if (mlpPeer != null) {
 			log.error(EELFLoggerDelegate.debugLogger, "getPeerById: {}", mlpPeer.toString());
 		}
 		return mlpPeer;
 	}
-	
+
 	@Override
 	public void subscribePeer(MLPPeer thePeer) throws ServiceException {
 		log.debug(EELFLoggerDelegate.debugLogger, "subscribePeer");
@@ -128,24 +115,20 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 			throw new ServiceException("No subject name is available");
 
 		ICommonDataServiceRestClient cdsClient = getClient();
-		List<MLPPeer> mlpPeers = 
-			cdsClient.searchPeers(new MapBuilder()
-																.put("subjectName", subjectName)
-																.build(),
-															false);
+		List<MLPPeer> mlpPeers = cdsClient.searchPeers(new MapBuilder().put("subjectName", subjectName).build(), false);
 
-		if(mlpPeers != null && mlpPeers.size() > 0) {
+		if (mlpPeers != null && mlpPeers.size() > 0) {
 			throw new ServiceException("Peer with subjectName '" + subjectName + "' already exists: " + mlpPeers);
 		}
 
-		log.error(EELFLoggerDelegate.debugLogger, "subscribePeer: new peer with subjectName {}, create CDS record", thePeer.getSubjectName());
-		//waiting on CDS 1.13
-		//thePeer.setStatus(PeerStatus.PENDING);		
+		log.error(EELFLoggerDelegate.debugLogger, "subscribePeer: new peer with subjectName {}, create CDS record",
+				thePeer.getSubjectName());
+		// waiting on CDS 1.13
+		// thePeer.setStatus(PeerStatus.PENDING);
 
 		try {
 			cdsClient.createPeer(thePeer);
-		}
-		catch (Exception x) {
+		} catch (Exception x) {
 			throw new ServiceException("Failed to create peer");
 		}
 	}
@@ -159,26 +142,22 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 			throw new ServiceException("No subject name is available");
 
 		ICommonDataServiceRestClient cdsClient = getClient();
-		List<MLPPeer> mlpPeers = 
-			cdsClient.searchPeers(new MapBuilder()
-																.put("subjectName", subjectName)
-																.build(),
-															false);
+		List<MLPPeer> mlpPeers = cdsClient.searchPeers(new MapBuilder().put("subjectName", subjectName).build(), false);
 
-		if(mlpPeers != null && mlpPeers.size() != 1) {
+		if (mlpPeers != null && mlpPeers.size() != 1) {
 			throw new ServiceException("No peer with subjectName '" + subjectName + "' found: " + mlpPeers);
 		}
 
-		log.error(EELFLoggerDelegate.debugLogger, "unsubscribePeer: peer with subjectName {}, update CDS record", thePeer.getSubjectName());
-		//waiting on CDS 1.13
-		//thePeer.setStatus(PeerStatus.PENDING_REMOVE);		
+		log.error(EELFLoggerDelegate.debugLogger, "unsubscribePeer: peer with subjectName {}, update CDS record",
+				thePeer.getSubjectName());
+		// waiting on CDS 1.13
+		// thePeer.setStatus(PeerStatus.PENDING_REMOVE);
 
 		try {
 			cdsClient.updatePeer(thePeer);
-		}
-		catch (Exception x) {
+		} catch (Exception x) {
 			throw new ServiceException("Failed to update peer", x);
 		}
-}
+	}
 
 }

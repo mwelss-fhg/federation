@@ -26,5 +26,5 @@ package org.acumos.federation.gateway.util;
 public interface FutureHandler<T> {
 
 	public void handle(Future<T> theResult);
-	
+
 }

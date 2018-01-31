@@ -31,7 +31,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.security.Peer;
 
-
 /**
  * 
  *
@@ -39,7 +38,6 @@ import org.acumos.federation.gateway.security.Peer;
 public class ControllerContext implements ServiceContext {
 
 	public Peer getPeer() {
-		return (Peer)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		return (Peer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
 }
-

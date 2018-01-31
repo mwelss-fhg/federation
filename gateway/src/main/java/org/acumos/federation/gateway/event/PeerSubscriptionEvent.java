@@ -32,15 +32,12 @@ import org.acumos.cds.domain.MLPSolution;
  */
 public class PeerSubscriptionEvent extends EventObject {
 
-	private MLPPeer							peer;
-	private MLPPeerSubscription	subscription;
-	private List<MLPSolution>		solutions;
+	private MLPPeer peer;
+	private MLPPeerSubscription subscription;
+	private List<MLPSolution> solutions;
 
-
-	public PeerSubscriptionEvent(Object theSource,
-															 MLPPeer thePeer,
-															 MLPPeerSubscription theSubscription,
-															 List<MLPSolution> theSolutions) {
+	public PeerSubscriptionEvent(Object theSource, MLPPeer thePeer, MLPPeerSubscription theSubscription,
+			List<MLPSolution> theSolutions) {
 		super(theSource);
 		this.peer = thePeer;
 		this.subscription = theSubscription;

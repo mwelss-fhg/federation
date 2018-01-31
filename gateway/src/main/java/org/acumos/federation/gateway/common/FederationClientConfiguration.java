@@ -31,10 +31,9 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 @Configuration
-//@PropertySource("classpath:configprops.properties")
+// @PropertySource("classpath:configprops.properties")
 @ConfigurationProperties(prefix = "client")
 public class FederationClientConfiguration extends HttpClientConfiguration {
-
 
 	@Bean
 	@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -43,4 +42,3 @@ public class FederationClientConfiguration extends HttpClientConfiguration {
 		return buildClient();
 	}
 }
-

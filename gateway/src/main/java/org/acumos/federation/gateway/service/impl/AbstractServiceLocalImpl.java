@@ -20,7 +20,6 @@
 
 package org.acumos.federation.gateway.service.impl;
 
-
 import org.springframework.core.io.Resource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -35,19 +34,16 @@ import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 import org.apache.commons.io.IOUtils;
 
-
 public class AbstractServiceLocalImpl {
 
-
 	protected EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
-	protected Resource				resource;
+	protected Resource resource;
 
-	@Autowired 
+	@Autowired
 	protected ApplicationContext appCtx;
 
 	@Autowired
-	protected LocalWatchService	watcher;
-		
+	protected LocalWatchService watcher;
 
 	public void setSource(String theSource) {
 		this.resource = this.appCtx.getResource(theSource);

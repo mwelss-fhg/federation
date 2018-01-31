@@ -20,7 +20,6 @@
 
 package org.acumos.federation.gateway.common;
 
-
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.core.env.Environment;
@@ -31,14 +30,11 @@ import org.springframework.core.env.Environment;
 public class GhostAdapterCondition extends AdapterCondition {
 
 	@Override
-	public boolean matches(ConditionContext theContext,
-												 AnnotatedTypeMetadata theMetadata) {
+	public boolean matches(ConditionContext theContext, AnnotatedTypeMetadata theMetadata) {
 
 		Environment env = theContext.getEnvironment();
-		return super.matches(theContext, theMetadata) &&
-												 null != env &&
-												 "ghost".equals(env.getProperty("federation.instance.name"));
-  }
+		return super.matches(theContext, theMetadata) && null != env
+				&& "ghost".equals(env.getProperty("federation.instance.name"));
+	}
 
 }
-

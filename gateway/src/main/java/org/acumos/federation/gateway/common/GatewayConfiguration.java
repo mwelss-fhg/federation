@@ -20,14 +20,12 @@
 
 package org.acumos.federation.gateway.common;
 
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties({FederationClientConfiguration.class})
+@EnableConfigurationProperties({ FederationClientConfiguration.class })
 public class GatewayConfiguration {
 
 }
-

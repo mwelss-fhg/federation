@@ -25,21 +25,19 @@ package org.acumos.federation.gateway.service;
 
 import org.acumos.federation.gateway.security.Peer;
 
-
-
 /**
  * Expose the invocation frame for service calls (whenever a call is selectively
  * provided).
  */
 public interface ServiceContext {
-	
+
 	/*
 	 * In who's behalf are we providing the service.
 	 */
-	public  Peer	getPeer(); 
+	public Peer getPeer();
 
 	/*
-	 * Is the service to be provided for the benefit of the local Acumos system? 
+	 * Is the service to be provided for the benefit of the local Acumos system?
 	 */
 	public default boolean isSelf() {
 		return getPeer().getPeerInfo().isSelf();
@@ -52,4 +50,3 @@ public interface ServiceContext {
 		return () -> Peer.self();
 	}
 }
-

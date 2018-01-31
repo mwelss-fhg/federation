@@ -20,84 +20,80 @@
 
 package org.acumos.federation.gateway.common;
 
-
-
 public class HttpClientConfigurationBuilder
-//							 <A extends HttpClientConfigurationBuilder<A,T>,
-//								T extends HttpClientConfiguration>
-																						{
+// <A extends HttpClientConfigurationBuilder<A,T>,
+// T extends HttpClientConfiguration>
+{
 
-	private /*T*/HttpClientConfiguration	config = newConfig();
+	private /* T */HttpClientConfiguration config = newConfig();
 
-	protected /*A*/HttpClientConfigurationBuilder builder() {
+	protected /* A */HttpClientConfigurationBuilder builder() {
 		return this;
 	}
 
-	protected /*T*/HttpClientConfiguration newConfig() {
+	protected /* T */HttpClientConfiguration newConfig() {
 		return new HttpClientConfiguration();
 	}
 
-	public /*T*/HttpClientConfiguration buildConfig() {
-		return this.config;	
+	public /* T */HttpClientConfiguration buildConfig() {
+		return this.config;
 	}
-  
- 	public HttpClientConfigurationBuilder/*A*/ withUsername(String theUsername) {
+
+	public HttpClientConfigurationBuilder/* A */ withUsername(String theUsername) {
 		this.config.setUsername(theUsername);
 		return builder();
 	}
-	
- 	public HttpClientConfigurationBuilder/*A*/ withPassword(String thePassword) {
+
+	public HttpClientConfigurationBuilder/* A */ withPassword(String thePassword) {
 		this.config.setPassword(thePassword);
 		return builder();
 	}
-	
- 	public HttpClientConfigurationBuilder/*A*/ withPoolSize(int thePoolSize) {
+
+	public HttpClientConfigurationBuilder/* A */ withPoolSize(int thePoolSize) {
 		this.config.setPoolSize(thePoolSize);
 		return builder();
 	}
-	
- 	public HttpClientConfigurationBuilder/*A*/ withSSL(HttpClientConfiguration.SSL theSSL) {
+
+	public HttpClientConfigurationBuilder/* A */ withSSL(HttpClientConfiguration.SSL theSSL) {
 		this.config.setSSL(theSSL);
 		return builder();
 	}
 
-
 	public static class SSLBuilder {
 
-		private HttpClientConfiguration.SSL ssl =
-															new HttpClientConfiguration.SSL();
+		private HttpClientConfiguration.SSL ssl = new HttpClientConfiguration.SSL();
 
-  	public SSLBuilder withKeyStore(String theKeyStore) { 
-			this.ssl.setKeyStore(theKeyStore); 
+		public SSLBuilder withKeyStore(String theKeyStore) {
+			this.ssl.setKeyStore(theKeyStore);
 			return this;
 		}
-	  
-  	public SSLBuilder withKeyStoreType(String theKeyStoreType) {
+
+		public SSLBuilder withKeyStoreType(String theKeyStoreType) {
 			this.ssl.setKeyStoreType(theKeyStoreType);
 			return this;
 		}
 
-  	public SSLBuilder withKeyStorePassword(String theKeyStorePassword) {
+		public SSLBuilder withKeyStorePassword(String theKeyStorePassword) {
 			this.ssl.setKeyStorePassword(theKeyStorePassword);
 			return this;
 		}
-	  
-  	public SSLBuilder withKeyAlias(String theKeyAlias) {
+
+		public SSLBuilder withKeyAlias(String theKeyAlias) {
 			this.ssl.setKeyAlias(theKeyAlias);
 			return this;
 		}
-	  	
-  	public SSLBuilder withTrustStore(String theTrustStore) {
+
+		public SSLBuilder withTrustStore(String theTrustStore) {
 			this.ssl.setTrustStore(theTrustStore);
 			return this;
 		}
-		
-  	public SSLBuilder withTrustStoreType(String theTrustStoreType) {
+
+		public SSLBuilder withTrustStoreType(String theTrustStoreType) {
 			this.ssl.setTrustStoreType(theTrustStoreType);
 			return this;
 		}
 
-  	public SSLBuilder withTrustStorePassword(String theTrustStorePassword) {
+		public SSLBuilder withTrustStorePassword(String theTrustStorePassword) {
 			this.ssl.setTrustStorePassword(theTrustStorePassword);
 			return this;
 		}

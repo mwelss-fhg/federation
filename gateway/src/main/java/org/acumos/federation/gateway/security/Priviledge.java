@@ -19,7 +19,6 @@
  */
 package org.acumos.federation.gateway.security;
 
-
 import org.springframework.security.core.GrantedAuthority;
 
 /**
@@ -27,18 +26,20 @@ import org.springframework.security.core.GrantedAuthority;
  */
 public enum Priviledge implements GrantedAuthority {
 
-	/** 
-		Gives access to catalog items (solutions); coarse at this point, all
-		(list/read/download) or nothing
+	/**
+	 * Gives access to catalog items (solutions); coarse at this point, all
+	 * (list/read/download) or nothing
 	 */
 	CATALOG_ACCESS,
 	/**
-		Gives access to the local list of peers.
-		In the future we might want to refine this by defining which peers should be provided (byb some base selection criteria)
+	 * Gives access to the local list of peers. In the future we might want to
+	 * refine this by defining which peers should be provided (byb some base
+	 * selection criteria)
 	 */
 	PEERS_ACCESS,
 	/**
-		The right to submit a subscription request. This is granted to ANY if so enabled system wide.
+	 * The right to submit a subscription request. This is granted to ANY if so
+	 * enabled system wide.
 	 */
 	SUBSCRIPTION;
 
@@ -50,4 +51,3 @@ public enum Priviledge implements GrantedAuthority {
 		return name();
 	}
 }
-
