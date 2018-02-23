@@ -27,21 +27,23 @@ import org.springframework.security.core.GrantedAuthority;
 public enum Priviledge implements GrantedAuthority {
 
 	/**
-	 * Gives access to catalog items (solutions); coarse at this point, all
+	 * Granted to a peer to access catalog items (solutions) and related information; coarse at this point, all
 	 * (list/read/download) or nothing
 	 */
 	CATALOG_ACCESS,
 	/**
-	 * Gives access to the local list of peers. In the future we might want to
-	 * refine this by defining which peers should be provided (byb some base
-	 * selection criteria)
+	 * Granted to a peer to request information about the peers registered in the local Acumos system.
 	 */
 	PEERS_ACCESS,
 	/**
 	 * The right to submit a subscription request. This is granted to ANY if so
 	 * enabled system wide.
 	 */
-	SUBSCRIPTION;
+	SUBSCRIPTION,
+	/**
+	 * granted to local Acumos components to request information from peers.
+	 */
+	PEER_ACCESS;
 
 	Priviledge() {
 	}

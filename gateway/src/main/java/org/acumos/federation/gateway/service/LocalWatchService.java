@@ -18,7 +18,7 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.util;
+package org.acumos.federation.gateway.service;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -58,7 +58,6 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import org.acumos.federation.gateway.common.AdapterCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 import org.apache.commons.io.IOUtils;
@@ -122,7 +121,7 @@ public class LocalWatchService {
 	}
 
 	@Scheduled(fixedRateString = "${peer.local.interval:60}000")
-	protected void updatePeersSubscriptionInfo() {
+	protected void updateInfo() {
 		logger.info(EELFLoggerDelegate.debugLogger, "ckecking for updates");
 		if (this.sourceWatcher == null) {
 			logger.debug(EELFLoggerDelegate.debugLogger, "source watcher not in place");

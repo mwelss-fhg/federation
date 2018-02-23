@@ -118,7 +118,7 @@ public interface PeerService {
 	 * @throws ServiceException
 	 *             if anything goes wrong during the check/provisioning process
 	 */
-	public void subscribePeer(MLPPeer thePeer) throws ServiceException;
+	public void registerPeer(MLPPeer thePeer) throws ServiceException;
 
 	/**
 	 * Optional operation allowing the gateway to update a peer and mark it for
@@ -129,6 +129,6 @@ public interface PeerService {
 	 * @throws ServiceException
 	 *             if anything goes wrong during the check/provisioning process
 	 */
-	public void unsubscribePeer(MLPPeer thePeer) throws ServiceException;
+	public void unregisterPeer(MLPPeer thePeer) throws ServiceException;
 
 }

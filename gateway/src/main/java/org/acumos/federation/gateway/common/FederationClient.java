@@ -18,13 +18,14 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.service.impl;
+package org.acumos.federation.gateway.common;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
@@ -60,6 +61,31 @@ public class FederationClient extends AbstractClient {
 	}
 
 	/**
+	 */
+	public JsonResponse<MLPPeer> ping()
+			throws HttpStatusCodeException {
+		URI uri = API.PING.buildUri(this.baseUrl);
+		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		ResponseEntity<JsonResponse<MLPPeer>> response = null;
+		try {
+			response = restTemplate.exchange(uri, HttpMethod.GET, null,
+					new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {
+					});
+		}
+		catch (HttpStatusCodeException x) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			throw x;
+		}
+		catch (Throwable t) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		return response == null ? null : response.getBody();
+	}	
+
+	/**
 	 * 
 	 * @param theSelection
 	 *            key-value pairs; ignored if null or empty. Gives special treatment
@@ -76,25 +102,55 @@ public class FederationClient extends AbstractClient {
 			selectorParam = theSelection == null ? null
 					// : UriUtils.encodeQueryParam(Utils.mapToJsonString(theSelection),"UTF-8");
 					: Base64Utils.encodeToString(Utils.mapToJsonString(theSelection).getBytes("UTF-8"));
-		} catch (Exception x) {
+		}
+		catch (Exception x) {
 			throw new IllegalArgumentException("Cannot process the selection argument", x);
 		}
 
 		URI uri = API.SOLUTIONS.buildUri(this.baseUrl, selectorParam == null ? Collections.EMPTY_MAP
 				: Collections.singletonMap(API.QueryParameters.SOLUTIONS_SELECTOR, selectorParam));
-		logger.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
 		ResponseEntity<JsonResponse<List<MLPSolution>>> response = null;
 		try {
 			response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {
 					});
-		} catch (HttpStatusCodeException x) {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " failed.", x);
+		}
+		catch (HttpStatusCodeException x) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
 			throw x;
-		} catch (Throwable t) {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " unexpected failure.", t);
-		} finally {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		catch (Throwable t) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		return response == null ? null : response.getBody();
+	}
+
+	/**
+	 */
+	public JsonResponse<MLPSolution> getSolution(String theSolutionId)
+			throws HttpStatusCodeException {
+
+		URI uri = API.SOLUTION_DETAIL.buildUri(this.baseUrl, theSolutionId);
+		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		ResponseEntity<JsonResponse<MLPSolution>> response = null;
+		try {
+			response = restTemplate.exchange(uri, HttpMethod.GET, null,
+					new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {
+					});
+		}
+		catch (HttpStatusCodeException x) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			throw x;
+		}
+		catch (Throwable t) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
 		return response == null ? null : response.getBody();
 	}
@@ -112,19 +168,22 @@ public class FederationClient extends AbstractClient {
 			throws HttpStatusCodeException {
 
 		URI uri = API.SOLUTION_REVISIONS.buildUri(this.baseUrl, theSolutionId);
-		logger.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
 		ResponseEntity<JsonResponse<List<MLPSolutionRevision>>> response = null;
 		try {
 			response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {
 					});
-		} catch (HttpStatusCodeException x) {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " failed.", x);
+		}
+		catch (HttpStatusCodeException x) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
 			throw x;
-		} catch (Throwable t) {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " unexpected failure.", t);
-		} finally {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		catch (Throwable t) {
+			log.info(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
 		return response == null ? null : response.getBody();
 	}
@@ -142,19 +201,22 @@ public class FederationClient extends AbstractClient {
 	public JsonResponse<List<MLPArtifact>> getArtifacts(String theSolutionId, String theRevisionId)
 			throws HttpStatusCodeException {
 		URI uri = API.SOLUTION_REVISION_ARTIFACTS.buildUri(this.baseUrl, theSolutionId, theRevisionId);
-		logger.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
 		ResponseEntity<JsonResponse<List<MLPArtifact>>> response = null;
 		try {
 			response = restTemplate.exchange(uri, HttpMethod.GET, null,
 					new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {
 					});
-		} catch (HttpStatusCodeException x) {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " failed.", x);
+		}
+		catch (HttpStatusCodeException x) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
 			throw x;
-		} catch (Throwable t) {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " unexpected failure.", t);
-		} finally {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		catch (Throwable t) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
 		return response == null ? null : response.getBody();
 	}
@@ -168,17 +230,20 @@ public class FederationClient extends AbstractClient {
 	 */
 	public Resource downloadArtifact(String theArtifactId) throws HttpStatusCodeException {
 		URI uri = API.ARTIFACT_DOWNLOAD.buildUri(this.baseUrl, theArtifactId);
-		logger.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
 		ResponseEntity<Resource> response = null;
 		try {
 			response = restTemplate.exchange(uri, HttpMethod.GET, null, Resource.class);
-		} catch (HttpStatusCodeException x) {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " failed.", x);
+		}
+		catch (HttpStatusCodeException x) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
 			throw x;
-		} catch (Throwable t) {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " unexpected failure.", t);
-		} finally {
-			logger.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		catch (Throwable t) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
 
 		if (response == null) {

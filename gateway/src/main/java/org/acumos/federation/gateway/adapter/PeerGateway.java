@@ -36,18 +36,24 @@ import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
-import org.acumos.federation.gateway.common.GatewayCondition;
+
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.config.GatewayCondition;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
-import org.acumos.federation.gateway.service.impl.Clients;
-import org.acumos.federation.gateway.service.impl.FederationClient;
+import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.util.Errors;
 import org.acumos.federation.gateway.util.Utils;
+import org.acumos.federation.gateway.cds.SubscriptionScope;
+
 import org.acumos.nexus.client.data.UploadArtifactInfo;
+
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
@@ -58,33 +64,38 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 
 @Component("peergateway")
-// @Scope("singleton")
-@ConfigurationProperties(prefix = "federation")
-@Conditional(GatewayCondition.class)
+@Scope("singleton")
+@Conditional({GatewayCondition.class})
 public class PeerGateway {
 
-	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(PeerGateway.class);
+	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(PeerGateway.class);
 	private TaskExecutor taskExecutor;
 	@Autowired
 	private Environment env;
 	@Autowired
 	private Clients clients;
 
+	public PeerGateway() {
+		log.trace(EELFLoggerDelegate.debugLogger, "PeerGateway::new");
+	}
+
 	@PostConstruct
 	public void initGateway() {
-		logger.debug(EELFLoggerDelegate.debugLogger, "initPeerGateway");
+		log.trace(EELFLoggerDelegate.debugLogger, "initPeerGateway");
 
 		/* make sure an operator was specified and that it is a declared user */
 		if (null == this.env.getProperty("federation.operator")) {
 			throw new BeanInitializationException("Missing 'federation.operator' configuration");
-		} else {
+		} 
+		else {
 			try {
-				if (null == this.clients.getClient().getUser(this.env.getProperty("federation.operator"))) {
-					logger.warn(EELFLoggerDelegate.errorLogger,
+				if (null == this.clients.getCDSClient().getUser(this.env.getProperty("federation.operator"))) {
+					log.warn(EELFLoggerDelegate.errorLogger,
 							"'federation.operator' does not point to an existing user");
 				}
-			} catch (/* HttpStatusCode */Exception dx) {
-				logger.warn(EELFLoggerDelegate.errorLogger, "failed to verify 'federation.operator' value", dx);
+			}
+			catch (/* HttpStatusCode */Exception dx) {
+				log.warn(EELFLoggerDelegate.errorLogger, "failed to verify 'federation.operator' value", dx);
 			}
 		}
 
@@ -95,12 +106,12 @@ public class PeerGateway {
 		((ThreadPoolTaskExecutor) this.taskExecutor).initialize();
 
 		// Done
-		logger.debug(EELFLoggerDelegate.debugLogger, "PeerGateway available");
+		log.trace(EELFLoggerDelegate.debugLogger, "PeerGateway available");
 	}
 
 	@PreDestroy
 	public void cleanupGateway() {
-		logger.debug(EELFLoggerDelegate.debugLogger, "PeerGateway destroyed");
+		log.trace(EELFLoggerDelegate.debugLogger, "PeerGateway destroyed");
 	}
 
 	protected String getOwnerId(MLPPeerSubscription theSubscription/*
@@ -112,7 +123,7 @@ public class PeerGateway {
 
 	@EventListener
 	public void handlePeerSubscriptionUpdate(PeerSubscriptionEvent theEvent) {
-		logger.info(EELFLoggerDelegate.debugLogger, "received peer subscription update event " + theEvent);
+		log.info(EELFLoggerDelegate.debugLogger, "received peer subscription update event {}", theEvent);
 		taskExecutor.execute(
 				new PeerGatewayUpdateTask(theEvent.getPeer(), theEvent.getSubscription(), theEvent.getSolutions()));
 	}
@@ -136,8 +147,8 @@ public class PeerGateway {
 
 		public void run() {
 
-			logger.info(EELFLoggerDelegate.debugLogger, "Received peer " + this.peer + " solutions: " + this.solutions);
-			ICommonDataServiceRestClient cdsClient = PeerGateway.this.clients.getClient();
+			log.info(EELFLoggerDelegate.debugLogger, "Received peer " + this.peer + " solutions: " + this.solutions);
+			ICommonDataServiceRestClient cdsClient = PeerGateway.this.clients.getCDSClient();
 			for (MLPSolution peerSolution : this.solutions) {
 				// Check if the Model already exists in the Local Acumos
 				MLPSolution localSolution = null;
@@ -145,7 +156,7 @@ public class PeerGateway {
 					localSolution = cdsClient.getSolution(peerSolution.getSolutionId());
 				} catch (HttpStatusCodeException x) {
 					if (!Errors.isCDSNotFound(x)) {
-						logger.warn(EELFLoggerDelegate.errorLogger, "Failed to check if solution with id "
+						log.warn(EELFLoggerDelegate.errorLogger, "Failed to check if solution with id "
 								+ peerSolution.getSolutionId() + " exists locally, skipping for now", x);
 						continue;
 					}
@@ -153,7 +164,7 @@ public class PeerGateway {
 
 				try {
 					if (localSolution == null) {
-						logger.info(EELFLoggerDelegate.debugLogger, "Solution Id : " + peerSolution.getSolutionId()
+						log.info(EELFLoggerDelegate.debugLogger, "Solution Id : " + peerSolution.getSolutionId()
 								+ " does not exists locally, adding it to local catalog ");
 						localSolution = createMLPSolution(peerSolution, cdsClient);
 					} else {
@@ -163,14 +174,14 @@ public class PeerGateway {
 					mapSolution(localSolution, cdsClient);
 				} catch (Exception x) {
 					x.printStackTrace();
-					logger.warn(EELFLoggerDelegate.debugLogger,
+					log.warn(EELFLoggerDelegate.debugLogger,
 							"Mapping of acumos solution failed for: " + peerSolution, x);
 				}
 			}
 		}
 
 		private MLPSolution createMLPSolution(MLPSolution peerMLPSolution, ICommonDataServiceRestClient cdsClient) {
-			logger.info(EELFLoggerDelegate.debugLogger,
+			log.info(EELFLoggerDelegate.debugLogger,
 					"Creating Local MLP Solution for peer solution " + peerMLPSolution);
 			MLPSolution localSolution = new MLPSolution();
 			localSolution.setSolutionId(peerMLPSolution.getSolutionId());
@@ -190,12 +201,14 @@ public class PeerGateway {
 			try {
 				cdsClient.createSolution(localSolution);
 				return localSolution;
-			} catch (HttpStatusCodeException restx) {
-				logger.error(EELFLoggerDelegate.debugLogger,
+			}
+			catch (HttpStatusCodeException restx) {
+				log.error(EELFLoggerDelegate.errorLogger,
 						"createSolution CDS call failed. CDS message is " + restx.getResponseBodyAsString(), restx);
 				return null;
-			} catch (Exception x) {
-				logger.error(EELFLoggerDelegate.debugLogger, "createMLPSolution unexpected failure", x);
+			}
+			catch (Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "createMLPSolution unexpected failure", x);
 				return null;
 			}
 		}
@@ -214,13 +227,15 @@ public class PeerGateway {
 			try {
 				cdsClient.createSolutionRevision(solutionRevision);
 				return solutionRevision;
-			} catch (HttpStatusCodeException restx) {
-				logger.error(EELFLoggerDelegate.debugLogger,
+			}
+			catch (HttpStatusCodeException restx) {
+				log.error(EELFLoggerDelegate.errorLogger,
 						"createSolutionRevision CDS call failed. CDS message is " + restx.getResponseBodyAsString(),
 						restx);
 				return null;
-			} catch (Exception x) {
-				logger.error(EELFLoggerDelegate.debugLogger, "createSolutionRevision unexpected failure", x);
+			}
+			catch (Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "createSolutionRevision unexpected failure", x);
 				return null;
 			}
 		}
@@ -244,12 +259,14 @@ public class PeerGateway {
 				cdsClient.createArtifact(artifact);
 				cdsClient.addSolutionRevisionArtifact(theSolutionId, theRevisionId, mlpArtifact.getArtifactId());
 				return artifact;
-			} catch (HttpStatusCodeException restx) {
-				logger.error(EELFLoggerDelegate.debugLogger,
+			}
+			catch (HttpStatusCodeException restx) {
+				log.error(EELFLoggerDelegate.errorLogger,
 						"createArtifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(), restx);
 				return null;
-			} catch (Exception x) {
-				logger.error(EELFLoggerDelegate.debugLogger, "createArtifact unexpected failure", x);
+			}
+			catch (Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "createArtifact unexpected failure", x);
 				return null;
 			}
 		}
@@ -272,7 +289,7 @@ public class PeerGateway {
 
 		private MLPSolution updateMLPSolution(MLPSolution peerMLPSolution, MLPSolution localMLPSolution,
 				ICommonDataServiceRestClient cdsClient) {
-			logger.info(EELFLoggerDelegate.debugLogger,
+			log.info(EELFLoggerDelegate.debugLogger,
 					"Updating Local MLP Solution for peer solution " + peerMLPSolution);
 
 			if (!peerMLPSolution.getSolutionId().equals(localMLPSolution.getSolutionId()))
@@ -293,7 +310,7 @@ public class PeerGateway {
 				String newOwnerId = getOwnerId(this.sub);
 				if (!newOwnerId.equals(localMLPSolution.getOwnerId())) {
 					// is this solution being updated as part of different/new subscription?
-					logger.warn(EELFLoggerDelegate.errorLogger, "updating solution " + localMLPSolution.getSolutionId()
+					log.warn(EELFLoggerDelegate.errorLogger, "updating solution " + localMLPSolution.getSolutionId()
 							+ " as part of subscription " + this.sub.getSubId() + " triggers an ownership change");
 				}
 				localMLPSolution.setOwnerId(newOwnerId);
@@ -303,7 +320,7 @@ public class PeerGateway {
 				String newSourceId = this.peer.getPeerId();
 				if (!newSourceId.equals(localMLPSolution.getSourceId())) {
 					// we will see this if a solution is available in more than one peer
-					logger.warn(EELFLoggerDelegate.errorLogger, "updating solution " + localMLPSolution.getSolutionId()
+					log.warn(EELFLoggerDelegate.errorLogger, "updating solution " + localMLPSolution.getSolutionId()
 							+ " as part of subscription " + this.sub.getSubId() + " triggers a source change");
 				}
 				localMLPSolution.setSourceId(newSourceId);
@@ -312,12 +329,14 @@ public class PeerGateway {
 			try {
 				cdsClient.updateSolution(localMLPSolution);
 				return localMLPSolution;
-			} catch (HttpStatusCodeException restx) {
-				logger.error(EELFLoggerDelegate.debugLogger,
+			}
+			catch (HttpStatusCodeException restx) {
+				log.error(EELFLoggerDelegate.errorLogger,
 						"updateSolution CDS call failed. CDS message is " + restx.getResponseBodyAsString(), restx);
 				return null;
-			} catch (Exception x) {
-				logger.error(EELFLoggerDelegate.debugLogger, "updateSolution unexpected failure", x);
+			}
+			catch (Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "updateSolution unexpected failure", x);
 				return null;
 			}
 		}
@@ -342,9 +361,10 @@ public class PeerGateway {
 			List<MLPSolutionRevision> peerRevisions = null;
 			try {
 				peerRevisions = (List<MLPSolutionRevision>) fedClient.getSolutionRevisions(theSolution.getSolutionId())
-						.getResponseBody();
-			} catch (Exception x) {
-				logger.warn(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos revisions for solution "
+						.getContent();
+			}
+			catch (Exception x) {
+				log.warn(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos revisions for solution "
 						+ theSolution.getSolutionId() + " from peer " + this.peer, x);
 				throw x;
 			}
@@ -352,7 +372,7 @@ public class PeerGateway {
 			// this should not happen as any solution should have at least one
 			// revision (but that's an assumption on how on-boarding works)
 			if (peerRevisions == null || peerRevisions.size() == 0) {
-				logger.warn(EELFLoggerDelegate.debugLogger, "No revisions were retrieved");
+				log.warn(EELFLoggerDelegate.debugLogger, "No revisions were retrieved");
 				return;
 			}
 
@@ -362,9 +382,10 @@ public class PeerGateway {
 			List<MLPSolutionRevision> cdsRevisions = Collections.EMPTY_LIST;
 			try {
 				cdsRevisions = cdsClient.getSolutionRevisions(theSolution.getSolutionId());
-			} catch (HttpStatusCodeException restx) {
+			}
+			catch (HttpStatusCodeException restx) {
 				if (!Errors.isCDSNotFound(restx)) {
-					logger.error(EELFLoggerDelegate.debugLogger,
+					log.error(EELFLoggerDelegate.errorLogger,
 							"getSolutionRevisions CDS call failed. CDS message is " + restx.getResponseBodyAsString(),
 							restx);
 					throw restx;
@@ -390,22 +411,25 @@ public class PeerGateway {
 				List<MLPArtifact> peerArtifacts = null;
 				try {
 					peerArtifacts = (List<MLPArtifact>) fedClient
-							.getArtifacts(theSolution.getSolutionId(), peerRevision.getRevisionId()).getResponseBody();
-				} catch (Exception x) {
-					logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve peer acumos artifacts", x);
+							.getArtifacts(theSolution.getSolutionId(), peerRevision.getRevisionId()).getContent();
+				}
+				catch (Exception x) {
+					log.warn(EELFLoggerDelegate.errorLogger, "Failed to retrieve peer acumos artifacts", x);
 					throw x;
 				}
 
 				List<MLPArtifact> cdsArtifacts = Collections.EMPTY_LIST;
 				if (localRevision == null) {
 					localRevision = createMLPSolutionRevision(peerRevision, cdsClient);
-				} else {
+				}
+				else {
 					try {
 						cdsArtifacts = cdsClient.getSolutionRevisionArtifacts(theSolution.getSolutionId(),
 								localRevision.getRevisionId());
-					} catch (HttpStatusCodeException restx) {
+					}
+					catch (HttpStatusCodeException restx) {
 						if (!Errors.isCDSNotFound(restx)) {
-							logger.error(EELFLoggerDelegate.debugLogger,
+							log.error(EELFLoggerDelegate.errorLogger,
 									"getArtifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(),
 									restx);
 							throw restx;
@@ -428,7 +452,8 @@ public class PeerGateway {
 					if (localArtifact == null) {
 						localArtifact = createMLPArtifact(theSolution.getSolutionId(), localRevision.getRevisionId(),
 								peerArtifact, cdsClient);
-					} else {
+					}
+					else {
 						if (!peerArtifact.getVersion().equals(localArtifact.getVersion())) {
 							// update local artifact
 							copyMLPArtifact(peerArtifact, localArtifact);
@@ -436,9 +461,7 @@ public class PeerGateway {
 						}
 					}
 
-					// TODO: with CDS 1.13 check the subscription scope to decide if
-					// content is to be downloaded
-					boolean doContent = true;
+					boolean doContent = (SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
 					if (doContent) {
 						// TODO: we are trying to access the artifact by its identifier which
 						// is fine in the common case but the uri specified in the artifact
@@ -446,9 +469,9 @@ public class PeerGateway {
 						Resource artifactContent = null;
 						try {
 							artifactContent = fedClient.downloadArtifact(peerArtifact.getArtifactId());
-						} catch (Exception x) {
-							logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve acumos artifact content",
-									x);
+						}
+						catch (Exception x) {
+							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos artifact content", x);
 						}
 
 						UploadArtifactInfo uploadInfo = null;
@@ -459,8 +482,9 @@ public class PeerGateway {
 												localArtifact.getName(), /* probably wrong */
 												localArtifact.getVersion(), "", /* should receive this from peer */
 												artifactContent.contentLength(), artifactContent.getInputStream());
-							} catch (Exception x) {
-								logger.warn(EELFLoggerDelegate.debugLogger,
+							}
+							catch (Exception x) {
+								log.error(EELFLoggerDelegate.errorLogger,
 										"Failed to push artifact content to local Nexus repo", x);
 							}
 						}
@@ -476,8 +500,9 @@ public class PeerGateway {
 					if (doUpdate) {
 						try {
 							cdsClient.updateArtifact(localArtifact);
-						} catch (HttpStatusCodeException restx) {
-							logger.error(EELFLoggerDelegate.debugLogger,
+						}
+						catch (HttpStatusCodeException restx) {
+							log.error(EELFLoggerDelegate.errorLogger,
 									"updateArtifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(),
 									restx);
 						}

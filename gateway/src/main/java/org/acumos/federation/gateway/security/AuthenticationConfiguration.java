@@ -22,6 +22,10 @@ package org.acumos.federation.gateway.security;
 
 import java.util.List;
 
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
+import javax.naming.InvalidNameException;
+
 import org.acumos.cds.domain.MLPPeer;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
@@ -37,6 +41,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.preauth.x509.X509AuthenticationFilter;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -52,7 +57,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
+public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 
 	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
@@ -62,7 +67,7 @@ public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
 	@Value("${federation.enablePeerAuthentication:true}")
 	private boolean securityEnabled;
 
-	public X509AuthenticationFilter() {
+	public AuthenticationConfiguration() {
 	}
 
 	/*
@@ -77,24 +82,80 @@ public class X509AuthenticationFilter extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 
-		http.authorizeRequests().anyRequest().authenticated().and().x509().subjectPrincipalRegex("CN=(.*?)(?:,|$)")
-				.userDetailsService(userDetailsService());
-
+		http.authorizeRequests()
+					.anyRequest()
+						.authenticated()
+						.and()
+						.x509()
+							//.x509AuthenticationFilter(new X509AuthenticationFilter() {
+							//		{
+							//			System.out.println(" *** Set custom principal extractor");
+							//			setPrincipalExtractor((cert) -> {
+							//				System.out.println(" *** got principal: " + cert.getSubjectX500Principal().getName());
+							//				return cert.getSubjectX500Principal().getName(); 
+							//			});
+							//		}
+							//	})
+							//.subjectPrincipalRegex("CN=(.*?)(?:,|$)")
+							.subjectPrincipalRegex("(.*)")  //select whole subject line
+							.userDetailsService(userDetailsService());
 	}
 
-	// @Bean
 	public UserDetailsService userDetailsService() {
-		return (username -> {
-			log.info(EELFLoggerDelegate.debugLogger, " X509 subject : " + username);
-			List<MLPPeer> mlpPeers = peerService.getPeerBySubjectName(username);
+		return (subject -> {
+			log.info(EELFLoggerDelegate.debugLogger, " X509 subject : " + subject);
+			LdapName x500subject = null;
+			try {
+				x500subject = new LdapName(subject);
+			}
+			catch (InvalidNameException inx) {
+				log.warn(EELFLoggerDelegate.errorLogger, "Failed to parse subject information : " + subject);
+				return new Peer(new MLPPeer(), Role.ANY);
+			}
+
+			String cn = null,
+						 email = null,
+						 ou = null, o = null, st = null, c = null;
+			for (Rdn rdn :  x500subject.getRdns()) {
+				if ("CN".equalsIgnoreCase(rdn.getType())) {
+					cn = rdn.getValue().toString();
+				}
+				else if ("emailaddress".equalsIgnoreCase(rdn.getType())) {
+					email = rdn.getValue().toString();
+				}
+				else if ("OU".equalsIgnoreCase(rdn.getType())) {
+					ou = rdn.getValue().toString();
+				}
+				else if ("O".equalsIgnoreCase(rdn.getType())) {
+					o = rdn.getValue().toString();
+				}
+				else if ("ST".equalsIgnoreCase(rdn.getType())) {
+					st = rdn.getValue().toString();
+				}
+				else if ("C".equalsIgnoreCase(rdn.getType())) {
+					c = rdn.getValue().toString();
+				}
+			}
+
+			List<MLPPeer> mlpPeers = peerService.getPeerBySubjectName(cn);
 			log.info(EELFLoggerDelegate.debugLogger, " Peers matching X509 subject : " + mlpPeers);
 			if (!Utils.isEmptyList(mlpPeers)) {
-				log.info(EELFLoggerDelegate.debugLogger, " We are providing a matching Use ");
-				return new Peer(mlpPeers.get(0), Role.PEER);
-			} else {
+				MLPPeer mlpPeer = mlpPeers.get(0);
+				return new Peer(mlpPeer, mlpPeer.isSelf() ? Role.SELF : Role.PEER);
+			}
+			else {
 				MLPPeer unknown = new MLPPeer();
 				// set it up with available info
-				unknown.setSubjectName(username);
+				unknown.setSubjectName(cn);
+				unknown.setName(cn);
+				unknown.setDescription(
+					(ou == null ? "" : ou + ",") + (o == null ? "" : o + ",") +
+					(st == null ? "" : st + ",") + (c == null ? "" : c + ","));
+				unknown.setApiUrl("https://" + cn);
+					//lookup SRV record
+				unknown.setContact1(email);
+				unknown.setLocal(false);
+				unknown.setSelf(false);
 
 				return new Peer(unknown, Role.ANY);
 			}

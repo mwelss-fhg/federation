@@ -18,22 +18,28 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.common;
+package org.acumos.federation.gateway.test;
 
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.core.env.Environment;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+
+import org.acumos.federation.gateway.config.AdapterConfiguration;
+
 
 /**
- * Bean instantiantion conditional on wether we are running as an adapter
+ * Adds the specifics of a Test adapter to the generic adapter configuration.
  */
-public class AdapterCondition implements Condition {
+@Configuration
+@Conditional({TestAdapterCondition.class})
+public class TestAdapterConfiguration extends AdapterConfiguration  {
 
-	@Override
-	public boolean matches(ConditionContext theContext, AnnotatedTypeMetadata theMetadata) {
-
-		Environment env = theContext.getEnvironment();
-		return null != env && "adapter".equals(env.getProperty("federation.instance"));
+	@Bean
+	public TestAdapter testAdapter() {
+		return new TestAdapter();
 	}
+
 }

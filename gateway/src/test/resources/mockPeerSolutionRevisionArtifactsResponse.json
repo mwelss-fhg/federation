@@ -1,8 +1,7 @@
 {
- "status": true,
- "response_code": 200,
- "response_detail": "Success",
- "response_body": [{
+ "error": false,
+ "message": "Success",
+ "content": [{
   "artifactId":"2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b341",
   "artifactTypeCode":"dk",
   "description":"First attempt",

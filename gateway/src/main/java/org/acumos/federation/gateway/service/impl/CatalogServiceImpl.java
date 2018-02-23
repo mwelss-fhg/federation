@@ -41,7 +41,6 @@ import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.util.Utils;
-import org.acumos.federation.gateway.common.GatewayCondition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.InputStreamResource;
@@ -63,7 +62,6 @@ import org.acumos.cds.transport.RestPageResponse;
  *
  */
 @Service
-@Conditional(GatewayCondition.class)
 public class CatalogServiceImpl extends AbstractServiceImpl implements CatalogService {
 
 	@Autowired
@@ -94,16 +92,18 @@ public class CatalogServiceImpl extends AbstractServiceImpl implements CatalogSe
 		if (theSelector != null)
 			selector.putAll(theSelector);
 
-		List<MLPSolution> solutions = cdsClient.searchSolutions(selector, false);
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: cds solutions " + solutions);
+		//TODO: load all pages ?? 
+		RestPageResponse<MLPSolution> response = 
+			getClient().searchSolutions(selector, false, null);
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: cds solutions count {}", response.getSize());
 
-		return solutions;
+		return response.getContent();
 	}
 
 	@Override
 	public MLPSolution getSolution(String theSolutionId, ServiceContext theContext) {
 
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolution");
+		log.trace(EELFLoggerDelegate.debugLogger, "getSolution");
 		ICommonDataServiceRestClient cdsClient = getClient();
 		return cdsClient.getSolution(theSolutionId);
 	}
@@ -111,7 +111,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl implements CatalogSe
 	@Override
 	public List<MLPSolutionRevision> getSolutionRevisions(String theSolutionId, ServiceContext theContext) {
 
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisions");
+		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisions");
 		ICommonDataServiceRestClient cdsClient = getClient();
 		List<MLPSolutionRevision> mlpSolutionRevisions = cdsClient.getSolutionRevisions(theSolutionId);
 		return mlpSolutionRevisions;
@@ -121,7 +121,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl implements CatalogSe
 	public MLPSolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
 			ServiceContext theContext) {
 
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
+		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
 		ICommonDataServiceRestClient cdsClient = getClient();
 		MLPSolutionRevision mlpSolutionRevision = cdsClient.getSolutionRevision(theSolutionId, theRevisionId);
 		return mlpSolutionRevision;
@@ -131,7 +131,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl implements CatalogSe
 	public List<MLPArtifact> getSolutionRevisionArtifacts(String theSolutionId, String theRevisionId,
 			ServiceContext theContext) {
 
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts");
+		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts");
 		ICommonDataServiceRestClient cdsClient = getClient();
 		List<MLPArtifact> mlpArtifacts = cdsClient.getSolutionRevisionArtifacts(theSolutionId, theRevisionId);
 		return mlpArtifacts;
@@ -162,10 +162,10 @@ public class CatalogServiceImpl extends AbstractServiceImpl implements CatalogSe
 				byteArrayOutputStream.close();
 			}
 
-		} catch (Exception e) {
-			log.error(EELFLoggerDelegate.errorLogger, "getSolutionRevisionArtifactiContent", e);
 		}
-		// TODO Auto-generated method stub
+		catch (Exception x) {
+			log.error(EELFLoggerDelegate.errorLogger, "getSolutionRevisionArtifactiContent", x);
+		}
 		return streamResource;
 	}
 

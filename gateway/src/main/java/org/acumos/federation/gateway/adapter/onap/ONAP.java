@@ -42,8 +42,8 @@ import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.LifecycleState;
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDCException;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
-import org.acumos.federation.gateway.service.impl.Clients;
-import org.acumos.federation.gateway.service.impl.FederationClient;
+import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.common.FederationClient;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -51,6 +51,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
@@ -60,17 +61,21 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
 @Component("onap")
-// @Scope("singleton")
+@Scope("singleton")
 @ConfigurationProperties(prefix = "onap")
 @Conditional(ONAPAdapterCondition.class)
 public class ONAP {
 
-	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ONAP.class);
+	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(ONAP.class);
 	private ASDC asdc = new ASDC();
 	private String asdcOperator;
 	private TaskExecutor taskExecutor;
 	@Autowired
 	private Clients clients;
+
+	public ONAP() {
+		log.debug(EELFLoggerDelegate.debugLogger, "ONAP::new");
+	}
 
 	public void setSdcUri(URI theUri) {
 		this.asdc.setUri(theUri);
@@ -86,7 +91,7 @@ public class ONAP {
 
 	@PostConstruct
 	public void initOnap() {
-		logger.debug(EELFLoggerDelegate.debugLogger, "initOnap");
+		log.trace(EELFLoggerDelegate.debugLogger, "initOnap");
 
 		if (this.asdc.getUri() == null)
 			throw new BeanInitializationException("Forgot to configure the SDC uri ('onap.sdcUri') ??");
@@ -103,17 +108,17 @@ public class ONAP {
 		cleanup();
 
 		// Done
-		logger.debug(EELFLoggerDelegate.debugLogger, "Onap available");
+		log.trace(EELFLoggerDelegate.debugLogger, "Onap available");
 	}
 
 	@PreDestroy
 	public void cleanupOnap() {
-		logger.debug(EELFLoggerDelegate.debugLogger, "Onap destroyed");
+		log.trace(EELFLoggerDelegate.debugLogger, "Onap destroyed");
 	}
 
 	@EventListener
 	public void handlePeerSubscriptionUpdate(PeerSubscriptionEvent theEvent) {
-		logger.info(EELFLoggerDelegate.debugLogger, "received peer subscription update event " + theEvent);
+		log.info(EELFLoggerDelegate.debugLogger, "received peer subscription update event " + theEvent);
 		taskExecutor.execute(new ONAPPushTask(theEvent.getPeer(), theEvent.getSolutions()));
 	}
 
@@ -136,18 +141,20 @@ public class ONAP {
 			JSONArray sdcAssets = null;
 			try {
 				sdcAssets = asdc.getAssets(AssetType.resource, JSONArray.class, "Generic", "Abstract").waitForResult();
-			} catch (Throwable x) {
-				logger.warn(EELFLoggerDelegate.debugLogger, "Failed to list ONAP SDC assets: " + x.getCause(), x);
+			}
+			catch (Throwable x) {
+				log.error(EELFLoggerDelegate.errorLogger, "Failed to list ONAP SDC assets: " + x.getCause(), x);
 				// if this is a 404 NotFound, continue, otherwise, fail
 				if (x instanceof ASDCException && x.getCause() instanceof HttpClientErrorException
 						&& ((HttpClientErrorException) x.getCause()).getStatusCode() == HttpStatus.NOT_FOUND) {
 					sdcAssets = new JSONArray();
-				} else
+				}
+				else
 					return;
 			}
-			// logger.info(EELFLoggerDelegate.debugLogger, "Retrieved ONAP SDC assets: " +
+			// log.info(EELFLoggerDelegate.debugLogger, "Retrieved ONAP SDC assets: " +
 			// sdcAssets);
-			// logger.info(EELFLoggerDelegate.debugLogger, "Received Acumos solutions: " +
+			// log.info(EELFLoggerDelegate.debugLogger, "Received Acumos solutions: " +
 			// this.solutions);
 
 			for (MLPSolution acumosSolution : this.solutions) {
@@ -157,7 +164,8 @@ public class ONAP {
 					if (sdcAsset == null) {
 						// new solution
 						sdcAsset = createSdcAsset(acumosSolution);
-					} else {
+					}
+					else {
 						// ONAP.this.asdc.checkoutResource(UUID.fromString(sdcAsset.getString("artifactUUID")),
 						// ONAP.this.asdcOperator, "updated solution import");
 						sdcAsset = updateSdcAsset(sdcAsset, acumosSolution);
@@ -166,8 +174,9 @@ public class ONAP {
 					// ONAP.this.asdc.checkinResource(UUID.fromString(sdcAsset.getString("artifactUUID")),
 					// ONAP.this.asdcOperator, "solution imported " + " the acumos revision number
 					// ");
-				} catch (Exception x) {
-					logger.warn(EELFLoggerDelegate.debugLogger,
+				}
+				catch (Exception x) {
+					log.error(EELFLoggerDelegate.errorLogger,
 							"Mapping of acumos solution failed for: " + acumosSolution + ": " + x);
 				}
 			}
@@ -185,7 +194,7 @@ public class ONAP {
 		}
 
 		public JSONObject createSdcAsset(MLPSolution theSolution) throws Exception {
-			logger.info(EELFLoggerDelegate.debugLogger, "Creating ONAP SDC VF for solution " + theSolution);
+			log.info(EELFLoggerDelegate.debugLogger, "Creating ONAP SDC VF for solution " + theSolution);
 
 			String description = null;// theSolution.getDescription();
 			if (description == null)
@@ -209,8 +218,9 @@ public class ONAP {
 						.withOperator(ONAP.this.asdcOperator/* theSolution.getOwnerId() */) // probably won't work, SDC
 																							// expects an att uuid
 						.execute().waitForResult();
-			} catch (Exception x) {
-				logger.warn(EELFLoggerDelegate.debugLogger, "Failed to create ONAP SDC VF", x);
+			}
+			catch (Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "Failed to create ONAP SDC VF", x);
 				throw x;
 			}
 		}
@@ -226,7 +236,7 @@ public class ONAP {
 		 * @return SDC Asset info
 		 */
 		public JSONObject updateSdcAsset(JSONObject theAssetInfo, MLPSolution theSolution) {
-			logger.info(EELFLoggerDelegate.debugLogger,
+			log.info(EELFLoggerDelegate.debugLogger,
 					"Updating ONAP SDC VF " + theAssetInfo.optString("uuid") + " for Acumosb solution " + theSolution);
 			return theAssetInfo;
 		}
@@ -239,18 +249,20 @@ public class ONAP {
 			List<MLPSolutionRevision> acumosRevisions = null;
 			try {
 				acumosRevisions = (List<MLPSolutionRevision>) fedClient
-						.getSolutionRevisions(theSolution.getSolutionId()).getResponseBody();
-			} catch (Exception x) {
-				logger.warn(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos revisions: " + x);
+						.getSolutionRevisions(theSolution.getSolutionId()).getContent();
+			}
+			catch (Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos revisions: " + x);
 				throw x;
 			}
 
 			List<MLPArtifact> acumosArtifacts = null;
 			try {
 				acumosArtifacts = (List<MLPArtifact>) fedClient.getArtifacts(theSolution.getSolutionId(),
-						acumosRevisions.get(acumosRevisions.size() - 1).getRevisionId()).getResponseBody();
-			} catch (Exception x) {
-				logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve acumos artifacts" + x);
+						acumosRevisions.get(acumosRevisions.size() - 1).getRevisionId()).getContent();
+			}
+			catch (Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos artifacts" + x);
 				throw x;
 			}
 
@@ -258,8 +270,9 @@ public class ONAP {
 				theAssetInfo = ONAP.this.asdc
 						.getAsset(AssetType.resource, UUID.fromString(theAssetInfo.getString("uuid")), JSONObject.class)
 						.waitForResult();
-			} catch (Exception x) {
-				logger.warn(EELFLoggerDelegate.debugLogger,
+			}
+			catch (Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger,
 						"Failed to retrieve ONAP SDC asset metadata for " + theAssetInfo.getString("uuid") + " : " + x);
 				throw x;
 			}
@@ -276,8 +289,8 @@ public class ONAP {
 			Map<MLPArtifact, JSONObject> updatedArtifacts = new HashMap<MLPArtifact, JSONObject>();
 			// List<JSONObject> oldArtifacts = new LinkedList<JSONObject>();
 
-			logger.info(EELFLoggerDelegate.debugLogger, "Acumos artifacts: " + acumosArtifacts);
-			logger.info(EELFLoggerDelegate.debugLogger, "ONAP SDC artifacts: " + sdcArtifacts);
+			log.info(EELFLoggerDelegate.debugLogger, "Acumos artifacts: " + acumosArtifacts);
+			log.info(EELFLoggerDelegate.debugLogger, "ONAP SDC artifacts: " + sdcArtifacts);
 
 			for (MLPArtifact acumosArtifact : acumosArtifacts) {
 				boolean found = false;
@@ -300,14 +313,14 @@ public class ONAP {
 					newArtifacts.add(acumosArtifact);
 			}
 
-			logger.warn(EELFLoggerDelegate.debugLogger, "New SDC artifacts: " + newArtifacts);
+			log.info(EELFLoggerDelegate.debugLogger, "New SDC artifacts: " + newArtifacts);
 			for (MLPArtifact acumosArtifact : newArtifacts) {
 				try {
 					byte[] content = IOUtils.toByteArray(new URI(acumosArtifact.getUri()));
 					if (content == null)
 						throw new Exception("Unable to fetch artifact content from " + acumosArtifact.getUri());
 					if (content.length == 0)
-						logger.warn(EELFLoggerDelegate.debugLogger,
+						log.warn(EELFLoggerDelegate.debugLogger,
 								"Acumos artifact has empty content, not acceptable in ONAP SDC");
 					// more sophisticated mapping needed here
 					asdc.createAssetArtifact(AssetType.resource, UUID.fromString(theAssetInfo.getString("uuid")))
@@ -318,12 +331,13 @@ public class ONAP {
 							.withDescription(acumosArtifact.getArtifactId() + "@"
 									+ acumosArtifact.getVersion()/* acumosArtifact.getDescription() */)
 							.execute().waitForResult();
-				} catch (Exception x) {
-					logger.warn(EELFLoggerDelegate.debugLogger, "Failed to create ONAP SDC VF Artifact", x);
+				}
+				catch (Exception x) {
+					log.error(EELFLoggerDelegate.errorLogger, "Failed to create ONAP SDC VF Artifact", x);
 				}
 			}
 
-			logger.warn(EELFLoggerDelegate.debugLogger, "Updated SDC artifacts: " + updatedArtifacts.keySet());
+			log.warn(EELFLoggerDelegate.debugLogger, "Updated SDC artifacts: " + updatedArtifacts.keySet());
 			for (Map.Entry<MLPArtifact, JSONObject> updateEntry : updatedArtifacts.entrySet()) {
 				MLPArtifact acumosArtifact = updateEntry.getKey();
 				try {
@@ -337,8 +351,9 @@ public class ONAP {
 							.withDescription(acumosArtifact.getArtifactId() + "@"
 									+ acumosArtifact.getVersion()/* acumosArtifact.getDescription() */)
 							.execute().waitForResult();
-				} catch (Exception x) {
-					logger.warn(EELFLoggerDelegate.debugLogger, "Failed to update ONAP SDC VF Artifact", x);
+				}
+				catch (Exception x) {
+					log.error(EELFLoggerDelegate.errorLogger, "Failed to update ONAP SDC VF Artifact", x);
 				}
 			}
 
@@ -359,14 +374,15 @@ public class ONAP {
 					deletedArtifacts.add(sdcArtifact);
 				}
 			}
-			logger.warn(EELFLoggerDelegate.debugLogger, "Deleted SDC artifacts: " + deletedArtifacts);
+			log.warn(EELFLoggerDelegate.debugLogger, "Deleted SDC artifacts: " + deletedArtifacts);
 			for (JSONObject sdcArtifact : deletedArtifacts) {
 				try {
 					asdc.deleteAssetArtifact(AssetType.resource, UUID.fromString(theAssetInfo.getString("uuid")),
 							UUID.fromString(sdcArtifact.getString("artifactUUID"))).withOperator(ONAP.this.asdcOperator)
 							.execute().waitForResult();
-				} catch (Exception x) {
-					logger.warn(EELFLoggerDelegate.debugLogger, "Failed to delete ONAP SDC VF Artifact", x);
+				}
+				catch (Exception x) {
+					log.error(EELFLoggerDelegate.errorLogger, "Failed to delete ONAP SDC VF Artifact", x);
 				}
 			}
 		}
@@ -417,7 +433,7 @@ public class ONAP {
 		try {
 			sdcAssets = asdc.getAssets(AssetType.resource, JSONArray.class, "Generic", "Abstract").waitForResult();
 		} catch (Throwable x) {
-			logger.info(EELFLoggerDelegate.debugLogger, "Cleanup failed to list ONAP SDC assets: " + x.getCause(), x);
+			log.info(EELFLoggerDelegate.debugLogger, "Cleanup failed to list ONAP SDC assets: " + x.getCause(), x);
 		}
 
 		if (sdcAssets == null)
@@ -430,9 +446,9 @@ public class ONAP {
 				try {
 					asdc.cycleAsset(AssetType.resource, UUID.fromString(sdcAsset.getString("uuid")),
 							LifecycleState.undocheckout, ONAP.this.asdcOperator, null).waitForResult();
-				} catch (Exception x) {
-					logger.info(EELFLoggerDelegate.debugLogger, "Cleanup ONAP SDC asset: " + sdcAsset.optString("uuid"),
-							x);
+				}
+				catch (Exception x) {
+					log.error(EELFLoggerDelegate.errorLogger, "Cleanup ONAP SDC asset: " + sdcAsset.optString("uuid"), x);
 				}
 			}
 		}

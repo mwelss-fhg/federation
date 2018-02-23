@@ -18,7 +18,7 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.service.impl;
+package org.acumos.federation.gateway.common;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -43,7 +43,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public abstract class AbstractClient {
 
-	protected final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(getClass().getName());
+	protected final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
 	protected final String baseUrl;
 	protected final RestTemplate restTemplate;
@@ -65,7 +65,8 @@ public abstract class AbstractClient {
 		try {
 			url = new URL(theTarget);
 			this.baseUrl = url.toExternalForm();
-		} catch (MalformedURLException ex) {
+		}
+		catch (MalformedURLException ex) {
 			throw new RuntimeException("Failed to parse targedt URL", ex);
 		}
 

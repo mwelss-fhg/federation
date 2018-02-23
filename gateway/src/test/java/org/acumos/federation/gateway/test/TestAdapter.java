@@ -18,7 +18,7 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.adapter;
+package org.acumos.federation.gateway.test;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -34,14 +34,15 @@ import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
-import org.acumos.federation.gateway.common.GhostAdapterCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
-import org.acumos.federation.gateway.service.impl.Clients;
-import org.acumos.federation.gateway.service.impl.FederationClient;
+import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.common.FederationClient;
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
@@ -49,22 +50,25 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
-@Component("ghost")
-// @Scope("singleton")
-@ConfigurationProperties(prefix = "ghost")
-@Conditional(GhostAdapterCondition.class)
-public class Ghost {
+@Component("test")
+@Scope("singleton")
+@ConfigurationProperties(prefix = "test")
+@Conditional({TestAdapterCondition.class})
+public class TestAdapter {
 
-	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(Ghost.class);
+	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 	private TaskExecutor taskExecutor;
 
 	private Map<String, Map<String, MLPSolution>> imports = new HashMap<String, Map<String, MLPSolution>>();
 	@Autowired
 	private Clients clients;
 
+	public TestAdapter() {
+	}
+
 	@PostConstruct
-	public void initGhost() {
-		logger.debug(EELFLoggerDelegate.debugLogger, "initGhost");
+	public void initTestAdapter() {
+		log.trace(EELFLoggerDelegate.debugLogger, "initTestAdapter");
 
 		this.taskExecutor = new ThreadPoolTaskExecutor();
 		((ThreadPoolTaskExecutor) this.taskExecutor).setCorePoolSize(1);
@@ -73,26 +77,26 @@ public class Ghost {
 		((ThreadPoolTaskExecutor) this.taskExecutor).initialize();
 
 		// Done
-		logger.debug(EELFLoggerDelegate.debugLogger, "Ghost available");
+		log.trace(EELFLoggerDelegate.debugLogger, "TestAdapter available");
 	}
 
 	@PreDestroy
-	public void cleanupGhost() {
-		logger.debug(EELFLoggerDelegate.debugLogger, "Ghost destroyed");
+	public void cleanupTestAdapter() {
+		log.trace(EELFLoggerDelegate.debugLogger, "TestAdapter destroyed");
 	}
 
 	@EventListener
 	public void handlePeerSubscriptionUpdate(PeerSubscriptionEvent theEvent) {
-		logger.info(EELFLoggerDelegate.debugLogger, "received peer subscription update event " + theEvent);
-		taskExecutor.execute(new GhostTask(theEvent.getPeer(), theEvent.getSolutions()));
+		log.info(EELFLoggerDelegate.debugLogger, "received peer subscription update event {}", theEvent);
+		taskExecutor.execute(new TestTask(theEvent.getPeer(), theEvent.getSolutions()));
 	}
 
-	public class GhostTask implements Runnable {
+	public class TestTask implements Runnable {
 
 		private MLPPeer peer;
 		private List<MLPSolution> solutions;
 
-		public GhostTask(MLPPeer thePeer, List<MLPSolution> theSolutions) {
+		public TestTask(MLPPeer thePeer, List<MLPSolution> theSolutions) {
 			this.peer = thePeer;
 			this.solutions = theSolutions;
 		}
@@ -110,14 +114,16 @@ public class Ghost {
 
 					MLPSolution peerImport = peerImports.get(solution.getSolutionId());
 					if (peerImport == null) {
-						logger.debug(EELFLoggerDelegate.debugLogger, "New solution");
+						log.debug(EELFLoggerDelegate.debugLogger, "New solution");
 						peerImports.put(solution.getSolutionId(), solution);
-					} else {
-						logger.debug(EELFLoggerDelegate.debugLogger, "Existing solution");
+					}
+					else {
+						log.debug(EELFLoggerDelegate.debugLogger, "Existing solution");
 						if (peerImport.getModified().equals(solution.getModified())) {
-							logger.debug(EELFLoggerDelegate.debugLogger, "No updates");
-						} else {
-							logger.debug(EELFLoggerDelegate.debugLogger, "Has updates");
+							log.debug(EELFLoggerDelegate.debugLogger, "No updates");
+						}
+						else {
+							log.debug(EELFLoggerDelegate.debugLogger, "Has updates");
 						}
 					}
 
@@ -126,34 +132,37 @@ public class Ghost {
 					List<MLPSolutionRevision> revisions = null;
 					try {
 						revisions = (List<MLPSolutionRevision>) fedClient.getSolutionRevisions(solution.getSolutionId())
-								.getResponseBody();
-					} catch (Exception x) {
-						logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve revisions", x);
+								.getContent();
+					}
+					catch (Exception x) {
+						log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve revisions", x);
 						continue;
 					}
-					logger.debug(EELFLoggerDelegate.debugLogger,
+					log.debug(EELFLoggerDelegate.debugLogger,
 							"Received " + revisions.size() + " revisions " + revisions);
 
 					List<MLPArtifact> artifacts = null;
 					try {
 						artifacts = (List<MLPArtifact>) fedClient.getArtifacts(solution.getSolutionId(),
-								revisions.get(revisions.size() - 1).getRevisionId()).getResponseBody();
-					} catch (Exception x) {
-						logger.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve artifacts", x);
+								revisions.get(revisions.size() - 1).getRevisionId()).getContent();
+					}
+					catch (Exception x) {
+						log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve artifacts", x);
 						continue;
 					}
-					logger.debug(EELFLoggerDelegate.debugLogger,
+					log.info(EELFLoggerDelegate.debugLogger,
 							"Received " + artifacts.size() + " artifacts " + artifacts);
 
 					for (MLPArtifact artifact : artifacts) {
 						Resource artifactContent = null;
 						try {
 							artifactContent = fedClient.downloadArtifact(artifact.getArtifactId());
-							logger.warn(EELFLoggerDelegate.debugLogger, "Received artifact content: "
+							log.warn(EELFLoggerDelegate.debugLogger, "Received artifact content: "
 									+ new BufferedReader(new InputStreamReader(artifactContent.getInputStream()))
 											.lines().collect(Collectors.joining("\n")));
-						} catch (Exception x) {
-							logger.debug(EELFLoggerDelegate.debugLogger, "Failed to download artifact", x);
+						}
+						catch (Exception x) {
+							log.error(EELFLoggerDelegate.errorLogger, "Failed to download artifact", x);
 						}
 					}
 				}

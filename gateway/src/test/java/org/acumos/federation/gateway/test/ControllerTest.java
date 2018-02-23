@@ -30,6 +30,8 @@ import org.junit.runners.MethodSorters;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextHierarchy;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -48,9 +50,10 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.apache.http.client.HttpClient;
 
 /* this is not good for unit testing .. */
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.common.HttpClientConfigurationBuilder;
-import static org.acumos.federation.gateway.common.HttpClientConfigurationBuilder.SSLBuilder;
+import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
+import static org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
@@ -64,24 +67,30 @@ import org.acumos.cds.domain.MLPArtifact;
 
 //@RunWith(SpringJUnit4ClassRunner.class)
 @RunWith(SpringRunner.class)
+@ContextHierarchy({
+	@ContextConfiguration(classes = org.acumos.federation.gateway.test.TestAdapterConfiguration.class),
+	@ContextConfiguration(classes = org.acumos.federation.gateway.config.FederationConfiguration.class)
+})
 @SpringBootTest(classes = org.acumos.federation.gateway.Application.class,
 								webEnvironment = WebEnvironment.RANDOM_PORT,
 								properties = {
 									"federation.instance=adapter",
-									"federation.instance.name=ghost",
-									"peersLocal.source=classpath:/test-peers.json",
-									"catalogLocal.source=classpath:/test-catalog.json",
-									"server.ssl.key-store=classpath:acumosa.pkcs12",
-									"server.ssl.key-store-password=acumosa",
-									"server.ssl.key-store-type=PKCS12",
-									"server.ssl.key-password = acumosa",
-									"server.ssl.trust-store=classpath:acumosTrustStore.jks",
-									"server.ssl.trust-store-password=acumos",
-									"server.ssl.client-auth=need"
+									"federation.instance.name=test",
+									"federation.operator=admin",
+									"peersLocal.source=classpath:test-peers.json",
+									"catalogLocal.source=classpath:test-catalog.json",
+									"federation.ssl.key-store=classpath:acumosa.pkcs12",
+									"federation.ssl.key-store-password=acumosa",
+									"federation.ssl.key-store-type=PKCS12",
+									"federation.ssl.key-password = acumosa",
+									"federation.ssl.trust-store=classpath:acumosTrustStore.jks",
+									"federation.ssl.trust-store-password=acumos",
+									"federation.ssl.client-auth=need"
 								})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ControllerTest {
 
+	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 	@Autowired
 	private TestRestTemplate restTemplate;
 
@@ -96,13 +105,13 @@ public class ControllerTest {
 			this.restTemplate.exchange("/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 		
 		if (response != null)	{
-			System.out.println("testSolutions: " + response.getBody());
-			System.out.println("testSolutions: " + response);
+			log.info(EELFLoggerDelegate.debugLogger, "testSolutions: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "testSolutions: {}", response);
 		}
 		
 		assertTrue(response != null);
 		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getResponseBody().size() == 1);
+		assertTrue(response.getBody().getContent().size() == 1);
 	}
 
 
@@ -117,13 +126,13 @@ public class ControllerTest {
 			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
 	
 		if (response != null)	{
-			System.out.println("testSolution: " + response.getBody());
-			System.out.println("testSolution: " + response);
+			log.info(EELFLoggerDelegate.debugLogger, "testSolution: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "testSolution: {}", response);
 		}
 
 		assertTrue(response != null);
 		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getResponseBody().getModelTypeCode().equals("CL")); //no errors
+		assertTrue(response.getBody().getContent().getModelTypeCode().equals("CL")); //no errors
 	}
 
 	@Test
@@ -137,13 +146,13 @@ public class ControllerTest {
 			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {});
 		
 		if (response != null)	{
-			System.out.println("testSolutionRevisions: " + response.getBody());
-			System.out.println("testSolutionRevisions: " + response);
+			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisions: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisions: {}", response);
 		}
 
 		assertTrue(response != null);
 		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getResponseBody().size() == 1); //no errors
+		assertTrue(response.getBody().getContent().size() == 1); //no errors
 	}
 
 	@Test
@@ -157,13 +166,13 @@ public class ControllerTest {
 			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
 	
 		if (response != null)	{
-			System.out.println("testSolution: " + response.getBody());
-			System.out.println("testSolution: " + response);
+			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevision: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevision: {}", response);
 		}
 
 		assertTrue(response != null);
 		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getResponseBody().getOwnerId().equals("admin")); //no errors
+		assertTrue(response.getBody().getContent().getOwnerId().equals("admin")); //no errors
 	}
 
 	@Test
@@ -177,13 +186,13 @@ public class ControllerTest {
 			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101/artifacts", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {});
 		
 		if (response != null)	{
-			System.out.println("testSolutionRevisionsArtifacts: " + response.getBody());
-			System.out.println("testSolutionRevisionsArtifacts: " + response);
+			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisionArtifacts: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisionArtifacts: {}", response);
 		}
 
 		assertTrue(response != null);
 		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getResponseBody().size() == 1); //no errors
+		assertTrue(response.getBody().getContent().size() == 1); //no errors
 	}
 
 	@Test
@@ -197,6 +206,8 @@ public class ControllerTest {
 			this.restTemplate.exchange("/peers", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {} );
 	
 		if (response != null)	{
+			log.info(EELFLoggerDelegate.debugLogger, "testPeers: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "testPeers: {}", response);
 			System.out.println("testPeers: " + response.getBody());
 			System.out.println("testPeers: " + response);
 		}
@@ -221,7 +232,7 @@ public class ControllerTest {
 	}
 
 	private HttpClient prepareHttpClient() {
-		return new HttpClientConfigurationBuilder()
+		return new InterfaceConfigurationBuilder()
 								.withSSL(new SSLBuilder()
 															.withKeyStore("classpath:/acumosb.pkcs12")
 															.withKeyStorePassword("acumosb")

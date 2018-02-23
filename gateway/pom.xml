@@ -5,14 +5,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.acumos.federation</groupId>
 	<artifactId>gateway</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.1.0-SNAPSHOT</version>
 	<name>Federation Gateway</name>
 	<description>Federated Acumos Interface for inter-acumos and ONAP communication</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.4.RELEASE</version>
+		<version>1.5.10.RELEASE</version>
 		<!-- silence warning about parent relative path -->
 		<relativePath />
 	</parent>
@@ -24,7 +24,6 @@
 		<start-class>org.acumos.federation.gateway.Application</start-class>
 		<!-- Jenkins invokes mvn with argument -Dbuild.number=${BUILD_NUMBER} -->
 		<build.number>0</build.number>
-		<!-- tests require database to be running -->
 		<skipTests>false</skipTests>
 		<!-- dependencies versions -->
 		<slf4j.version>1.7.25</slf4j.version>
@@ -56,7 +55,7 @@
 		<dependency>
 			<groupId>org.acumos.common-dataservice</groupId>
 			<artifactId>cmn-data-svc-client</artifactId>
-			<version>1.12.0</version>
+			<version>1.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.json</groupId>
@@ -271,26 +270,6 @@
 									<inline>
 										<files>
 											<file>
-												<source>application.properties.template</source>
-												<outputDirectory />
-												<destName>application.properties</destName>
-											</file>
-											<file>
-												<source>src/test/resources/ist-acumosa.pkcs12</source>
-												<outputDirectory />
-												<destName>ist-acumosa.pkcs12</destName>
-											</file>
-											<file>
-												<source>src/test/resources/ist-acumosb.pkcs12</source>
-												<outputDirectory />
-												<destName>ist-acumosb.pkcs12</destName>
-											</file>
-											<file>
-												<source>src/test/resources/acumosTrustStore.jks</source>
-												<outputDirectory />
-												<destName>acumosTrustStore.jks</destName>
-											</file>
-											<file>
 												<source>target/${project.artifactId}-${project.version}.${project.packaging}</source>
 												<outputDirectory />
 											</file>
@@ -300,46 +279,24 @@
 								<!-- This is the same CMD used in a Dockerfile -->
 								<cmd>
 									<!-- CDATA prevents Eclipse formatter from breaking line -->
-									<shell><![CDATA[cd /maven; java -Djavax.net.debug=ssl -Djava.security.egd=file:/dev/./urandom -jar ${project.artifactId}-${project.version}.${project.packaging}]]></shell>
+									<shell><![CDATA[cd /maven; java -Xms128m -Xmx512m -Djava.security.egd=file:/dev/./urandom -jar ${project.artifactId}-${project.version}.${project.packaging}]]></shell>
 								</cmd>
 							</build>
 						</image>
 						<image>
-							<!-- Specify a tag to avoid default tag "latest" -->
 							<name>federation-gateway-test:${project.version}</name>
 							<build>
 								<from>frolvlad/alpine-oraclejdk8:slim</from>
 								<tags>
-									<!-- Add tag with build number -->
 									<tag>${project.version}-b${build.number}</tag>
 								</tags>
 								<assembly>
 									<inline>
 										<files>
 											<file>
-												<source>application.properties.template</source>
+												<source>target/${project.artifactId}-${project.version}.${project.packaging}.original</source>
 												<outputDirectory />
-												<destName>application.properties</destName>
-											</file>
-											<!-- need the following two for server config -->
-											<file>
-												<source>src/test/resources/acumosa.pkcs12</source>
-												<outputDirectory />
-												<destName>acumosa.pkcs12</destName>
-											</file>
-											<file>
-												<source>src/test/resources/acumosb.pkcs12</source>
-												<outputDirectory />
-												<destName>acumosb.pkcs12</destName>
-											</file>
-											<file>
-												<source>src/test/resources/acumosTrustStore.jks</source>
-												<outputDirectory />
-												<destName>acumosTrustStore.jks</destName>
-											</file>
-											<file>
-												<source>target/${project.artifactId}-${project.version}.${project.packaging}</source>
-												<outputDirectory />
+												<!-- <destName>target/${project.artifactId}-${project.version}.${project.packaging}</destName> -->
 											</file>
 											<file>
 												<source>target/${project.artifactId}-${project.version}-tests.${project.packaging}</source>
@@ -348,7 +305,8 @@
 										</files>
 										<fileSets>
 											<fileSet>
-												<directory>${project.build.directory}/deps/</directory>
+												<!-- <directory>${project.build.directory}/deps/</directory> -->
+												<directory>target/deps/</directory>
 												<outputDirectory>/libs/</outputDirectory>
 												<includes>
 													<include>*</include>
@@ -360,11 +318,7 @@
 								</assembly>
 								<cmd>
 									<!-- CDATA prevents Eclipse formatter from breaking line -->
-									<shell><![CDATA[cd /maven; java -Xms128m -Xmx512m -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStore=/app/certs/acumosTrustStore.jks -Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher]]></shell>
-									<!-- <shell>cd /maven; java -cp ${project.artifactId}-${project.version}.${project.packaging}:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* 
-										-Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStore=acumosTrustStore.jks 
-										-Djavax.net.ssl.trustStorePassword=acumos -Djava.security.egd=file:/dev/./urandom 
-										org.springframework.boot.loader.PropertiesLauncher</shell> -->
+									<shell><![CDATA[cd /maven; java -Xms128m -Xmx512m -cp ${project.artifactId}-${project.version}.${project.packaging}.original:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher]]></shell>
 								</cmd>
 							</build>
 						</image>

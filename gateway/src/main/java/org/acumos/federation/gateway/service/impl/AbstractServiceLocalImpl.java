@@ -29,7 +29,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.acumos.federation.gateway.util.LocalWatchService;
+import org.acumos.federation.gateway.service.LocalWatchService;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 import org.apache.commons.io.IOUtils;

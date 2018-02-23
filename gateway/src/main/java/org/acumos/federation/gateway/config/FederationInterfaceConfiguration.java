@@ -18,22 +18,17 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.common;
+package org.acumos.federation.gateway.config;
 
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * Bean instantiantion conditional on wether we are running as a gateway
+ * Defines a specific external configuration prefix for the federation interface.
  */
-public class GatewayCondition implements Condition {
+@Component
+@ConfigurationProperties(prefix = "federation")
+public class FederationInterfaceConfiguration extends InterfaceConfiguration {
 
-	@Override
-	public boolean matches(ConditionContext theContext, AnnotatedTypeMetadata theMetadata) {
-
-		Environment env = theContext.getEnvironment();
-		return null != env && "gateway".equals(env.getProperty("federation.instance"));
-	}
 }

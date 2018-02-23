@@ -17,28 +17,43 @@
  * limitations under the License.
  * ===============LICENSE_END=========================================================
  */
+package org.acumos.federation.gateway.cds;
 
-package org.acumos.federation.gateway.common;
+import java.util.EnumSet;
+import org.acumos.cds.domain.MLPValidationStatus;
 
-import org.apache.http.client.HttpClient;
+/**
+ * Supplements the CDS representation of a solution validation status information.
+ */
+public enum ValidationStatus {
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Scope;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+	Passed("PS"),
+	NotValidated("NV")
+	;
 
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+	private String 							code;
+	//private MLPValidationStatus	mlp;
 
-@Configuration
-// @PropertySource("classpath:configprops.properties")
-@ConfigurationProperties(prefix = "client")
-public class FederationClientConfiguration extends HttpClientConfiguration {
+	private ValidationStatus(String theCode) {
+		this.code = theCode;
+		//mlp = new MLPValidationStatus();
+	}
 
-	@Bean
-	@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public HttpClient federationClient() {
-		log.debug(EELFLoggerDelegate.debugLogger, "Build federation client");
-		return buildClient();
+	public String code() {
+		return this.code;
+	}
+
+	//public MLPValidationStatus mlp() {
+	//	return this.mlp;
+	//}
+
+	public static ValidationStatus forCode(final String theCode) {
+		return EnumSet.allOf(ValidationStatus.class)
+						.stream()
+						.filter(status -> status.code().equals(theCode))
+						.findFirst()
+						.orElse(null);
 	}
 }
+
+

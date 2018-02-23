@@ -54,8 +54,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.acumos.federation.gateway.util.LocalWatchService;
-import org.acumos.federation.gateway.common.AdapterCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.ServiceContext;
@@ -68,7 +66,6 @@ import org.apache.commons.io.IOUtils;
 
 @Service
 @ConfigurationProperties(prefix = "peersLocal")
-@Conditional(AdapterCondition.class)
 public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements PeerService, PeerSubscriptionService {
 
 	private List<FLPPeer> peers;
@@ -100,7 +97,8 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 				MappingIterator objectIterator = objectReader.readValues(this.resource.getURL());
 				this.peers = objectIterator.readAll();
 				log.info(EELFLoggerDelegate.debugLogger, "loaded " + this.peers.size() + " peers");
-			} catch (Exception x) {
+			}
+			catch (Exception x) {
 				throw new BeanInitializationException("Failed to load solutions catalog from " + this.resource, x);
 			}
 		}
@@ -142,21 +140,19 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	@Override
 	public MLPPeer getPeerById(final String thePeerId, ServiceContext theContext) {
 		MLPPeer apeer = this.peers.stream().filter(peer -> thePeerId.equals(peer.getPeerId())).findFirst().orElse(null);
-
-		log.debug(EELFLoggerDelegate.errorLogger, "Local peer info, one peer: " + apeer);
-
+		log.info(EELFLoggerDelegate.debugLogger, "Local peer info, one peer: " + apeer);
 		return apeer;
 	}
 
 	/** */
 	@Override
-	public void subscribePeer(MLPPeer mlpPeer) {
+	public void registerPeer(MLPPeer mlpPeer) {
 		throw new UnsupportedOperationException();
 	}
 
 	/** */
 	@Override
-	public void unsubscribePeer(MLPPeer mlpPeer) {
+	public void unregisterPeer(MLPPeer mlpPeer) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -165,7 +161,7 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	public List<MLPPeerSubscription> getPeerSubscriptions(final String thePeerId) {
 		FLPPeer peer = this.peers.stream().filter(entry -> thePeerId.equals(entry.getPeerId())).findFirst()
 				.orElse(null);
-		log.info(EELFLoggerDelegate.errorLogger,
+		log.info(EELFLoggerDelegate.debugLogger,
 				"Peer " + thePeerId + " subs:" + (peer == null ? "none" : peer.getSubscriptions()));
 		return peer == Collections.EMPTY_LIST ? null : peer.getSubscriptions();
 	}

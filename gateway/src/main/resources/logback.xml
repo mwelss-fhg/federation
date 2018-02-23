@@ -22,7 +22,7 @@
 <configuration scan="true" scanPeriod="3 seconds" debug="false">
 
   <!--  specify the component name -->
-  <property name="componentName" value="federated-gateway"></property>
+  <property name="componentName" value="federation-gateway"></property>
   
   <!--  specify the base path of the log directory -->
   <property name="logDirPrefix" value="logs"></property>
@@ -141,5 +141,11 @@
 		<appender-ref ref="STDOUT" />
 	</root>
 
-
+  <!-- ============================================================================ -->
+  <!--  Spring loggers -->
+  <!-- ============================================================================ -->
+<!--
+	<logger name="org.springframework.core.io.support" level="debug"/>
+	<logger name="org.springframework.context.annotation" level="debug"/>
+-->
 </configuration>

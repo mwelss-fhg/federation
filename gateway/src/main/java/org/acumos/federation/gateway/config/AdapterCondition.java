@@ -18,23 +18,22 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.common;
+package org.acumos.federation.gateway.config;
 
+import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.core.env.Environment;
 
 /**
- * Tests if we are in a ghost Adapter setup/profile
+ * Bean instantiantion conditional on wether we are running as an adapter
  */
-public class GhostAdapterCondition extends AdapterCondition {
+public class AdapterCondition implements Condition {
 
 	@Override
 	public boolean matches(ConditionContext theContext, AnnotatedTypeMetadata theMetadata) {
 
 		Environment env = theContext.getEnvironment();
-		return super.matches(theContext, theMetadata) && null != env
-				&& "ghost".equals(env.getProperty("federation.instance.name"));
+		return null != env && "adapter".equals(env.getProperty("federation.instance"));
 	}
-
 }

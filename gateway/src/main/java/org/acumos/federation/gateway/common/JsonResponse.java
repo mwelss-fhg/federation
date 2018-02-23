@@ -36,64 +36,128 @@ public class JsonResponse<T> implements Serializable {
 	private static final long serialVersionUID = -2934104266393591755L;
 
 	/**
-	 * Json property status.
+	 * Was there an error ?
 	 */
-	@JsonProperty(value = JSONTags.TAG_RESPONSE_STATUS)
-	private Boolean status;
+	@JsonProperty(value = JSONTags.TAG_RESPONSE_ERROR)
+	//private Boolean error;
+	private String error;
 
 	/**
-	 * Json property responseDetail.
+	 * Additional information.
 	 */
-	@JsonProperty(value = JSONTags.TAG_RESPONSE_DETAIL)
-	private String responseDetail;
+	@JsonProperty(value = JSONTags.TAG_RESPONSE_MESSAGE)
+	private String message;
 
 	/**
-	 * Json property responseCode.
+	 * Response content.
 	 */
-	@JsonProperty(value = JSONTags.TAG_RESPONSE_CODE)
-	private String responseCode;
-
-	/**
-	 * Json property responseBody. It represents the type of generic object.
-	 */
-	@JsonProperty(value = JSONTags.TAG_RESPONSE_BODY)
-	private T responseBody;
-
-	public Boolean getStatus() {
-		return status;
+	@JsonProperty(value = JSONTags.TAG_RESPONSE_CONTENT)
+	private T content;
+/*
+	public Boolean isError() {
+		return this.error;
 	}
 
-	public void setStatus(Boolean status) {
-		this.status = status;
+	public void setError(Boolean isError) {
+		this.error = isError;
+	}
+*/
+	public String getError() {
+		return this.error;
 	}
 
-	public String getResponseDetail() {
-		return responseDetail;
+	public void setError(String theError) {
+		this.error = theError;
 	}
 
-	public void setResponseDetail(String responseDetail) {
-		this.responseDetail = responseDetail;
+	public String getMessage() {
+		return this.message;
 	}
 
-	public String getResponseCode() {
-		return responseCode;
+	public void setMessage(String theMessage) {
+		this.message = theMessage;
 	}
 
-	public void setResponseCode(String responseCode) {
-		this.responseCode = responseCode;
+	public T getContent() {
+		return this.content;
 	}
 
-	public T getResponseBody() {
-		return responseBody;
-	}
-
-	public void setResponseBody(T responseBody) {
-		this.responseBody = responseBody;
+	public void setContent(T theContent) {
+		this.content = theContent;
 	}
 
 	public String toString() {
-		return new StringBuilder("JsonResponse").append(System.identityHashCode(this)).append('(')
-				.append(this.responseCode).append(' ').append(this.responseDetail).append(", ")
-				.append(this.responseBody == null ? "null" : this.responseBody).append(')').toString();
+		return new StringBuilder("JsonResponse")
+								.append(System.identityHashCode(this))
+								.append('(')
+								.append(this.error)
+								.append(',')
+								.append(this.message == null ? "null" : this.message)
+								.append(',')
+								.append(this.content == null ? "null" : this.content)
+								.append(')')
+								.toString();
 	}
+
+	/**
+	 */
+	public static class JsonResponseBuilder<T> {
+
+		private JsonResponse<T> response = new JsonResponse();
+
+		public JsonResponseBuilder() {
+			this.response.setError(Boolean.FALSE.toString());
+		}
+
+		public JsonResponseBuilder<T>	withMessage(String theMessage) {
+			this.response.setMessage(theMessage);
+			return this;
+		}
+		
+		public JsonResponseBuilder<T>	withContent(T theContent) {
+			this.response.setContent(theContent);
+			return this;
+		}
+
+		public JsonResponse<T> build() {
+			return this.response;
+		}
+	}
+
+	/** */
+	public static <T> JsonResponseBuilder<T> buildResponse() {
+		return new JsonResponseBuilder<T>();
+	}
+
+	/**
+	 */
+	public static class JsonErrorResponseBuilder<T> {
+
+		private JsonResponse<T> response = new JsonResponse();
+
+		public JsonErrorResponseBuilder() {
+			this.response.setError(Boolean.TRUE.toString());
+			this.response.setContent(null);
+		}
+
+		public JsonErrorResponseBuilder<T>	withMessage(String theMessage) {
+			this.response.setMessage(theMessage);
+			return this;
+		}
+		
+		public JsonErrorResponseBuilder<T>	withError(Throwable theError) {
+			this.response.setMessage(theError.toString());
+			return this;
+		}
+
+		public JsonResponse<T> build() {
+			return this.response;
+		}
+	}
+	
+	/** */
+	public static <T> JsonErrorResponseBuilder<T> buildErrorResponse() {
+		return new JsonErrorResponseBuilder<T>();
+	}
+
 }

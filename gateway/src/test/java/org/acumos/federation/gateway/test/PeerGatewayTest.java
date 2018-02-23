@@ -86,11 +86,10 @@ import org.apache.http.entity.ContentType;
 
 /* this is not good for unit testing .. */
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.common.HttpClientConfigurationBuilder;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
-import org.acumos.federation.gateway.service.impl.Clients;
-import org.acumos.federation.gateway.service.impl.FederationClient;
-import static org.acumos.federation.gateway.common.HttpClientConfigurationBuilder.SSLBuilder;
+import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.common.FederationClient;
+import org.acumos.federation.gateway.cds.PeerStatus;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
@@ -116,16 +115,15 @@ import org.acumos.nexus.client.data.UploadArtifactInfo;
 									"federation.instance=gateway",
 									"federation.instance.name=test",
 									"federation.operator=admin",
-									"server.ssl.key-store=classpath:acumosa.pkcs12",
-									"server.ssl.key-store-password=acumosa",
-									"server.ssl.key-store-type=PKCS12",
-									"server.ssl.key-password = acumosa",
-									"server.ssl.trust-store=classpath:acumosTrustStore.jks",
-									"server.ssl.trust-store-password=acumos",
-									"server.ssl.client-auth=need"
+									"federation.ssl.key-store=classpath:acumosa.pkcs12",
+									"federation.ssl.key-store-password=acumosa",
+									"federation.ssl.key-store-type=PKCS12",
+									"federation.ssl.key-password = acumosa",
+									"federation.ssl.trust-store=classpath:acumosTrustStore.jks",
+									"federation.ssl.trust-store-password=acumos",
+									"federation.ssl.client-auth=need"
 									//no actual cds info needed as we mock the cds client
 								})
-@ContextConfiguration(classes = {TaskTest.TaskTestConfiguration.class})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PeerGatewayTest {
 
@@ -219,7 +217,7 @@ public class PeerGatewayTest {
 
 			//prepare the clients
 			when(
-				this.clients.getClient()
+				this.clients.getCDSClient()
 			)
 			//.thenReturn(cdsClient);
 			.thenAnswer(new Answer<ICommonDataServiceRestClient>() {
@@ -267,7 +265,7 @@ public class PeerGatewayTest {
 
 			when(
 				this.cdsClient.searchPeers(
-					any(Map.class), any(Boolean.class)
+					any(Map.class), any(Boolean.class), any(RestPageRequest.class)
 				)
 			)
 			.thenAnswer(new Answer<List<MLPPeer>>() {
@@ -276,7 +274,7 @@ public class PeerGatewayTest {
 						peer.setPeerId("1");
 						peer.setName("testPeer");
 						peer.setSubjectName("test.org");
-						peer.setActive(true);
+						peer.setStatusCode(PeerStatus.Active.code());
 						peer.setSelf(false);
 						peer.setApiUrl("https://localhost:1111");
 
@@ -296,7 +294,7 @@ public class PeerGatewayTest {
 						peer.setPeerId("1");
 						peer.setName("testPeer");
 						peer.setSubjectName("test.org");
-						peer.setActive(true);
+						peer.setStatusCode(PeerStatus.Active.code());
 						peer.setSelf(false);
 						peer.setApiUrl("https://localhost:1111");
 

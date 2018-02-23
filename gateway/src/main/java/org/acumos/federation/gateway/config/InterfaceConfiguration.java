@@ -18,9 +18,29 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.common;
+package org.acumos.federation.gateway.config;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+
+import java.net.URI;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLContext;
+
+import java.security.KeyStore;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.stereotype.Component;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
+import org.springframework.boot.context.embedded.Ssl;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
@@ -29,18 +49,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.DefaultResourceLoader;
 
-import java.net.URI;
-
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLContext;
-
-import java.security.KeyStore;
-
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.config.Registry;
@@ -58,46 +74,72 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 //import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.SSLContextBuilder;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.routing.HttpRoutePlanner;
+
+
+import org.apache.catalina.connector.Connector;
+import org.apache.coyote.http11.Http11NioProtocol;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
-@Configuration
-// @PropertySource("classpath:configprops.properties")
-@ConfigurationProperties(prefix = "client")
-public class HttpClientConfiguration {
+@Component
+public class InterfaceConfiguration {
 
 	@Autowired
 	private ResourceLoader resourceLoader;
 
 	protected final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
-	private String username;
-	private String passwd;
-	private int poolSize = 10;
-	private SSL ssl;
+	//private int poolSize = 10;
 
-	public String getUsername() {
-		return this.username;
+	private String 			address;
+	private InetAddress	inetAddress;
+	private SSL 		ssl;
+	private Client	client;
+	private	Server	server; 
+
+	public InterfaceConfiguration() {
+		log.info(EELFLoggerDelegate.debugLogger, this + "::new");
 	}
 
-	public void setUsername(String theUsername) {
-		this.username = theUsername;
-	}
-
-	public String getPassword() {
-		return this.username;
-	}
-
-	public void setPassword(String thePassword) {
-		this.passwd = thePassword;
-	}
-
+/*
 	public int getPoolSize() {
 		return this.poolSize;
 	}
 
 	public void setPoolSize(int thePoolSize) {
 		this.poolSize = thePoolSize;
+	}
+*/
+	@PostConstruct
+	public void initInterface() {
+		log.info(EELFLoggerDelegate.debugLogger, this + "::init");
+	}	
+
+	public String getAddress() {
+		return this.address;
+	}
+
+	public void setAddress(String theAddress) throws UnknownHostException {
+		this.inetAddress = InetAddress.getByName(theAddress);
+		this.address = theAddress;
+	}
+
+	public Client getClient() {
+		return this.client;
+	}
+
+	public void setClient(Client theClient) {
+		this.client = theClient;
+	}
+
+	public Server getServer() {
+		return this.server;
+	}
+
+	public void setServer(Server theServer) {
+		this.server = theServer;
 	}
 
 	public SSL getSSL() {
@@ -108,6 +150,69 @@ public class HttpClientConfiguration {
 		this.ssl = theSSL;
 	}
 
+	protected boolean hasSSL() {
+		return this.ssl != null;
+	}
+
+	protected boolean hasServer() {
+		return this.server != null;
+	}
+
+	protected boolean hasClient() {
+		return this.client != null &&
+					 this.client.getUsername() != null &&
+					 this.client.getPassword() != null;
+	}
+
+	protected boolean hasAddress() {
+		return this.address != null;
+	}
+
+	/**
+	 */
+	public static class Client {
+
+		private String username;
+		private String passwd;
+
+		public String getUsername() {
+			return this.username;
+		}
+
+		public void setUsername(String theUsername) {
+			this.username = theUsername;
+		}
+
+		public String getPassword() {
+			return this.username;
+		}
+
+		public void setPassword(String thePassword) {
+			this.passwd = thePassword;
+		}
+
+	}
+
+	/**
+	 */
+	public static class Server {
+	
+		private int 		port;
+	
+		public int getPort() {
+			return this.port;
+		}
+
+		public void setPort(int thePort) {
+			this.port = thePort;
+		}
+
+	}
+
+	/**
+	 * Security information for this endpoint, applies to both client and server
+	 * usage.
+	 */
 	public static class SSL {
 
 		private String keyStore;
@@ -117,6 +222,7 @@ public class HttpClientConfiguration {
 		private String trustStore;
 		private String trustStoreType = "JKS";
 		private String trustStorePasswd;
+		private String clientAuth = "need";
 
 		public String getKeyStore() {
 			return this.keyStore;
@@ -184,6 +290,14 @@ public class HttpClientConfiguration {
 																			 */;
 		}
 
+		public String getClientAuth() {
+			return this.clientAuth;
+		}
+
+		public void setClientAuth(String theClientAuth) {
+			this.clientAuth = theClientAuth;
+		}
+
 		public String toString() {
 			return new StringBuilder("").append("SSL(").append(this.keyStore).append(",").append(this.keyStoreType)
 					.append(",").append(this.keyAlias).append("/").append(this.trustStore).append(",")
@@ -192,7 +306,79 @@ public class HttpClientConfiguration {
 	}
 
 	public String toString() {
-		return new StringBuilder("").append("ClientConfiguration(").append(this.ssl).append(")").toString();
+		return new StringBuilder("")
+			.append(super.toString())
+			.append("(")
+			.append(this.address)
+			.append(",")
+			.append(this.server)
+			.append(",")
+			.append(this.ssl)
+			.append(")")
+			.toString();
+	}
+
+	/**
+	 * Configure the existing/default/a servlet container with the configuration
+	 * information of this interface.
+	 * @param theContainer the servlet container to be configured
+	 * @return ConfigurableEmbeddedServletContainer the container, configured
+	 */
+	public ConfigurableEmbeddedServletContainer configureContainer(
+										ConfigurableEmbeddedServletContainer theContainer) {
+		if (hasServer()) {
+			theContainer.setPort(this.server.getPort());
+		}
+		if (hasAddress()) {
+			theContainer.setAddress(this.inetAddress);
+		}
+		if (hasSSL()) {
+			Ssl cssl = new Ssl();
+			cssl.setEnabled(true);
+			cssl.setProtocol("TLSv1.2");
+			cssl.setKeyStore(this.ssl.getKeyStore());
+			cssl.setKeyStorePassword(this.ssl.getKeyStorePassword());
+			cssl.setKeyStoreType(this.ssl.getKeyStoreType());
+			cssl.setTrustStore(this.ssl.getTrustStore());
+			cssl.setTrustStorePassword(this.ssl.getTrustStorePassword());
+			cssl.setTrustStoreType(this.ssl.getTrustStoreType());
+			cssl.setKeyAlias(this.ssl.getKeyAlias());
+			cssl.setClientAuth(Ssl.ClientAuth.valueOf(this.ssl.clientAuth.toUpperCase()));
+			theContainer.setSsl(cssl);
+		}
+		return theContainer;
+	}
+
+	/**
+	 * Build a tomcat connector (server) based on the configuration information.
+	 *
+	 * Should we even allow the constrcution of a non-secure connector ?
+	 *
+	 * @return tomcat nio connector
+	 */
+	public Connector buildConnector() {
+
+		if (!hasServer()) {
+			throw new IllegalArgumentException("No server information available");
+		}
+
+		Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
+		Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
+		connector.setScheme(hasSSL() ? "https" : "http");
+		connector.setSecure(hasSSL());
+		connector.setPort(this.server.getPort());
+		if (hasAddress()) {
+			protocol.setAddress(this.inetAddress);
+		}
+		if (hasSSL()) {
+			protocol.setSSLEnabled(true);
+			protocol.setKeystoreFile(this.ssl.getKeyStore());
+			protocol.setKeystorePass(this.ssl.getKeyStorePassword());
+			protocol.setTruststoreFile(this.ssl.getTrustStore());
+			protocol.setTruststorePass(this.ssl.getTrustStorePassword());
+			protocol.setKeyAlias(this.ssl.getKeyAlias());
+		}
+		return connector;
 	}
 
 	public HttpClient buildClient() {
@@ -208,26 +394,56 @@ public class HttpClientConfiguration {
 		} else {
 			KeyStore keyStore = null;
 			if (this.ssl.hasKeyStoreInfo()) {
+				InputStream keyStoreSource = null;
+				try {
+					keyStoreSource = this.resourceLoader.getResource(this.ssl.keyStore).getURL().openStream();
+				}
+				catch (FileNotFoundException rnfx) {
+					try {
+						keyStoreSource = new FileInputStream(this.ssl.keyStore);
+					}
+					catch (FileNotFoundException fnfx) {
+						throw new IllegalStateException("Failed to find key store " + this.ssl.keyStore);
+					}
+				}
+				catch (IOException iox) {
+					throw new IllegalStateException("Error loading key material: " + iox, iox);
+				}
+
 				try {
 					keyStore = KeyStore.getInstance(this.ssl.keyStoreType);
-					keyStore.load(this.resourceLoader.getResource(this.ssl.keyStore).getURL().openStream(),
-							// new URI(this.ssl.keyStore).toURL().openStream(),
-							this.ssl.keyStorePasswd.toCharArray());
+					keyStore.load(keyStoreSource,	this.ssl.keyStorePasswd.toCharArray());
 					log.info(EELFLoggerDelegate.debugLogger, "Loaded key store: " + this.ssl.keyStore);
-				} catch (Exception x) {
+				}
+				catch (Exception x) {
 					throw new IllegalStateException("Error loading key material: " + x, x);
 				}
 			}
 
 			KeyStore trustStore = null;
 			if (this.ssl.hasTrustStoreInfo()) {
+				InputStream trustStoreSource = null;
+				try {
+					trustStoreSource = this.resourceLoader.getResource(this.ssl.trustStore).getURL().openStream();
+				}
+				catch (FileNotFoundException rnfx) {
+					try {
+						trustStoreSource = new FileInputStream(this.ssl.trustStore);
+					}
+					catch (FileNotFoundException fnfx) {
+						throw new IllegalStateException("Failed to find trust store " + this.ssl.keyStore);
+					}
+				}
+				catch (IOException iox) {
+					throw new IllegalStateException("Error loading trust material: " + iox, iox);
+				}
+
 				try {
 					trustStore = KeyStore.getInstance(this.ssl.trustStoreType);
-					trustStore.load(this.resourceLoader.getResource(this.ssl.trustStore).getURL().openStream(),
-							// new URI(this.ssl.trustStore).toURL().openStream(),
-							this.ssl.trustStorePasswd.toCharArray());
+					trustStore.load(trustStoreSource,	this.ssl.trustStorePasswd.toCharArray());
 					log.info(EELFLoggerDelegate.debugLogger, "Loaded trust store: " + this.ssl.trustStore);
-				} catch (Exception x) {
+				}
+				catch (Exception x) {
 					throw new IllegalStateException("Error loading trust material: " + x, x);
 				}
 			}
@@ -276,9 +492,9 @@ public class HttpClientConfiguration {
 		 */
 
 		CredentialsProvider credsProvider = null;
-		if (this.username != null && this.passwd != null) {
+		if (hasClient()) {
 			credsProvider = new BasicCredentialsProvider();
-			credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(this.username, this.passwd));
+			credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(this.client.getUsername(), this.client.getPassword()));
 			log.info(EELFLoggerDelegate.debugLogger, "Credentials configured");
 		} else {
 			log.info(EELFLoggerDelegate.debugLogger, "No credentials were provided");
@@ -294,6 +510,15 @@ public class HttpClientConfiguration {
 
 		if (credsProvider != null)
 			clientBuilder.setDefaultCredentialsProvider(credsProvider);
+
+		if (hasAddress()) {
+			clientBuilder.setRoutePlanner(
+				new HttpRoutePlanner() {
+					public HttpRoute determineRoute(HttpHost theTarget, HttpRequest theRequest, HttpContext theContext) {
+						return new HttpRoute(theTarget, InterfaceConfiguration.this.inetAddress, hasSSL());
+					}
+				});
+		}
 
 		return clientBuilder.build();
 	}

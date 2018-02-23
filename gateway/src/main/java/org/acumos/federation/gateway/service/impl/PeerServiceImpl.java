@@ -29,12 +29,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Collections;
 
-import org.acumos.federation.gateway.common.GatewayCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.util.MapBuilder;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
+import org.acumos.federation.gateway.cds.PeerStatus;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -50,7 +50,6 @@ import org.acumos.cds.transport.RestPageResponse;
  *
  */
 @Service
-@Conditional(GatewayCondition.class)
 public class PeerServiceImpl extends AbstractServiceImpl implements PeerService {
 
 	/**
@@ -61,7 +60,13 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 
 	@Override
 	public MLPPeer getSelf() {
-		return (MLPPeer) getClient().searchPeers(new MapBuilder().put("isSelf", Boolean.TRUE).build(), false).get(0);
+		RestPageResponse<MLPPeer> response = 
+			getClient().searchPeers(new MapBuilder().put("isSelf", Boolean.TRUE).build(), false, null);
+		if (response.getSize() != 1) {
+			log.warn(EELFLoggerDelegate.errorLogger, "Number of peers representing 'self' not 1: " + response.getSize());
+			return null;
+		}
+		return response.getContent().get(0);
 	}
 
 	/**
@@ -88,12 +93,12 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	@Override
 	public List<MLPPeer> getPeerBySubjectName(String theSubjectName, ServiceContext theContext) {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerBySubjectName");
-		List<MLPPeer> mlpPeers = getClient().searchPeers(new MapBuilder().put("subjectName", theSubjectName).build(),
-				false);
-		if (mlpPeers != null && mlpPeers.size() > 0) {
-			log.debug(EELFLoggerDelegate.debugLogger, "getPeerBySubjectName size:{}", mlpPeers.size());
+		RestPageResponse<MLPPeer> response = 
+			getClient().searchPeers(new MapBuilder().put("subjectName", theSubjectName).build(), false, null);
+		if (response.getSize() != 1) {
+			log.warn(EELFLoggerDelegate.errorLogger, "getPeerBySubjectName returned more then one peer:{}", response.getSize());
 		}
-		return mlpPeers;
+		return response.getContent();
 	}
 
 	@Override
@@ -107,55 +112,97 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	}
 
 	@Override
-	public void subscribePeer(MLPPeer thePeer) throws ServiceException {
-		log.debug(EELFLoggerDelegate.debugLogger, "subscribePeer");
+	public void registerPeer(MLPPeer thePeer) throws ServiceException {
+		log.debug(EELFLoggerDelegate.debugLogger, "registerPeer");
 
 		String subjectName = thePeer.getSubjectName();
 		if (subjectName == null)
 			throw new ServiceException("No subject name is available");
 
 		ICommonDataServiceRestClient cdsClient = getClient();
-		List<MLPPeer> mlpPeers = cdsClient.searchPeers(new MapBuilder().put("subjectName", subjectName).build(), false);
+		RestPageResponse<MLPPeer> response = 
+			cdsClient.searchPeers(new MapBuilder().put("subjectName", subjectName).build(), false, null);
 
-		if (mlpPeers != null && mlpPeers.size() > 0) {
-			throw new ServiceException("Peer with subjectName '" + subjectName + "' already exists: " + mlpPeers);
+		if (response.getSize() != 0) {
+			//if (response.getSize() == 1) { //should be the only alternative
+			MLPPeer peer = response.getContent().get(0);
+			PeerStatus status = PeerStatus.forCode(peer.getStatusCode());
+			if (null == status) {
+				throw new ServiceException("Invalid peer status found: " + peer.getStatusCode());
+			}
+
+			if (status == PeerStatus.Requested) {
+				throw new ServiceException("Peer registration request is pending");
+			}
+			else if (status == PeerStatus.Active || status == PeerStatus.Inactive) {
+				log.info(EELFLoggerDelegate.applicationLogger, "registering an active/inactive peer: " + peer);
+				return;
+			}
+			else if (status == PeerStatus.Declined) {
+				throw new ServiceException("Peer registration request was declined");
+			}
+			else if (status == PeerStatus.Renounced) {
+				throw new ServiceException("Peer unregistration request is pending");
+			}
+			throw new ServiceException("Peer with subjectName '" + subjectName + "' already exists: " + peer);
 		}
 
-		log.error(EELFLoggerDelegate.debugLogger, "subscribePeer: new peer with subjectName {}, create CDS record",
+		log.error(EELFLoggerDelegate.debugLogger, "registerPeer: new peer with subjectName {}, create CDS record",
 				thePeer.getSubjectName());
-		// waiting on CDS 1.13
-		// thePeer.setStatus(PeerStatus.PENDING);
+		//enforce
+		thePeer.setStatusCode(PeerStatus.Requested.code());
 
 		try {
 			cdsClient.createPeer(thePeer);
-		} catch (Exception x) {
+		}
+		catch (Exception x) {
 			throw new ServiceException("Failed to create peer");
 		}
 	}
 
 	@Override
-	public void unsubscribePeer(MLPPeer thePeer) throws ServiceException {
-		log.debug(EELFLoggerDelegate.debugLogger, "unsubscribePeer");
+	public void unregisterPeer(MLPPeer thePeer) throws ServiceException {
+		log.debug(EELFLoggerDelegate.debugLogger, "unregisterPeer");
 
 		String subjectName = thePeer.getSubjectName();
 		if (subjectName == null)
 			throw new ServiceException("No subject name is available");
 
 		ICommonDataServiceRestClient cdsClient = getClient();
-		List<MLPPeer> mlpPeers = cdsClient.searchPeers(new MapBuilder().put("subjectName", subjectName).build(), false);
+		RestPageResponse<MLPPeer> response = 
+			cdsClient.searchPeers(new MapBuilder().put("subjectName", subjectName).build(), false, null);
 
-		if (mlpPeers != null && mlpPeers.size() != 1) {
-			throw new ServiceException("No peer with subjectName '" + subjectName + "' found: " + mlpPeers);
+		if (response.getSize() != 1) {
+			throw new ServiceException("Search for peer with subjectName '" + subjectName + "' yielded invalid number of items: " + response);
 		}
 
-		log.error(EELFLoggerDelegate.debugLogger, "unsubscribePeer: peer with subjectName {}, update CDS record",
+		MLPPeer peer = response.getContent().get(0);
+		PeerStatus status = PeerStatus.forCode(peer.getStatusCode());
+		if (null == status) {
+			throw new ServiceException("Invalid peer status found: " + peer.getStatusCode());
+		}
+
+		if (status == PeerStatus.Requested) {
+			throw new ServiceException("Peer registration request is pending");
+			//can we simply delete the peer ??
+		}
+		else if (status == PeerStatus.Declined) {
+			throw new ServiceException("Peer registration request was declined");
+			//can we simply delete the peer ??
+		}
+		else if (status == PeerStatus.Renounced) {
+			throw new ServiceException("Peer unregistration request is pending");
+		}
+		//active/inactive peers moved to renounced
+
+		log.error(EELFLoggerDelegate.debugLogger, "unregisterPeer: peer with subjectName {}, update CDS record",
 				thePeer.getSubjectName());
-		// waiting on CDS 1.13
-		// thePeer.setStatus(PeerStatus.PENDING_REMOVE);
+		thePeer.setStatusCode(PeerStatus.Renounced.code());
 
 		try {
 			cdsClient.updatePeer(thePeer);
-		} catch (Exception x) {
+		}
+		catch (Exception x) {
 			throw new ServiceException("Failed to update peer", x);
 		}
 	}

@@ -18,50 +18,36 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.common;
+package org.acumos.federation.gateway.config;
 
-public class HttpClientConfigurationBuilder
+public class InterfaceConfigurationBuilder
 // <A extends HttpClientConfigurationBuilder<A,T>,
 // T extends HttpClientConfiguration>
 {
 
-	private /* T */HttpClientConfiguration config = newConfig();
+	private /* T */InterfaceConfiguration config = newConfig();
 
-	protected /* A */HttpClientConfigurationBuilder builder() {
+	protected /* A */InterfaceConfigurationBuilder builder() {
 		return this;
 	}
 
-	protected /* T */HttpClientConfiguration newConfig() {
-		return new HttpClientConfiguration();
+	protected /* T */InterfaceConfiguration newConfig() {
+		return new InterfaceConfiguration();
 	}
 
-	public /* T */HttpClientConfiguration buildConfig() {
+	public /* T */InterfaceConfiguration buildConfig() {
 		return this.config;
 	}
 
-	public HttpClientConfigurationBuilder/* A */ withUsername(String theUsername) {
-		this.config.setUsername(theUsername);
-		return builder();
-	}
-
-	public HttpClientConfigurationBuilder/* A */ withPassword(String thePassword) {
-		this.config.setPassword(thePassword);
-		return builder();
-	}
-
-	public HttpClientConfigurationBuilder/* A */ withPoolSize(int thePoolSize) {
-		this.config.setPoolSize(thePoolSize);
-		return builder();
-	}
-
-	public HttpClientConfigurationBuilder/* A */ withSSL(HttpClientConfiguration.SSL theSSL) {
+	public InterfaceConfigurationBuilder/* A */ withSSL(InterfaceConfiguration.SSL theSSL) {
 		this.config.setSSL(theSSL);
 		return builder();
 	}
 
+	/** */
 	public static class SSLBuilder {
 
-		private HttpClientConfiguration.SSL ssl = new HttpClientConfiguration.SSL();
+		private InterfaceConfiguration.SSL ssl = new InterfaceConfiguration.SSL();
 
 		public SSLBuilder withKeyStore(String theKeyStore) {
 			this.ssl.setKeyStore(theKeyStore);
@@ -98,7 +84,7 @@ public class HttpClientConfigurationBuilder
 			return this;
 		}
 
-		public HttpClientConfiguration.SSL build() {
+		public InterfaceConfiguration.SSL build() {
 			return this.ssl;
 		}
 	}

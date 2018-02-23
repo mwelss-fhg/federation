@@ -20,9 +20,14 @@
 
 package org.acumos.federation.gateway;
 
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import java.io.IOException;
 
-import org.springframework.beans.BeansException;
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.config.GatewayConfiguration;
+import org.acumos.federation.gateway.config.AdapterConfiguration;
+import org.acumos.federation.gateway.config.LocalConfiguration;
+import org.acumos.federation.gateway.config.FederationConfiguration;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,22 +39,62 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import org.springframework.boot.Banner;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+
+import org.springframework.web.context.support.StandardServletEnvironment;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * 
- *
+ * Configuration classes are also Conponents so they are subject to Component scanning.
  */
+@SpringBootApplication
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class,
 		DataSourceTransactionManagerAutoConfiguration.class, HibernateJpaAutoConfiguration.class })
-@SpringBootApplication
-public class Application implements ApplicationContextAware {
+@EnableConfigurationProperties
+@ComponentScan(basePackages = "org.acumos.federation",
+							 useDefaultFilters = false,
+							 includeFilters =
+								@ComponentScan.Filter(type=FilterType.ASSIGNABLE_TYPE,
+																			classes={org.acumos.federation.gateway.config.GatewayConfiguration.class,
+																							 org.acumos.federation.gateway.config.AdapterConfiguration.class}))
+public class Application {
 
 	private final static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(Application.class);
 
+	/**
+	 * We should be able to swap the LocalConfiguration in the case of adapters.
+	 */
+	public static void main(String[] args) throws Exception {
+    
+		SpringApplicationBuilder gatewayBuilder =
+			new SpringApplicationBuilder(Application.class)
+											.bannerMode(Banner.Mode.OFF)
+											.web(false);
+		ApplicationContext fedCtx =
+				gatewayBuilder.child(FederationConfiguration.class)
+											.bannerMode(Banner.Mode.OFF)
+											.web(true)
+											.run(args);
+		ApplicationContext localCtx =
+				gatewayBuilder.child(LocalConfiguration.class)
+											.bannerMode(Banner.Mode.OFF)
+											.web(true)
+											.run(args);
+
+	}
+
 	public static final String CONFIG_ENV_VAR_NAME = "SPRING_APPLICATION_JSON";
 
-	public static void main(String[] args) throws Exception {
+	private static void checkEnvironmentConfig() throws IOException {
 		final String springApplicationJson = System.getenv(CONFIG_ENV_VAR_NAME);
 		if (springApplicationJson != null && springApplicationJson.contains("{")) {
 			final ObjectMapper mapper = new ObjectMapper();
@@ -59,12 +104,5 @@ public class Application implements ApplicationContextAware {
 		} else {
 			logger.warn("main: no configuration found in environment {}", CONFIG_ENV_VAR_NAME);
 		}
-		SpringApplication.run(Application.class, args);
 	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		((ConfigurableEnvironment) context.getEnvironment()).setActiveProfiles("src");
-	}
-
 }

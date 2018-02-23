@@ -31,12 +31,16 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public enum API {
 
-	SOLUTIONS(Paths.SOLUTIONS, Queries.SOLUTIONS), SOLUTION_DETAIL(Paths.SOLUTION_DETAILS), SOLUTION_REVISIONS(
-			Paths.SOLUTION_REVISIONS), SOLUTION_REVISION_DETAILS(
-					Paths.SOLUTION_REVISION_DETAILS), SOLUTION_REVISION_ARTIFACTS(
-							Paths.SOLUTION_REVISION_ARTIFACTS), ARTIFACT_DETAILS(
-									Paths.ARTIFACT_DETAILS), ARTIFACT_DOWNLOAD(
-											Paths.ARTIFACT_DOWNLOAD), PEERS(Paths.PEERS);
+	SOLUTIONS(Paths.SOLUTIONS, Queries.SOLUTIONS),
+	SOLUTION_DETAIL(Paths.SOLUTION_DETAILS),
+	SOLUTION_REVISIONS(Paths.SOLUTION_REVISIONS),
+	SOLUTION_REVISION_DETAILS(Paths.SOLUTION_REVISION_DETAILS),
+	SOLUTION_REVISION_ARTIFACTS(Paths.SOLUTION_REVISION_ARTIFACTS),
+	ARTIFACT_DETAILS(Paths.ARTIFACT_DETAILS),
+	ARTIFACT_DOWNLOAD(Paths.ARTIFACT_DOWNLOAD),
+	PEERS(Paths.PEERS),
+	SUBSCRIPTION(Paths.SUBSCRIPTION),
+	PING(Paths.PING);
 
 	private String path;
 	private String[] query;
@@ -79,7 +83,7 @@ public enum API {
 	 *            URL
 	 * @return URI
 	 */
-	public UriComponentsBuilder buildUri(String theHttpUrl) {
+	public UriComponentsBuilder uriBuilder(String theHttpUrl) {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(theHttpUrl).path(this.path);
 		if (this.query != null) {
 			for (String queryParam : this.query) {
@@ -99,7 +103,7 @@ public enum API {
 	 *            parameters
 	 * @return URI
 	 */
-	public UriComponentsBuilder buildUri(String theHttpUrl, Collection<String> theParams) {
+	public UriComponentsBuilder uriBuilder(String theHttpUrl, Collection<String> theParams) {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(theHttpUrl).path(this.path);
 		if (this.query != null) {
 			for (String queryParam : this.query) {
@@ -115,7 +119,7 @@ public enum API {
 	 * the params include both path and query params.
 	 */
 	public URI buildUri(String theHttpUrl, Map<String, ?> theParams) {
-		return buildUri(theHttpUrl, theParams.keySet()).buildAndExpand(theParams).encode().toUri();
+		return uriBuilder(theHttpUrl, theParams.keySet()).buildAndExpand(theParams).encode().toUri();
 	}
 
 	/**
@@ -128,7 +132,16 @@ public enum API {
 	 * @return URI
 	 */
 	public URI buildUri(String theHttpUrl, String... theParams) {
-		return buildUri(theHttpUrl).buildAndExpand(theParams).encode().toUri();
+		return uriBuilder(theHttpUrl).buildAndExpand(theParams).encode().toUri();
+	}
+
+	public static class Roots {
+
+		public static final String FEDERATION = "/";
+		/**
+		 * Maybe too particular but at this point all LOCAL interface operations are with respect to one peer
+		 */
+		public static final String LOCAL = "/peer/{peerId}";
 	}
 
 	public static class Paths {
@@ -143,10 +156,13 @@ public enum API {
 		public static final String ARTIFACT_DETAILS = "/artifacts/{artifactId}";
 		public static final String ARTIFACT_DOWNLOAD = "/artifacts/{artifactId}/download";
 
-		public static final String PEERS = "/peers";
+		public static final String SUBSCRIPTION = "/subscription/{subscriptionId}";
 
-		// public static final String PEER_SUBSCRIBE = "/peer/subscribe";
-		// public static final String PEER_UNSUBSCRIBE = "/peer/unsubscribe";
+		public static final String PEERS = "/peers";
+		public static final String PING = "/ping";
+
+		public static final String PEER_REGISTER = "/peer/register";
+		public static final String PEER_UNREGISTER = "/peer/unregister";
 	}
 
 	public static class QueryParameters {

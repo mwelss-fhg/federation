@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.common.API;
+import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.JSONTags;
 import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
@@ -37,6 +38,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -44,54 +46,45 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import io.swagger.annotations.ApiOperation;
 
 @Controller
-@RequestMapping("/")
-public class PeerController extends AbstractController {
-
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(PeerController.class.getName());
+@RequestMapping(API.Roots.LOCAL)
+public class PeerPingController extends AbstractController {
 
 	@Autowired
-	PeerService peerService;
+	private Clients	clients;
+	@Autowired
+	private PeerService peerService;
+	
 
 	/**
+	 * Allows local components to ping a peer.
 	 * @param theHttpResponse
 	 *            HttpServletResponse
-	 * @return List of Published ML Solutions in JSON format.
+	 * @return The remote peer information
 	 */
 	@CrossOrigin
-	@PreAuthorize("hasAuthority('PEERS_ACCESS')")
-	@ApiOperation(value = "Invoked by Peer Acumos to get a list of peers from local Acumos Instance .", response = MLPPeer.class, responseContainer = "List")
-	@RequestMapping(value = { API.Paths.PEERS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@PreAuthorize("hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).PEER_ACCESS)")
+	@ApiOperation(value = "Invoked by local Acumos to get peer Acumos status and information.", response = MLPPeer.class)
+	@RequestMapping(value = { API.Paths.PING }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
-	public JsonResponse<List<MLPPeer>> getPeers(
+	public JsonResponse<MLPPeer> ping(
 			/* HttpServletRequest theHttpRequest, */
-			HttpServletResponse theHttpResponse) {
+			HttpServletResponse theHttpResponse,
+			@PathVariable("peerId") String thePeerId) {
 
-		JsonResponse<List<MLPPeer>> response = null;
-		List<MLPPeer> peers = null;
-		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.PEERS);
+		JsonResponse<MLPPeer> response = new JsonResponse<MLPPeer>();
+		log.debug(EELFLoggerDelegate.debugLogger, API.Roots.LOCAL + "" + API.Paths.PING);
 		try {
-			response = new JsonResponse<List<MLPPeer>>();
-			log.debug(EELFLoggerDelegate.debugLogger, "getPeers");
+			MLPPeer peer = this.peerService.getPeerById(thePeerId);
+			response = this.clients.getFederationClient(peer.getApiUrl()).ping();
 
-			peers = peerService.getPeers(new ControllerContext());
-			/*
-			 * TODO: We only expose simple peers, not the partners. But we only serve this
-			 * service to parners so .. ?? No pb.
-			 */
-			if (peers != null) {
-				response.setResponseBody(peers);
-				response.setResponseCode(String.valueOf(HttpServletResponse.SC_OK));
-				response.setResponseDetail(JSONTags.TAG_STATUS_SUCCESS);
-				response.setStatus(true);
-				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-				log.debug(EELFLoggerDelegate.debugLogger, "getPeers: size is " + peers.size());
-			}
-		} catch (Exception e) {
-			response.setResponseCode(String.valueOf(HttpServletResponse.SC_BAD_REQUEST));
-			response.setResponseDetail(JSONTags.TAG_STATUS_FAILURE);
-			response.setStatus(false);
-			theHttpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			log.error(EELFLoggerDelegate.errorLogger, "Exception Occurred Fetching Peers", e);
+			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+		} 
+		catch (Exception x) {
+			response = JsonResponse.<MLPPeer> buildErrorResponse()
+														 .withError(x)
+														 .build();
+			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			log.error(EELFLoggerDelegate.errorLogger, "Exception occurred during peer ping", x);
 		}
 		return response;
 	}

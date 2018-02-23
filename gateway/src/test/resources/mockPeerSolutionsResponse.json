@@ -1,8 +1,6 @@
 {
- "status": true,
- "response_code": 200,
- "response_detail": "Success",
- "response_body": [{
+ "message": "Success",
+ "content": [{
   "solutionId":"6793411f-c7a1-4e93-85bc-f91d267541d8",
   "name":"mock model",
   "description":"Test mock model",

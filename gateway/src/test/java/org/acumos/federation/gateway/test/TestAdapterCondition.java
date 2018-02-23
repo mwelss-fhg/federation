@@ -18,25 +18,25 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.service.impl;
+package org.acumos.federation.gateway.test;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.core.env.Environment;
 
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.config.AdapterCondition;
 
-import org.acumos.cds.client.ICommonDataServiceRestClient;
+/**
+ * Tests if we are in a test Adapter setup/profile
+ */
+public class TestAdapterCondition extends AdapterCondition {
 
-/** */
-public abstract class AbstractServiceImpl {
+	@Override
+	public boolean matches(ConditionContext theContext, AnnotatedTypeMetadata theMetadata) {
 
-	@Autowired
-	protected Clients clients;
-
-	protected final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
-
-	public ICommonDataServiceRestClient getClient() {
-		return clients.getCDSClient();
+		Environment env = theContext.getEnvironment();
+		return super.matches(theContext, theMetadata) && null != env
+				&& "test".equals(env.getProperty("federation.instance.name"));
 	}
 
 }

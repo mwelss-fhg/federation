@@ -4,7 +4,7 @@
 		"name":"acumosa",
 		"subjectName":"gateway.acumosa.org",
 		"description":"acumosa",
-    "active": "true",
+    "statusCode": "AC",
     "self": "true",
 		"apiUrl":"",
 		"subscriptions":[]
@@ -14,7 +14,7 @@
 		"name":"acumosb",
 		"subjectName":"gateway.acumosb.org",
 		"description":"acumosb",
-    "active": "true",
+    "statusCode": "AC",
     "self": "false",
 		"apiUrl":"https://gateway.acumosb.org:9002",
 		"subscriptions":[
@@ -22,7 +22,7 @@
         "subId":1,
 				"peerId":"5d2f3b51-3d38-46cd-b171-7e0f3718087a",
 				"selector":"{\"modelTypeCode\":\"CL,PR\"}",
-				"refreshInterval":"60000",
+				"refreshInterval":"300",
 				"maxArtifactSize":"2048",
 				"created":"2017-08-12",
 				"modified":"2017-08-12"

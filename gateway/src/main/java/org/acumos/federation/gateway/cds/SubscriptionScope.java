@@ -17,26 +17,43 @@
  * limitations under the License.
  * ===============LICENSE_END=========================================================
  */
+package org.acumos.federation.gateway.cds;
 
-package org.acumos.federation.gateway.service.impl;
+import java.util.EnumSet;
+import org.acumos.cds.domain.MLPSubscriptionScopeType;
 
-import org.springframework.beans.factory.annotation.Autowired;
+/**
+ * Supplements the CDS representation of a subscription scope information.
+ */
+public enum SubscriptionScope {
 
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.common.Clients;
+	Reference("RF"),
+	Full("FL"),
+	;
 
-import org.acumos.cds.client.ICommonDataServiceRestClient;
+	private String 				code;
+	//private MLPPeerStatus	mlp;
 
-/** */
-public abstract class AbstractServiceImpl {
-
-	@Autowired
-	protected Clients clients;
-
-	protected final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
-
-	public ICommonDataServiceRestClient getClient() {
-		return clients.getCDSClient();
+	private SubscriptionScope(String theCode) {
+		this.code = theCode;
+		//mlp = new MLPSubscriptionScopeType(theCode, name());
 	}
 
+	public String code() {
+		return this.code;
+	}
+
+	//public MLPPeerStatus mlp() {
+	//	return this.mlp;
+	//}
+
+	public static SubscriptionScope forCode(final String theCode) {
+		return EnumSet.allOf(SubscriptionScope.class)
+						.stream()
+						.filter(status -> status.code().equals(theCode))
+						.findFirst()
+						.orElse(null);
+	}
 }
+
+

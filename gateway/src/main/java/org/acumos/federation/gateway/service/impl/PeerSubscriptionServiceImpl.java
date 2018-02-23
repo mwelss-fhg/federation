@@ -26,7 +26,6 @@ package org.acumos.federation.gateway.service.impl;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.acumos.federation.gateway.common.GatewayCondition;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.util.Utils;
@@ -44,7 +43,6 @@ import org.acumos.cds.transport.RestPageResponse;
  *
  */
 @Service
-@Conditional(GatewayCondition.class)
 public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements PeerSubscriptionService {
 
 	@Autowired

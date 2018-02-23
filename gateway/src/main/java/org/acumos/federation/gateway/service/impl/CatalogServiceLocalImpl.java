@@ -51,8 +51,6 @@ import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.util.Utils;
-import org.acumos.federation.gateway.util.LocalWatchService;
-import org.acumos.federation.gateway.common.AdapterCondition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.core.env.Environment;
@@ -75,7 +73,6 @@ import org.acumos.cds.transport.RestPageResponse;
  */
 @Service
 @ConfigurationProperties(prefix = "catalogLocal")
-@Conditional(AdapterCondition.class)
 public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements CatalogService {
 
 	private List<FLPSolution> solutions;

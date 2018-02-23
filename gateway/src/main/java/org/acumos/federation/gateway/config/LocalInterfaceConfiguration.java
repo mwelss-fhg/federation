@@ -18,14 +18,17 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.common;
+package org.acumos.federation.gateway.config;
 
+import org.springframework.stereotype.Component;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
-@EnableConfigurationProperties({ FederationClientConfiguration.class })
-public class GatewayConfiguration {
+/**
+ * Defines a specific external configuration prefix for the local interface.
+ */
+@Component
+@ConfigurationProperties(prefix = "local")
+public class LocalInterfaceConfiguration extends InterfaceConfiguration {
 
 }
