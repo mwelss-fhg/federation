@@ -53,7 +53,6 @@ import org.acumos.federation.gateway.task.TaskConfiguration;
 @Import(TaskConfiguration.class)
 @EnableConfigurationProperties({FederationInterfaceConfiguration.class,
 																LocalInterfaceConfiguration.class})
-//@Profile({"gateway"})
 @Conditional({GatewayCondition.class})
 @EnableScheduling
 public class GatewayConfiguration {

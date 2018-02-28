@@ -154,10 +154,11 @@ public class PeerGateway {
 				MLPSolution localSolution = null;
 				try {
 					localSolution = cdsClient.getSolution(peerSolution.getSolutionId());
-				} catch (HttpStatusCodeException x) {
+				} 
+				catch (HttpStatusCodeException x) {
 					if (!Errors.isCDSNotFound(x)) {
-						log.warn(EELFLoggerDelegate.errorLogger, "Failed to check if solution with id "
-								+ peerSolution.getSolutionId() + " exists locally, skipping for now", x);
+						log.error(EELFLoggerDelegate.errorLogger, "Failed to check if solution with id "
+								+ peerSolution.getSolutionId() + " exists locally, skipping for now. Response says " + x.getResponseBodyAsString(), x);
 						continue;
 					}
 				}
@@ -167,14 +168,15 @@ public class PeerGateway {
 						log.info(EELFLoggerDelegate.debugLogger, "Solution Id : " + peerSolution.getSolutionId()
 								+ " does not exists locally, adding it to local catalog ");
 						localSolution = createMLPSolution(peerSolution, cdsClient);
-					} else {
+					}
+					else {
 						localSolution = updateMLPSolution(peerSolution, localSolution, cdsClient);
 					}
 
 					mapSolution(localSolution, cdsClient);
-				} catch (Exception x) {
-					x.printStackTrace();
-					log.warn(EELFLoggerDelegate.debugLogger,
+				}
+				catch (Exception x) {
+					log.error(EELFLoggerDelegate.errorLogger,
 							"Mapping of acumos solution failed for: " + peerSolution, x);
 				}
 			}

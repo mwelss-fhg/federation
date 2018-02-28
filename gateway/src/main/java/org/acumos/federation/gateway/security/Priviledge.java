@@ -22,26 +22,36 @@ package org.acumos.federation.gateway.security;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
- * An enumeratoin of federated access fine grained proviledges
+ * An enumeratoin of federatiom access priviledges. Organized around the
+ * functional sets of the federation and local API.
  */
 public enum Priviledge implements GrantedAuthority {
 
 	/**
 	 * Granted to a peer to access catalog items (solutions) and related information; coarse at this point, all
-	 * (list/read/download) or nothing
+	 * (list/read/download) or nothing. The peer must be active.
 	 */
 	CATALOG_ACCESS,
+
 	/**
-	 * Granted to a peer to request information about the peers registered in the local Acumos system.
+	 * Granted to a peer to request information about the peers registered in the local Acumos system. The peer
+   * must be active.
 	 */
 	PEERS_ACCESS,
+
 	/**
-	 * The right to submit a subscription request. This is granted to ANY if so
-	 * enabled system wide.
+	 * The right to submit a subscription request. This is granted to ANY (only if so
+	 * enabled system wide).
 	 */
-	SUBSCRIPTION,
+	REGISTRATION_ACCESS,
+
 	/**
-	 * granted to local Acumos components to request information from peers.
+	 * The right to submit a ping request. Granted to active and inactive peers.
+	 */
+	PING_ACCESS,
+
+	/**
+	 * granted to local Acumos components to request information from peers (local interface access).
 	 */
 	PEER_ACCESS;
 

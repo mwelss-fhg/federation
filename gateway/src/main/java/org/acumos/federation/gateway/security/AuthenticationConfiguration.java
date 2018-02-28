@@ -26,6 +26,8 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.naming.InvalidNameException;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.acumos.cds.domain.MLPPeer;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
@@ -42,6 +44,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.preauth.x509.X509AuthenticationFilter;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -52,6 +56,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
  * X.509 certificate authentication : verifying the identity of a communication
  * peer when using the HTTPS (HTTP over SSL) protocol.
  *
+ * EnableWebSecurity would probably be sufficient but needs some more work as PreAuthorized would
+ * not be accessible.
  */
 
 @Configuration
@@ -82,10 +88,22 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 
-		http.authorizeRequests()
+		http
+				.csrf()
+					.disable();
+		//when the user is a valid user but does not have the right priviledges the accessDeniedHandler 
+		//is called
+		http
+				.exceptionHandling()
+					.accessDeniedHandler(accessDeniedHandler());
+		http
+				.authorizeRequests()
 					.anyRequest()
 						.authenticated()
-						.and()
+					.and()
+						.sessionManagement()
+							.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+					.and()
 						.x509()
 							//.x509AuthenticationFilter(new X509AuthenticationFilter() {
 							//		{
@@ -101,6 +119,17 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 							.userDetailsService(userDetailsService());
 	}
 
+	/** */
+	@Bean
+	public AccessDeniedHandler accessDeniedHandler() {
+		return ((request, response, exception) -> {
+			log.info(EELFLoggerDelegate.debugLogger, "accessDeniedHandler : " + exception);
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		});
+	}
+
+	/** */
+	@Bean
 	public UserDetailsService userDetailsService() {
 		return (subject -> {
 			log.info(EELFLoggerDelegate.debugLogger, " X509 subject : " + subject);

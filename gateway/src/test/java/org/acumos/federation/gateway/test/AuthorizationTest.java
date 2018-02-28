@@ -77,6 +77,7 @@ import org.acumos.cds.domain.MLPArtifact;
 									"federation.instance=adapter",
 									"federation.instance.name=test",
 									"federation.operator=admin",
+									"federation.registration.enabled=true",
 									"peersLocal.source=classpath:test-peers.json",
 									"catalogLocal.source=classpath:test-catalog.json",
 									"federation.ssl.key-store=classpath:acumosa.pkcs12",
@@ -88,132 +89,71 @@ import org.acumos.cds.domain.MLPArtifact;
 									"federation.ssl.client-auth=need"
 								})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ControllerTest {
+public class AuthorizationTest {
 
 	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 	@Autowired
 	private TestRestTemplate restTemplate;
 
 	@Test
-	public void testSolutions() {
+	public void testUnknownPeerSolutionsAccess() {
 
     ((HttpComponentsClientHttpRequestFactory)
 			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
+				.setHttpClient(prepareUnknownHttpClient());
 		
 		ResponseEntity<JsonResponse<List<MLPSolution>>> response =
 			this.restTemplate.exchange("/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 		
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutions: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutions: {}", response);
+			log.info(EELFLoggerDelegate.debugLogger, "test unknown peer access: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "test unknown peer access: {}", response);
+		}
+		
+		assertTrue(response != null);
+		assertTrue(response.getStatusCodeValue() == 401);
+	}
+
+	@Test
+	public void testKnownPeerSolutionsAccess() {
+
+    ((HttpComponentsClientHttpRequestFactory)
+			this.restTemplate.getRestTemplate().getRequestFactory())
+				.setHttpClient(prepareKnownHttpClient());
+
+		ResponseEntity<JsonResponse<List<MLPSolution>>> response =
+			this.restTemplate.exchange("/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
+		
+		if (response != null)	{
+			log.info(EELFLoggerDelegate.debugLogger, "test known peer access: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "test known peer access: {}", response);
 		}
 		
 		assertTrue(response != null);
 		assertTrue(response.getStatusCodeValue() == 200);
 		assertTrue(response.getBody().getContent().size() == 1);
+	
 	}
 
-
 	@Test
-	public void testSolutionSuccess() {
+	public void testUnknownRegisterAccess() {
 
     ((HttpComponentsClientHttpRequestFactory)
 			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
-
-		ResponseEntity<JsonResponse<MLPSolution>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
-	
-		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testSolution: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testSolution: {}", response);
-		}
-
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getContent().getModelTypeCode().equals("CL")); //no errors
-	}
-
-	@Test
-	public void testSolutionRevisionsSuccess() {
-    
-		((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
-
-		ResponseEntity<JsonResponse<List<MLPSolutionRevision>>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {});
+				.setHttpClient(prepareUnknownHttpClient());
+		
+		ResponseEntity<JsonResponse<MLPPeer>> response =
+			this.restTemplate.exchange("/peer/register", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {});
 		
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisions: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisions: {}", response);
+			log.info(EELFLoggerDelegate.debugLogger, "test unknown peer access to register: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "test unknown peer access to register: {}", response);
 		}
-
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getContent().size() == 1); //no errors
-	}
-
-	@Test
-	public void testSolutionRevisionSuccess() {
-
-    ((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
-
-		ResponseEntity<JsonResponse<MLPSolution>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
-	
-		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevision: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevision: {}", response);
-		}
-
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getContent().getOwnerId().equals("admin")); //no errors
-	}
-
-	@Test
-	public void testSolutionRevisionArtifactsSuccess() {
-    
-		((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
-
-		ResponseEntity<JsonResponse<List<MLPArtifact>>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101/artifacts", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {});
 		
-		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisionArtifacts: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisionArtifacts: {}", response);
-		}
-
 		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getContent().size() == 1); //no errors
+		assertTrue(response.getStatusCodeValue() == 202); //401 ??
 	}
 
-	@Test
-	public void testPeersForbidden() {
-
-    ((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareHttpClient());
-
-		ResponseEntity<JsonResponse<List<MLPPeer>>> response =
-			this.restTemplate.exchange("/peers", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {} );
-	
-		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testPeers: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testPeers: {}", response);
-			System.out.println("testPeers: " + response.getBody());
-			System.out.println("testPeers: " + response);
-		}
-
-		assertTrue(response.getStatusCodeValue() == 401);
-	}
 
 	private HttpEntity prepareRequest(String theResourceName) {
 		String content = new Scanner(
@@ -231,11 +171,25 @@ public class ControllerTest {
  		return new HttpEntity<String>(headers);
 	}
 
-	private HttpClient prepareHttpClient() {
+	private HttpClient prepareKnownHttpClient() {
 		return new InterfaceConfigurationBuilder()
 								.withSSL(new SSLBuilder()
 															.withKeyStore("classpath:/acumosb.pkcs12")
 															.withKeyStorePassword("acumosb")
+															//.withKeyPassword("acumosb")
+															.withTrustStore("classpath:/acumosTrustStore.jks")
+															.withTrustStoreType("JKS")
+															.withTrustStorePassword("acumos")
+															.build())
+								.buildConfig()
+								.buildClient();
+	}
+
+	private HttpClient prepareUnknownHttpClient() {
+		return new InterfaceConfigurationBuilder()
+								.withSSL(new SSLBuilder()
+															.withKeyStore("classpath:/acumosc.pkcs12")
+															.withKeyStorePassword("acumosc")
 															//.withKeyPassword("acumosb")
 															.withTrustStore("classpath:/acumosTrustStore.jks")
 															.withTrustStoreType("JKS")

@@ -61,6 +61,9 @@ public class FederationClient extends AbstractClient {
 	}
 
 	/**
+	 * @return Ping information from/for Remote Acumos
+	 * @throws HttpStatusCodeException
+	 *             Throws HttpStatusCodeException if remote acumos interaction has failed.
 	 */
 	public JsonResponse<MLPPeer> ping()
 			throws HttpStatusCodeException {
@@ -84,6 +87,32 @@ public class FederationClient extends AbstractClient {
 		}
 		return response == null ? null : response.getBody();
 	}	
+
+	/**
+	 */
+	public JsonResponse<List<MLPPeer>> getPeers()
+			throws HttpStatusCodeException {
+		URI uri = API.PEERS.buildUri(this.baseUrl);
+		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		ResponseEntity<JsonResponse<List<MLPPeer>>> response = null;
+		try {
+			response = restTemplate.exchange(uri, HttpMethod.GET, null,
+					new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {
+					});
+		}
+		catch (HttpStatusCodeException x) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			throw x;
+		}
+		catch (Throwable t) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		return response == null ? null : response.getBody();
+	}	
+
 
 	/**
 	 * 
@@ -130,6 +159,9 @@ public class FederationClient extends AbstractClient {
 	}
 
 	/**
+	 * @return Peer information from Remote Acumos
+	 * @throws HttpStatusCodeException
+	 *             Throws HttpStatusCodeException if remote acumos interaction has failed.
 	 */
 	public JsonResponse<MLPSolution> getSolution(String theSolutionId)
 			throws HttpStatusCodeException {
@@ -253,4 +285,31 @@ public class FederationClient extends AbstractClient {
 		}
 	}
 
+	/**
+	 * @return Register self with the peer this client points to.
+	 * @throws HttpStatusCodeException
+	 *             Throws HttpStatusCodeException if remote acumos interaction has failed.
+	 */
+	public JsonResponse<MLPPeer> register(MLPPeer theSelf)
+			throws HttpStatusCodeException {
+		URI uri = API.PEER_REGISTER.buildUri(this.baseUrl);
+		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		ResponseEntity<JsonResponse<MLPPeer>> response = null;
+		try {
+			response = restTemplate.exchange(uri, HttpMethod.GET, null,
+					new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {
+					});
+		}
+		catch (HttpStatusCodeException x) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			throw x;
+		}
+		catch (Throwable t) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		return response == null ? null : response.getBody();
+	}	
 }

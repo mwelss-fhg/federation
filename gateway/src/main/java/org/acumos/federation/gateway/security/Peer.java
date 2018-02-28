@@ -27,10 +27,12 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.acumos.federation.gateway.service.PeerService;
+import org.acumos.federation.gateway.cds.PeerStatus;
 
 import org.acumos.cds.domain.MLPPeer;
 
 /**
+ * Peers constitute the users of the federation gateway.
  */
 public class Peer extends User {
 
@@ -48,6 +50,15 @@ public class Peer extends User {
 	public MLPPeer getPeerInfo() {
 		return this.peerInfo;
 	}
+
+//	@Override
+//	public boolean isEnabled() {
+//		if (this.peerInfo == null)
+//			return false;
+
+//		PeerStatus peerStatus =  PeerStatus.forCode(this.peerInfo.getStatusCode());
+//		return peerStatus == PeerStatus.Active;
+//	}
 
 	private static PeerService peerService = null;
 

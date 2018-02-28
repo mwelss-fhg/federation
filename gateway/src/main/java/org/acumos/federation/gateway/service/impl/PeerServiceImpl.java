@@ -96,7 +96,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 		RestPageResponse<MLPPeer> response = 
 			getClient().searchPeers(new MapBuilder().put("subjectName", theSubjectName).build(), false, null);
 		if (response.getSize() != 1) {
-			log.warn(EELFLoggerDelegate.errorLogger, "getPeerBySubjectName returned more then one peer:{}", response.getSize());
+			log.warn(EELFLoggerDelegate.errorLogger, "getPeerBySubjectName returned more then one peer: {}", response.getSize());
 		}
 		return response.getContent();
 	}

@@ -147,5 +147,6 @@
 <!--
 	<logger name="org.springframework.core.io.support" level="debug"/>
 	<logger name="org.springframework.context.annotation" level="debug"/>
+	<logger name="org.springframework.security" level="debug"/>
 -->
 </configuration>

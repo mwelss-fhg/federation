@@ -58,9 +58,9 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 	@Override
 	public List<MLPPeerSubscription> getPeerSubscriptions(String peerId) {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscriptions:{}", peerId);
-		List<MLPPeerSubscription> mlpPeerSubscriptions = null;
+		List<MLPPeerSubscription> peerSubscriptions = null;
 		// Temporary Fix as COmmon Data Service does not handle proper Serialization
-		mlpPeerSubscriptions = getClient().getPeerSubscriptions(peerId);
+		peerSubscriptions = getClient().getPeerSubscriptions(peerId);
 		/*
 		 * if(!Utils.isEmptyList(mlpPeerSubscriptions)) { //mlpPeerSubscriptions =
 		 * mlpPeerSubscriptionPaged.getContent(); mlpPeerSubscriptions =
@@ -68,8 +68,8 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 		 * (mlpPeerSubscription.getPeerId().contains(peerId))).collect(Collectors.toList
 		 * ()); }
 		 */
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeers size:{}", mlpPeerSubscriptions.size());
-		return mlpPeerSubscriptions;
+		log.debug(EELFLoggerDelegate.debugLogger, "peer {} subscriptions : {}", peerId, peerSubscriptions.size());
+		return peerSubscriptions;
 	}
 
 	@Override

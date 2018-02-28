@@ -40,7 +40,8 @@ public enum API {
 	ARTIFACT_DOWNLOAD(Paths.ARTIFACT_DOWNLOAD),
 	PEERS(Paths.PEERS),
 	SUBSCRIPTION(Paths.SUBSCRIPTION),
-	PING(Paths.PING);
+	PING(Paths.PING),
+	PEER_REGISTER(Paths.PEER_REGISTER);
 
 	private String path;
 	private String[] query;

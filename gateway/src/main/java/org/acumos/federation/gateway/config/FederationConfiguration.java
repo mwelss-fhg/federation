@@ -27,6 +27,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
@@ -34,6 +35,7 @@ import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.controller.CatalogController;
 import org.acumos.federation.gateway.controller.PeersController;
 import org.acumos.federation.gateway.controller.PingController;
+import org.acumos.federation.gateway.controller.RegistrationController;
 import org.acumos.federation.gateway.security.AuthenticationConfiguration;
 
 import org.apache.http.client.HttpClient;
@@ -72,6 +74,12 @@ public class FederationConfiguration {
 	@Bean
 	public PingController pingServer() {
 		return new PingController();
+	}
+
+	@Bean
+	@Conditional({RegistrationCondition.class})
+	public RegistrationController registrationServer() {
+		return new RegistrationController();
 	}
 
 	/**

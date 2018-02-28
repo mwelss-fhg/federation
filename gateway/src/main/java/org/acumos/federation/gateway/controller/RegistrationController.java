@@ -60,8 +60,8 @@ public class RegistrationController extends AbstractController {
 	 * @return Request status information
 	 */
 	@CrossOrigin
-	//@PreAuthorize("hasAuthority('')") //if enabled, this must be opened to anonymous so no such check
-	@ApiOperation(value = "Invoked by another Acumos Instance to request federation.", response = String.class)
+	@PreAuthorize("hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).REGISTRATION_ACCESS)")
+	@ApiOperation(value = "Invoked by another Acumos Instance to request federation.", response = MLPPeer.class)
 	@RequestMapping(value = { API.Paths.PEER_REGISTER }, method = RequestMethod.POST, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<MLPPeer> registerPeer(
@@ -103,8 +103,8 @@ public class RegistrationController extends AbstractController {
 	/**
 	 */
 	@CrossOrigin
-	//@PreAuthorize("hasAuthority('')") 
-	@ApiOperation(value = "Invoked by another Acumos Instance to request federation teermination.", response = String.class)
+	@PreAuthorize("hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).REGISTRATION_ACCESS)")
+	@ApiOperation(value = "Invoked by another Acumos Instance to request federation termination.", response = MLPPeer.class)
 	@RequestMapping(value = { API.Paths.PEER_UNREGISTER }, method = RequestMethod.POST, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<MLPPeer> unregisterPeer(

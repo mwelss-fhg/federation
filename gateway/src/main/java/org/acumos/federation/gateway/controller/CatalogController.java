@@ -107,7 +107,7 @@ public class CatalogController extends AbstractController {
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "Exception occurred fetching Solutions for Market Place Catalog", x);
+			log.error(EELFLoggerDelegate.errorLogger, "Exception occurred while fetching solutions", x);
 		}
 		return response;
 	}

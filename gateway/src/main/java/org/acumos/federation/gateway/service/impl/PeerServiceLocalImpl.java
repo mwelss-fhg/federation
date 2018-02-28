@@ -147,7 +147,8 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	/** */
 	@Override
 	public void registerPeer(MLPPeer mlpPeer) {
-		throw new UnsupportedOperationException();
+		log.info(EELFLoggerDelegate.debugLogger, "Registered peer {}", mlpPeer);
+		//this.peers.put(new FLPPeer(mlpPeer));
 	}
 
 	/** */

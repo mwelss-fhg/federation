@@ -27,22 +27,26 @@ import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Each Role states a predefined set of available federation priviledges.
+ * TODO: looks into unregisterPeer 
  */
 public enum Role {
 
 	/**
-	 * Un-authenticated client. Will at most be granted access to subscribe
+	 * Un-authenticated client. Will at most be granted access to registration
 	 * functionality
 	 */
-	ANY(Collections.EMPTY_LIST),
+	ANY(Collections.unmodifiableList(Arrays.asList(Priviledge.REGISTRATION_ACCESS))),
 	/**
-	 * Common peer, grants generic solution catalog access
+	 * Common active peer, grants generic solution catalog access
 	 */
-	PEER(Collections.unmodifiableList(Arrays.asList(Priviledge.CATALOG_ACCESS))),
+	PEER(Collections.unmodifiableList(Arrays.asList(Priviledge.CATALOG_ACCESS,
+																									Priviledge.PING_ACCESS))),
 	/**
 	 * Enhanced peer, gains (some lovel of) read access to the local peer list
 	 */
-	PARTNER(Collections.unmodifiableList(Arrays.asList(Priviledge.CATALOG_ACCESS, Priviledge.PEERS_ACCESS))),
+	PARTNER(Collections.unmodifiableList(Arrays.asList(Priviledge.CATALOG_ACCESS,
+																										 Priviledge.PEERS_ACCESS,
+																										 Priviledge.PING_ACCESS))),
 	/**
 	 * The Acumos instance this gateway is serving, including local calls and calls
 	 * received through the gateways' private interface from other components,
