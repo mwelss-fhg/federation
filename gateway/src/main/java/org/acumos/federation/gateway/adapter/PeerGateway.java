@@ -152,15 +152,29 @@ public class PeerGateway {
 			for (MLPSolution peerSolution : this.solutions) {
 				// Check if the Model already exists in the Local Acumos
 				MLPSolution localSolution = null;
+				log.info(EELFLoggerDelegate.debugLogger, "Processing peer solution {}", peerSolution);
 				try {
 					localSolution = cdsClient.getSolution(peerSolution.getSolutionId());
 				} 
-				catch (HttpStatusCodeException x) {
-					if (!Errors.isCDSNotFound(x)) {
+				catch (HttpStatusCodeException scx) {
+				try {
+					if (!Errors.isCDSNotFound(scx)) {
 						log.error(EELFLoggerDelegate.errorLogger, "Failed to check if solution with id "
-								+ peerSolution.getSolutionId() + " exists locally, skipping for now. Response says " + x.getResponseBodyAsString(), x);
+								+ peerSolution.getSolutionId() + " exists locally, skipping for now. Response says " + scx.getResponseBodyAsString(), scx);
 						continue;
 					}
+				}
+				catch (Exception tx) {
+					log.error(EELFLoggerDelegate.errorLogger, "Unexpected error while checking not found on "
+								+ peerSolution.getSolutionId(), tx);
+					continue;
+				}
+
+				}
+				catch (Exception x) {
+					log.error(EELFLoggerDelegate.errorLogger, "Unexpected error while checking if solution with id "
+								+ peerSolution.getSolutionId() + " exists locally, skipping for now.", x);
+					continue;
 				}
 
 				try {
