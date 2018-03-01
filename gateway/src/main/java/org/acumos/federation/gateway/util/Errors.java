@@ -20,6 +20,9 @@
 
 package org.acumos.federation.gateway.util;
 
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -28,6 +31,17 @@ public class Errors {
 
 	private Errors() {
 	}
+
+	private static Pattern cdsNotFoundPattern = null;
+	{
+		try {
+			cdsNotFoundPattern = Pattern.compile("No (.*) for ID (.*)");
+		}
+		catch (PatternSyntaxException psx) {
+			throw new RuntimeException("Invalid error pattern", psx);
+		}
+	}
+
 
 	/**
 	 * CDS provides a 400 error with a particular error message
@@ -41,7 +55,8 @@ public class Errors {
 		if (theError.getStatusCode() == HttpStatus.BAD_REQUEST) {
 			String msg = theError.getResponseBodyAsString();
 			if (msg != null) {
-				return ((String) Utils.jsonStringToMap(msg).getOrDefault("error", "")).startsWith("No entry for ID");
+				return cdsNotFoundPattern.matcher((String) Utils.jsonStringToMap(msg).getOrDefault("error", ""))
+								.matches();
 			}
 		}
 		return false;
