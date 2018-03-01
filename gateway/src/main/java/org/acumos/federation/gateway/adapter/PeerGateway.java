@@ -170,6 +170,8 @@ public class PeerGateway {
 						localSolution = createMLPSolution(peerSolution, cdsClient);
 					}
 					else {
+						log.info(EELFLoggerDelegate.debugLogger, "Solution Id : " + peerSolution.getSolutionId()
+								+ " exists locally, updating local catalog ");
 						localSolution = updateMLPSolution(peerSolution, localSolution, cdsClient);
 					}
 

@@ -35,7 +35,7 @@ public class Errors {
 	private static Pattern cdsNotFoundPattern = null;
 	{
 		try {
-			cdsNotFoundPattern = Pattern.compile("No (.*) for ID (.*)");
+			cdsNotFoundPattern = Pattern.compile("No (.*) with ID (.*)");
 		}
 		catch (PatternSyntaxException psx) {
 			throw new RuntimeException("Invalid error pattern", psx);

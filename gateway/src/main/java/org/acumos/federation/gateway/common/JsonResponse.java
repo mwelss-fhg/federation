@@ -39,7 +39,6 @@ public class JsonResponse<T> implements Serializable {
 	 * Was there an error ?
 	 */
 	@JsonProperty(value = JSONTags.TAG_RESPONSE_ERROR)
-	//private Boolean error;
 	private String error;
 
 	/**
@@ -53,15 +52,7 @@ public class JsonResponse<T> implements Serializable {
 	 */
 	@JsonProperty(value = JSONTags.TAG_RESPONSE_CONTENT)
 	private T content;
-/*
-	public Boolean isError() {
-		return this.error;
-	}
-
-	public void setError(Boolean isError) {
-		this.error = isError;
-	}
-*/
+	
 	public String getError() {
 		return this.error;
 	}
@@ -106,7 +97,7 @@ public class JsonResponse<T> implements Serializable {
 		private JsonResponse<T> response = new JsonResponse();
 
 		public JsonResponseBuilder() {
-			this.response.setError(Boolean.FALSE.toString());
+			this.response.setError(null);
 		}
 
 		public JsonResponseBuilder<T>	withMessage(String theMessage) {
@@ -146,7 +137,7 @@ public class JsonResponse<T> implements Serializable {
 		}
 		
 		public JsonErrorResponseBuilder<T>	withError(Throwable theError) {
-			this.response.setMessage(theError.toString());
+			this.response.setError(theError.toString());
 			return this;
 		}
 

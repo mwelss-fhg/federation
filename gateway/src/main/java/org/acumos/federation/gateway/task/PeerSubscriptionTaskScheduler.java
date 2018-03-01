@@ -138,6 +138,9 @@ public class PeerSubscriptionTaskScheduler {
 		for (MLPPeer mlpPeer : mlpPeers) {
 			log.info(EELFLoggerDelegate.debugLogger, "checkPeer : " + mlpPeer);
 
+			if (mlpPeer.isSelf())
+				continue;
+
 			// cancel peer tasks for inactive peers
 			if (PeerStatus.Active != PeerStatus.forCode(mlpPeer.getStatusCode())) {
 				// cancel all peer sub tasks for this peer
