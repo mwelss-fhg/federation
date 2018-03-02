@@ -154,30 +154,17 @@ public class PeerGateway {
 				MLPSolution localSolution = null;
 				log.info(EELFLoggerDelegate.debugLogger, "Processing peer solution {}", peerSolution);
 				try {
-					localSolution = cdsClient.getSolution(peerSolution.getSolutionId());
-				} 
-				catch (HttpStatusCodeException scx) {
-				try {
-					if (!Errors.isCDSNotFound(scx)) {
-						log.error(EELFLoggerDelegate.errorLogger, "Failed to check if solution with id "
+					try {
+						localSolution = cdsClient.getSolution(peerSolution.getSolutionId());
+					} 
+					catch (HttpStatusCodeException scx) {
+						if (!Errors.isCDSNotFound(scx)) {
+							log.error(EELFLoggerDelegate.errorLogger, "Failed to check if solution with id "
 								+ peerSolution.getSolutionId() + " exists locally, skipping for now. Response says " + scx.getResponseBodyAsString(), scx);
-						continue;
+							continue;
+						}
 					}
-				}
-				catch (Exception tx) {
-					log.error(EELFLoggerDelegate.errorLogger, "Unexpected error while checking not found on "
-								+ peerSolution.getSolutionId(), tx);
-					continue;
-				}
 
-				}
-				catch (Exception x) {
-					log.error(EELFLoggerDelegate.errorLogger, "Unexpected error while checking if solution with id "
-								+ peerSolution.getSolutionId() + " exists locally, skipping for now.", x);
-					continue;
-				}
-
-				try {
 					if (localSolution == null) {
 						log.info(EELFLoggerDelegate.debugLogger, "Solution Id : " + peerSolution.getSolutionId()
 								+ " does not exists locally, adding it to local catalog ");
@@ -191,9 +178,9 @@ public class PeerGateway {
 
 					mapSolution(localSolution, cdsClient);
 				}
-				catch (Exception x) {
+				catch (Throwable t) {
 					log.error(EELFLoggerDelegate.errorLogger,
-							"Mapping of acumos solution failed for: " + peerSolution, x);
+							"Mapping of acumos solution failed for " + peerSolution, t);
 				}
 			}
 		}

@@ -21,6 +21,7 @@
 package org.acumos.federation.gateway.util;
 
 import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.util.regex.PatternSyntaxException;
 
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ public class Errors {
 	}
 
 	private static Pattern cdsNotFoundPattern = null;
-	{
+	static {
 		try {
 			cdsNotFoundPattern = Pattern.compile("No (.*) with ID (.*)");
 		}
