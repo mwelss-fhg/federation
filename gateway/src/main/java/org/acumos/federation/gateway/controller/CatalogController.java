@@ -21,6 +21,8 @@
 package org.acumos.federation.gateway.controller;
 
 import java.net.URI;
+import java.net.URISyntaxException;
+
 import java.util.List;
 import java.util.Map;
 
@@ -81,7 +83,7 @@ public class CatalogController extends AbstractController {
 	@RequestMapping(value = { API.Paths.SOLUTIONS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<List<MLPSolution>> getSolutions(
-			/* HttpServletRequest theHttpRequest, */
+			HttpServletRequest theHttpRequest,
 			HttpServletResponse theHttpResponse,
 			@RequestParam(value = API.QueryParameters.SOLUTIONS_SELECTOR, required = false) String theSelector) {
 		JsonResponse<List<MLPSolution>> response = null;
@@ -95,6 +97,12 @@ public class CatalogController extends AbstractController {
 				selector = Utils.jsonStringToMap(new String(Base64Utils.decodeFromString(theSelector), "UTF-8"));
 
 			solutions = catalogService.getSolutions(selector, new ControllerContext());
+			if (solutions != null) {
+				for (MLPSolution solution: solutions) {
+					encodeSolution(solution, theHttpRequest);
+				}
+			}
+
 			response = JsonResponse.<List<MLPSolution>> buildResponse()
 														.withMessage("available public solution for given filter")
 														.withContent(solutions)
@@ -117,13 +125,16 @@ public class CatalogController extends AbstractController {
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list detailed solution information from the Catalog of the local Acumos Instance .", response = MLPSolution.class)
 	@RequestMapping(value = { API.Paths.SOLUTION_DETAILS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
-	public JsonResponse<MLPSolution> getSolutionDetails(HttpServletResponse theHttpResponse,
+	public JsonResponse<MLPSolution> getSolutionDetails(
+			HttpServletRequest theHttpRequest,
+			HttpServletResponse theHttpResponse,
 			@PathVariable(value = "solutionId") String theSolutionId) {
 		JsonResponse<MLPSolution> response = null;
 		MLPSolution solution = null;
 		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTION_DETAILS + ": " + theSolutionId);
 		try {
 			solution = catalogService.getSolution(theSolutionId, new ControllerContext());
+			encodeSolution(solution, theHttpRequest);
 			response = JsonResponse.<MLPSolution> buildResponse()
 														.withMessage("solution details")
 														.withContent(solution)
@@ -250,15 +261,7 @@ public class CatalogController extends AbstractController {
 					!context.getPeer().getPeerInfo().isLocal()) {
 				// re-encode the artifact uri
 				for (MLPArtifact artifact : solutionRevisionArtifacts) {
-					// sooo cumbersome
-					URI requestUri = new URI(theHttpRequest.getRequestURL().toString());
-					URI artifactUri = API.ARTIFACT_DOWNLOAD
-							.buildUri(
-									new URI(requestUri.getScheme(), null, requestUri.getHost(),
-											requestUri.getPort(), null, null, null).toString(),
-									artifact.getArtifactId());
-					log.debug(EELFLoggerDelegate.debugLogger,	"getSolutionRevisionArtifacts: content uri " + artifactUri);
-					artifact.setUri(artifactUri.toString());
+					encodeArtifact(artifact, theHttpRequest);
 				}
 			}
 			response = JsonResponse.<List<MLPArtifact>> buildResponse()
@@ -313,4 +316,29 @@ public class CatalogController extends AbstractController {
 		return inputStreamResource;
 	}
 
+	/** */
+	private void encodeSolution(MLPSolution theSolution, HttpServletRequest theRequest) throws URISyntaxException {
+		//encode the 'origin'
+		if (null == theSolution.getOrigin()) {
+			URI requestUri = new URI(theRequest.getRequestURL().toString());
+			URI solutionUri = API.SOLUTION_DETAIL
+												.buildUri(
+													new URI(requestUri.getScheme(), null, requestUri.getHost(),
+																	requestUri.getPort(), null, null, null).toString(),
+													theSolution.getSolutionId());
+			theSolution.setOrigin(solutionUri.toString());	
+		}
+	}
+	
+	/** */
+	private void encodeArtifact(MLPArtifact theArtifact, HttpServletRequest theRequest) throws URISyntaxException {
+		URI requestUri = new URI(theRequest.getRequestURL().toString());
+		URI artifactUri = API.ARTIFACT_DOWNLOAD
+											.buildUri(
+												new URI(requestUri.getScheme(), null, requestUri.getHost(),
+																requestUri.getPort(), null, null, null).toString(),
+												theArtifact.getArtifactId());
+		log.debug(EELFLoggerDelegate.debugLogger,	"getSolutionRevisionArtifacts: content uri " + artifactUri);
+		theArtifact.setUri(artifactUri.toString());
+	}
 }

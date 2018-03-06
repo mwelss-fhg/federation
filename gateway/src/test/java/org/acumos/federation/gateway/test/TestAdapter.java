@@ -114,16 +114,17 @@ public class TestAdapter {
 
 					MLPSolution peerImport = peerImports.get(solution.getSolutionId());
 					if (peerImport == null) {
-						log.debug(EELFLoggerDelegate.debugLogger, "New solution");
+						log.info(EELFLoggerDelegate.debugLogger, "New solution {}", solution.getSolutionId());
 						peerImports.put(solution.getSolutionId(), solution);
 					}
 					else {
-						log.debug(EELFLoggerDelegate.debugLogger, "Existing solution");
+						log.info(EELFLoggerDelegate.debugLogger, "Existing solution {}", solution.getSolutionId());
 						if (peerImport.getModified().equals(solution.getModified())) {
-							log.debug(EELFLoggerDelegate.debugLogger, "No updates");
+							log.info(EELFLoggerDelegate.debugLogger, "No updates to solution {}", solution.getSolutionId());
+							continue;
 						}
 						else {
-							log.debug(EELFLoggerDelegate.debugLogger, "Has updates");
+							log.info(EELFLoggerDelegate.debugLogger, "Solution {} has updates", solution.getSolutionId());
 						}
 					}
 
@@ -138,8 +139,8 @@ public class TestAdapter {
 						log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve revisions", x);
 						continue;
 					}
-					log.debug(EELFLoggerDelegate.debugLogger,
-							"Received " + revisions.size() + " revisions " + revisions);
+					log.info(EELFLoggerDelegate.debugLogger,
+							"Received {} revisions {}", revisions.size(), revisions);
 
 					List<MLPArtifact> artifacts = null;
 					try {
@@ -151,7 +152,7 @@ public class TestAdapter {
 						continue;
 					}
 					log.info(EELFLoggerDelegate.debugLogger,
-							"Received " + artifacts.size() + " artifacts " + artifacts);
+							"Received {} artifacts {}", artifacts.size(), artifacts);
 
 					for (MLPArtifact artifact : artifacts) {
 						Resource artifactContent = null;

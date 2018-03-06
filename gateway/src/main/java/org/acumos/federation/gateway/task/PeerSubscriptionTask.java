@@ -20,6 +20,7 @@
 
 package org.acumos.federation.gateway.task;
 
+import java.util.Date;
 import java.util.List;
 
 import org.acumos.cds.domain.MLPPeer;
@@ -51,8 +52,8 @@ public class PeerSubscriptionTask implements Runnable {
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
 
-	private MLPPeer mlpPeer;
-	private MLPPeerSubscription mlpSubscription;
+	private MLPPeer	peer;
+	private MLPPeerSubscription subscription;
 
 	@Autowired
 	private Clients clients;
@@ -61,44 +62,46 @@ public class PeerSubscriptionTask implements Runnable {
 	}
 
 	public PeerSubscriptionTask handle(MLPPeer peer, MLPPeerSubscription subscription) {
-		this.mlpPeer = peer;
-		this.mlpSubscription = subscription;
+		this.peer = peer;
+		this.subscription = subscription;
 		return this;
 	}
 
 	public MLPPeer getPeer() {
-		return this.mlpPeer;
+		return this.peer;
 	}
 
 	public MLPPeerSubscription getSubscription() {
-		return this.mlpSubscription;
+		return this.subscription;
 	}
 
 	@Override
 	public void run() {
 
-		if (this.mlpPeer == null || this.mlpSubscription == null) {
+		if (this.peer == null || this.subscription == null) {
 			log.info(EELFLoggerDelegate.debugLogger, "Peer task has no peer subscription info");
 			return;
 		}
 
 		try {
-			log.info(EELFLoggerDelegate.debugLogger, "Peer task for " + mlpPeer.getName() + ", " + mlpPeer.getApiUrl() + ", " + mlpSubscription.getSelector());
-			FederationClient fedClient = clients.getFederationClient(this.mlpPeer.getApiUrl());
+			log.info(EELFLoggerDelegate.debugLogger, "Peer task for peer {}, subscription {}", this.peer.getName(), this.subscription.getSubId());
+			FederationClient fedClient = clients.getFederationClient(this.peer.getApiUrl());
 			JsonResponse<List<MLPSolution>> response =
-				fedClient.getSolutions(Utils.jsonStringToMap(mlpSubscription.getSelector()));
-			log.debug(EELFLoggerDelegate.debugLogger,
-						"Peer task got response " + response + " for " + mlpPeer.getName() + ", " + mlpPeer.getApiUrl() + ", " + mlpSubscription.getSelector());
+				fedClient.getSolutions(Utils.jsonStringToMap(this.subscription.getSelector()));
+			log.info(EELFLoggerDelegate.debugLogger, "Peer task for peer {}, subscription {} got response {}", this.peer.getName(), this.subscription.getSubId(), response);
 			if (response != null && response.getContent() != null) {
-				List<MLPSolution> mlpSolutions = response.getContent();
-				if (mlpSolutions.size() > 0) {
+				List<MLPSolution> solutions = response.getContent();
+				if (solutions.size() > 0) {
 					this.eventPublisher.publishEvent(
-							new PeerSubscriptionEvent(this, this.mlpPeer, this.mlpSubscription, mlpSolutions));
+							new PeerSubscriptionEvent(this, this.peer, this.subscription, solutions));
 				}
 			}
+
+			this.subscription.setProcessed(new Date());
+			this.clients.getCDSClient().updatePeerSubscription(this.subscription);
 		}
 		catch (Exception x) {
-			log.error(EELFLoggerDelegate.errorLogger, "Peer task failed for " + mlpPeer.getName() + ", " + mlpPeer.getApiUrl() + ", " + mlpSubscription.getSelector(), x);
+			log.error(EELFLoggerDelegate.errorLogger, "Peer task failed for " + peer.getName() + ", " + peer.getApiUrl() + ", " + subscription.getSelector(), x);
 		}
 	}
 }

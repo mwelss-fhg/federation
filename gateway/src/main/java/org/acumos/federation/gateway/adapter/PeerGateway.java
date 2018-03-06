@@ -185,24 +185,26 @@ public class PeerGateway {
 			}
 		}
 
-		private MLPSolution createMLPSolution(MLPSolution peerMLPSolution, ICommonDataServiceRestClient cdsClient) {
+		private MLPSolution createMLPSolution(MLPSolution peerSolution, ICommonDataServiceRestClient cdsClient) {
 			log.info(EELFLoggerDelegate.debugLogger,
-					"Creating Local MLP Solution for peer solution " + peerMLPSolution);
+					"Creating Local MLP Solution for peer solution " + peerSolution);
 			MLPSolution localSolution = new MLPSolution();
-			localSolution.setSolutionId(peerMLPSolution.getSolutionId());
-			localSolution.setName(peerMLPSolution.getName());
-			localSolution.setDescription(peerMLPSolution.getDescription());
-			localSolution.setAccessTypeCode(AccessTypeCode.PB.toString());
-			localSolution.setMetadata(peerMLPSolution.getMetadata());
-			localSolution.setModelTypeCode(peerMLPSolution.getModelTypeCode());
-			localSolution.setProvider("ATTAcumosInc");
-			localSolution.setActive(peerMLPSolution.isActive());
-			localSolution.setToolkitTypeCode(peerMLPSolution.getToolkitTypeCode());
-			localSolution.setValidationStatusCode(ValidationStatusCode.NV.toString());
-			localSolution.setCreated(peerMLPSolution.getCreated());
-			localSolution.setModified(peerMLPSolution.getModified());
+			localSolution.setSolutionId(peerSolution.getSolutionId());
+			localSolution.setName(peerSolution.getName());
+			localSolution.setDescription(peerSolution.getDescription());
+			localSolution.setAccessTypeCode(this.sub.getAccessType());
+			localSolution.setMetadata(peerSolution.getMetadata());
+			localSolution.setModelTypeCode(peerSolution.getModelTypeCode());
+			localSolution.setProvider(this.peer.getName());
+			localSolution.setActive(peerSolution.isActive());
+			localSolution.setToolkitTypeCode(peerSolution.getToolkitTypeCode());
+			localSolution.setValidationStatusCode(this.peer.getValidationStatusCode());
+			//should the creted/modified reflect this information or the information we got from the peer ?
+			localSolution.setCreated(peerSolution.getCreated());
+			localSolution.setModified(peerSolution.getModified());
 			localSolution.setOwnerId(getOwnerId(this.sub));
 			localSolution.setSourceId(this.peer.getPeerId());
+			localSolution.setOrigin(peerSolution.getOrigin());
 			try {
 				cdsClient.createSolution(localSolution);
 				return localSolution;
@@ -218,20 +220,21 @@ public class PeerGateway {
 			}
 		}
 
-		private MLPSolutionRevision createMLPSolutionRevision(MLPSolutionRevision mlpSolutionRevision,
+		private MLPSolutionRevision createMLPSolutionRevision(MLPSolutionRevision peerSolutionRevision,
 				ICommonDataServiceRestClient cdsClient) {
-			MLPSolutionRevision solutionRevision = new MLPSolutionRevision();
-			solutionRevision.setSolutionId(mlpSolutionRevision.getSolutionId());
-			solutionRevision.setRevisionId(mlpSolutionRevision.getRevisionId());
-			solutionRevision.setVersion(mlpSolutionRevision.getVersion());
-			solutionRevision.setDescription(mlpSolutionRevision.getDescription());
-			solutionRevision.setOwnerId(getOwnerId(this.sub));
-			solutionRevision.setMetadata(mlpSolutionRevision.getMetadata());
-			solutionRevision.setCreated(mlpSolutionRevision.getCreated());
-			solutionRevision.setModified(mlpSolutionRevision.getModified());
+			MLPSolutionRevision localSolutionRevision = new MLPSolutionRevision();
+			localSolutionRevision.setSolutionId(peerSolutionRevision.getSolutionId());
+			localSolutionRevision.setRevisionId(peerSolutionRevision.getRevisionId());
+			localSolutionRevision.setVersion(peerSolutionRevision.getVersion());
+			localSolutionRevision.setDescription(peerSolutionRevision.getDescription());
+			localSolutionRevision.setOwnerId(getOwnerId(this.sub));
+			localSolutionRevision.setMetadata(peerSolutionRevision.getMetadata());
+			localSolutionRevision.setCreated(peerSolutionRevision.getCreated());
+			localSolutionRevision.setModified(peerSolutionRevision.getModified());
+			localSolutionRevision.setSourceId(this.peer.getPeerId());
 			try {
-				cdsClient.createSolutionRevision(solutionRevision);
-				return solutionRevision;
+				cdsClient.createSolutionRevision(localSolutionRevision);
+				return localSolutionRevision;
 			}
 			catch (HttpStatusCodeException restx) {
 				log.error(EELFLoggerDelegate.errorLogger,
@@ -292,48 +295,55 @@ public class PeerGateway {
 			return localMLPArtifact;
 		}
 
-		private MLPSolution updateMLPSolution(MLPSolution peerMLPSolution, MLPSolution localMLPSolution,
+		private MLPSolution updateMLPSolution(MLPSolution peerSolution, MLPSolution localSolution,
 				ICommonDataServiceRestClient cdsClient) {
 			log.info(EELFLoggerDelegate.debugLogger,
-					"Updating Local MLP Solution for peer solution " + peerMLPSolution);
+					"Updating Local MLP Solution for peer solution " + peerSolution);
 
-			if (!peerMLPSolution.getSolutionId().equals(localMLPSolution.getSolutionId()))
+			if (!peerSolution.getSolutionId().equals(localSolution.getSolutionId()))
 				throw new IllegalArgumentException("Local and Peer identifier mismatch");
 
-			localMLPSolution.setSolutionId(peerMLPSolution.getSolutionId());
-			localMLPSolution.setName(peerMLPSolution.getName());
-			localMLPSolution.setDescription(peerMLPSolution.getDescription());
-			localMLPSolution.setAccessTypeCode(peerMLPSolution.getAccessTypeCode());
-			localMLPSolution.setMetadata(peerMLPSolution.getMetadata());
-			localMLPSolution.setModelTypeCode(peerMLPSolution.getModelTypeCode());
-			localMLPSolution.setProvider(peerMLPSolution.getProvider());
-			localMLPSolution.setActive(peerMLPSolution.isActive());
-			localMLPSolution.setToolkitTypeCode(peerMLPSolution.getToolkitTypeCode());
-			// an update needs to be re-validated
-			localMLPSolution.setValidationStatusCode(ValidationStatusCode.NV.toString());
+			//localSolution.setSolutionId(peerSolution.getSolutionId());
+			localSolution.setName(peerSolution.getName());
+			localSolution.setDescription(peerSolution.getDescription());
+			localSolution.setAccessTypeCode(peerSolution.getAccessTypeCode());
+			localSolution.setMetadata(peerSolution.getMetadata());
+			localSolution.setModelTypeCode(peerSolution.getModelTypeCode());
+			localSolution.setProvider(peerSolution.getProvider());
+			localSolution.setActive(peerSolution.isActive());
+			localSolution.setToolkitTypeCode(peerSolution.getToolkitTypeCode());
+			// reset validation status to its default
+			localSolution.setValidationStatusCode(this.peer.getValidationStatusCode());
 			{
 				String newOwnerId = getOwnerId(this.sub);
-				if (!newOwnerId.equals(localMLPSolution.getOwnerId())) {
+				if (!newOwnerId.equals(localSolution.getOwnerId())) {
 					// is this solution being updated as part of different/new subscription?
-					log.warn(EELFLoggerDelegate.errorLogger, "updating solution " + localMLPSolution.getSolutionId()
+					log.warn(EELFLoggerDelegate.errorLogger, "updating solution " + localSolution.getSolutionId()
 							+ " as part of subscription " + this.sub.getSubId() + " triggers an ownership change");
 				}
-				localMLPSolution.setOwnerId(newOwnerId);
+				localSolution.setOwnerId(newOwnerId);
 			}
 
 			{
-				String newSourceId = this.peer.getPeerId();
-				if (!newSourceId.equals(localMLPSolution.getSourceId())) {
-					// we will see this if a solution is available in more than one peer
-					log.warn(EELFLoggerDelegate.errorLogger, "updating solution " + localMLPSolution.getSolutionId()
-							+ " as part of subscription " + this.sub.getSubId() + " triggers a source change");
+				if (localSolution.getSourceId() == null) {
+					//this is a local solution that made its way back
+					log.info(EELFLoggerDelegate.debugLogger, "Solution " + localSolution.getSolutionId()
+							+ " as part of subscription " + this.sub.getSubId() + " was originally provisioned locally");
 				}
-				localMLPSolution.setSourceId(newSourceId);
+				else {
+					String newSourceId = this.peer.getPeerId();
+					if (!newSourceId.equals(localSolution.getSourceId())) {
+						// we will see this if a solution is available in more than one peer
+						log.warn(EELFLoggerDelegate.errorLogger, "updating solution " + localSolution.getSolutionId()
+								+ " as part of subscription " + this.sub.getSubId() + " triggers a source change");
+					}
+					localSolution.setSourceId(newSourceId);
+				}
 			}
 
 			try {
-				cdsClient.updateSolution(localMLPSolution);
-				return localMLPSolution;
+				cdsClient.updateSolution(localSolution);
+				return localSolution;
 			}
 			catch (HttpStatusCodeException restx) {
 				log.error(EELFLoggerDelegate.errorLogger,
