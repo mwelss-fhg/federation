@@ -32,9 +32,9 @@ public enum PeerStatus {
 
 	Active(PeerStatusCode.AC.name()),
 	Inactive(PeerStatusCode.IN.name()),
-	Requested(PeerStatusCode.PA.name()),/* the 'peer' has made a request to be registered with this Acumos instance (pending active)  */
-	Renounced(PeerStatusCode.PR.name()),  /* the peer has made a request to be unregistered as a peer of this Acumos instance (pending remove) */
-	Declined(PeerStatusCode.RM.name()) /* (removed) */
+	Requested(PeerStatusCode.RQ.name()),/* the 'peer' has made a request to be registered with this Acumos instance (pending active)  */
+	Renounced(PeerStatusCode.RN.name()),  /* the peer has made a request to be unregistered as a peer of this Acumos instance (pending remove) */
+	Declined(PeerStatusCode.DC.name()) /* (removed) */
 	;
 
 	private String 				code;

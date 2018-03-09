@@ -157,7 +157,7 @@ public class PeerSubscriptionTaskScheduler {
 			if (peer.isSelf())
 				continue;
 
-			// cancel peer tasks for inactive peers
+			// cancel peer tasks for non-active peers
 			if (PeerStatus.Active != PeerStatus.forCode(peer.getStatusCode())) {
 				// cancel all peer sub tasks for this peer
 				log.debug(EELFLoggerDelegate.debugLogger,
@@ -170,8 +170,6 @@ public class PeerSubscriptionTaskScheduler {
 					}
 				}
 
-				// or peers that have been removed
-				//
 				continue;
 			}
 
