@@ -587,6 +587,10 @@ public class ASDC {
 			return this;
 		}
 
+		public ArtifactUploadAction withEncodedContent(String theContent) {
+			return with("payloadData", theContent);
+		}
+
 		public ArtifactUploadAction withContent(byte[] theContent) {
 			return with("payloadData", Base64Utils.encodeToString(theContent));
 		}
@@ -650,6 +654,10 @@ public class ASDC {
 
 		public ArtifactUpdateAction withContent(byte[] theContent) {
 			return with("payloadData", Base64Utils.encodeToString(theContent));
+		}
+		
+		public ArtifactUpdateAction withEncodedContent(String theContent) {
+			return with("payloadData", theContent);
 		}
 
 		public ArtifactUpdateAction withContent(File theFile) throws IOException {

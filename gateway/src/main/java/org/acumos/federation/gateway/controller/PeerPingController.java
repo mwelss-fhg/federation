@@ -75,9 +75,16 @@ public class PeerPingController extends AbstractController {
 		log.debug(EELFLoggerDelegate.debugLogger, API.Roots.LOCAL + "" + API.Paths.PING);
 		try {
 			MLPPeer peer = this.peerService.getPeerById(thePeerId);
-			response = this.clients.getFederationClient(peer.getApiUrl()).ping();
-
-			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+			if (peer == null) {
+				response = JsonResponse.<MLPPeer> buildErrorResponse()
+																 .withMessage("No peer with id " + thePeerId + " found.")
+																 .build();
+				theHttpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			}
+			else {
+				response = this.clients.getFederationClient(peer.getApiUrl()).ping();
+				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+			}
 		} 
 		catch (Exception x) {
 			response = JsonResponse.<MLPPeer> buildErrorResponse()

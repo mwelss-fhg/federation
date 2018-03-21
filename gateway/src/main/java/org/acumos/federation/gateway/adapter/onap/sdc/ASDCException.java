@@ -22,6 +22,7 @@ package org.acumos.federation.gateway.adapter.onap.sdc;
 
 import java.util.Arrays;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 
 import org.json.JSONObject;
@@ -71,5 +72,11 @@ public class ASDCException extends Exception {
 	@Override
 	public String getMessage() {
 		return "ASDC " + getASDCMessageId() + " " + getASDCMessage() + "\n" + super.getMessage();
+	}
+
+	public static boolean isNotFound(Exception theX) {
+
+		return theX instanceof ASDCException && theX.getCause() instanceof HttpClientErrorException
+					&& ((HttpClientErrorException) theX.getCause()).getStatusCode() == HttpStatus.NOT_FOUND;
 	}
 }

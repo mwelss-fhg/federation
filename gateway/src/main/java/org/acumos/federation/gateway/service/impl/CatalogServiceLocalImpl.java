@@ -119,12 +119,22 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions");
 		String modelTypeSelector = theSelector == null ? null : (String) theSelector.get("modelTypeCode");
+		String toolkitTypeSelector = theSelector == null ? null : (String) theSelector.get("toolkitTypeCode");
 		final List<String> modelTypes = modelTypeSelector == null ? null : Arrays.asList(modelTypeSelector.split(","));
-		return solutions.stream().filter(solution -> {
-			log.debug(EELFLoggerDelegate.debugLogger,
-					"getPeerCatalogSolutionsList: looking for " + modelTypes + ", has " + solution.getModelTypeCode());
-			return modelTypes == null || modelTypes.contains(solution.getModelTypeCode());
-		}).collect(Collectors.toList());
+		final List<String> toolkitTypes = toolkitTypeSelector == null ? null : Arrays.asList(toolkitTypeSelector.split(","));
+
+		return solutions.stream()
+			.filter(solution -> {
+				log.debug(EELFLoggerDelegate.debugLogger,
+					"getPeerCatalogSolutionsList: looking for model type " + modelTypes + ", has " + solution.getModelTypeCode());
+				return modelTypes == null || modelTypes.contains(solution.getModelTypeCode());
+			})
+			.filter(solution -> {
+				log.debug(EELFLoggerDelegate.debugLogger,
+					"getPeerCatalogSolutionsList: looking for toolkit type " + toolkitTypes + ", has " + solution.getToolkitTypeCode());
+				return toolkitTypes == null || toolkitTypes.contains(solution.getToolkitTypeCode());
+			})
+			.collect(Collectors.toList());
 	}
 
 	@Override

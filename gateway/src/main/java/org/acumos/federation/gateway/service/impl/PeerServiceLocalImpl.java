@@ -182,7 +182,17 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	/** */
 	@Override
 	public boolean updatePeerSubscription(MLPPeerSubscription theSub) {
-		throw new UnsupportedOperationException();
+		for (FLPPeer peer : this.peers) {
+			for (int i = 0; i < peer.getSubscriptions().size(); i++) {
+				MLPPeerSubscription peerSub = peer.getSubscriptions().get(i);
+				if (theSub.getSubId().equals(peerSub.getSubId()) &&
+						theSub.getPeerId().equals(peerSub.getPeerId())) {
+					peer.getSubscriptions().set(i, theSub);
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/** */

@@ -1,0 +1,233 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.cognita</groupId>
+  <artifactId>dcae-toscalab</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>dcae-toscalab</name>
+
+	<profiles>
+		<profile>
+			<id>clone</id>
+			<activation>
+        <file>
+					<!-- <missing>${project.build.directory}/TOSCA_Lab</missing> -->
+					<missing>target/TOSCA_Lab</missing>
+        	<!-- <missing>target/pyyaml</missing> -->
+				</file>
+      </activation>
+  		<build>
+				<plugins>
+					<plugin>
+  			  	<groupId>org.codehaus.mojo</groupId>
+			  	  <artifactId>exec-maven-plugin</artifactId>
+  			  	<version>1.6.0</version>
+
+						<executions>
+							<execution>
+								<id>toscalab-clone</id>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<phase>generate-resources</phase>
+
+								<configuration>
+									<executable>git</executable>
+									<arguments>
+										<argument>clone</argument>
+										<argument>-b</argument>
+										<!-- <argument>master</argument> -->
+										<argument>acumos</argument>
+										<argument>--single-branch</argument>
+										<argument>https://gitlab.research.att.com/shushi/TOSCA_Lab</argument>
+										<argument>${project.build.directory}/TOSCA_Lab</argument>
+									</arguments>
+								</configuration>
+							</execution>
+
+							<execution>
+								<id>pyyaml-clone</id>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<phase>generate-resources</phase>
+	
+								<configuration>
+									<executable>git</executable>
+									<arguments>
+										<argument>clone</argument>
+										<argument>-b</argument>
+										<argument>master</argument>
+										<argument>https://github.com/yaml/pyyaml.git</argument>
+										<argument>${project.build.directory}/pyyaml</argument>
+									</arguments>
+								</configuration>
+							</execution>
+
+							<execution>
+								<id>setuptools-clone</id>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<phase>generate-resources</phase>
+	
+								<configuration>
+									<executable>git</executable>
+									<arguments>
+										<argument>clone</argument>
+										<argument>-b</argument>
+										<argument>master</argument>
+										<argument>https://github.com/pypa/setuptools.git</argument>
+										<argument>${project.build.directory}/setuptools</argument>
+									</arguments>
+								</configuration>
+							</execution>
+	
+
+						</executions>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>pull</id>
+			<activation>
+        <file><exists>target/TOSCA_lab</exists></file>
+        <!-- <file><exists>${project.build.directory}/TOSCA_lab</exists></file> 
+[WARNING] 'profiles.profile[pull].activation.file.exists' Failed to interpolate file location ${project.build.directory}/TOSCA_lab for profile pull: ${project.*} expressions are not supported during profile activation
+-->
+        <!-- <file><exists>target/pyyaml</exists></file> -->
+      </activation>
+  		<build>
+				<plugins>
+					<plugin>
+  			  	<groupId>org.codehaus.mojo</groupId>
+			  	  <artifactId>exec-maven-plugin</artifactId>
+  			  	<version>1.6.0</version>
+
+						<executions>
+							<execution>
+								<id>toscalab-pull</id>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<phase>generate-resources</phase>
+
+								<configuration>
+									<executable>git</executable>
+									<workingDirectory>${project.build.directory}/TOSCA_Lab</workingDirectory>
+									<arguments>
+										<argument>pull</argument>
+									</arguments>
+								</configuration>
+							</execution>
+
+							<execution>
+								<id>pyyaml-pull</id>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<phase>generate-resources</phase>
+	
+								<configuration>
+									<executable>git</executable>
+									<workingDirectory>${project.build.directory}/pyyaml</workingDirectory>
+									<arguments>
+										<argument>pull</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+
+ 	</profiles>
+	
+	<build>
+		<plugins>
+
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<execution>
+            <id>copy-yaml</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/TOSCA_Lab/yaml</outputDirectory>
+              <resources>          
+                <resource>
+                  <directory>${project.build.directory}/pyyaml/lib/yaml</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>              
+            </configuration>            
+          </execution>
+        </executions>
+      </plugin>
+
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<execution>
+            <id>copy-pkg-resources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/TOSCA_Lab/pkg_resources</outputDirectory>
+              <resources>          
+                <resource>
+                  <directory>${project.build.directory}/setuptools/pkg_resources</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>              
+            </configuration>            
+          </execution>
+        </executions>
+      </plugin>
+
+			<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <executions>
+          <execution>
+						<id>package-toscalab</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>toscalab</classifier>
+              <classesDirectory>${project.build.directory}/TOSCA_Lab</classesDirectory>
+              <!-- <finalName>toscalab.jar</finalName> -->
+          		<includes>
+            		<include>**/*.py</include>
+            		<include>**/meta_model/**/*</include>
+            		<include>**/tosca_model/**/*</include>
+            		<include>**/shared_model/**/*</include>
+          		</includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+		</plugins>	
+	</build>
+
+</project>
+

@@ -32,6 +32,8 @@ import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.util.Utils;
+import org.acumos.federation.gateway.service.PeerSubscriptionService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
@@ -49,14 +51,16 @@ public class PeerSubscriptionTask implements Runnable {
 
 	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
-	@Autowired
-	private ApplicationEventPublisher eventPublisher;
 
 	private MLPPeer	peer;
 	private MLPPeerSubscription subscription;
 
 	@Autowired
+	private ApplicationEventPublisher eventPublisher;
+	@Autowired
 	private Clients clients;
+	@Autowired
+	private PeerSubscriptionService peerSubscriptionService;
 
 	public PeerSubscriptionTask() {
 	}
@@ -98,7 +102,7 @@ public class PeerSubscriptionTask implements Runnable {
 			}
 
 			this.subscription.setProcessed(new Date());
-			this.clients.getCDSClient().updatePeerSubscription(this.subscription);
+			this.peerSubscriptionService.updatePeerSubscription(this.subscription);
 		}
 		catch (Exception x) {
 			log.error(EELFLoggerDelegate.errorLogger, "Peer task failed for " + peer.getName() + ", " + peer.getApiUrl() + ", " + subscription.getSelector(), x);

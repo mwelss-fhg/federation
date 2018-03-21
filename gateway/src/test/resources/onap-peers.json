@@ -1,0 +1,32 @@
+[	{
+		"peerId":"9c579bb5-7304-406a-923c-73566d4ff480",
+		"name":"onap",
+		"subjectName":"gateway.onap.org",
+		"description":"onap",
+		"statusCode":"AC",
+    "self":"true",
+		"apiUrl":"https://gateway.onap.org:9009",
+		"subscriptions":[]
+	},	
+	{
+		"peerId":"babababa-baba-baba-baba-babababababa",
+		"name":"acumosa",
+		"subjectName":"gateway.acumosa.org",
+		"description":"acumosa",
+		"statusCode":"AC",
+    "self":"false",
+		"apiUrl":"https://gateway.acumosa.org:9001",
+		"subscriptions":[
+			{
+				"subId":1,
+		    "peerId":"babababa-baba-baba-baba-babababababa",
+				"selector":"{\"toolkitTypeCode\":\"ON\"}",
+				"refreshInterval":"120",
+				"maxArtifactSize":"2048",
+				"created":"2017-09-21",
+				"modified":"2017-10-10"
+			}
+		]
+	}
+]
+
