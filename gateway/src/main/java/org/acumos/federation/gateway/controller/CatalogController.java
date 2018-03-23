@@ -299,21 +299,26 @@ public class CatalogController extends AbstractController {
 	@ResponseBody
 	public InputStreamResource downloadSolutionArtifact(HttpServletRequest theHttpRequest,
 			HttpServletResponse theHttpResponse, @PathVariable("artifactId") String theArtifactId) {
-		InputStreamResource inputStreamResource = null;
+		InputStreamResource resource = null;
 		try {
-			inputStreamResource = catalogService.getSolutionRevisionArtifactContent(theArtifactId,
+			resource = catalogService.getSolutionRevisionArtifactContent(theArtifactId,
 					new ControllerContext());
-			theHttpResponse.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-			theHttpResponse.setHeader("Pragma", "no-cache");
-			theHttpResponse.setHeader("Expires", "0");
-			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+			if (resource == null) {
+				theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			}
+			else {
+				theHttpResponse.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+				theHttpResponse.setHeader("Pragma", "no-cache");
+				theHttpResponse.setHeader("Expires", "0");
+				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+			}
 		} 
 		catch (Exception x) {
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			log.error(EELFLoggerDelegate.errorLogger,
 					"An error occurred while downloading artifact " + theArtifactId, x);
 		}
-		return inputStreamResource;
+		return resource;
 	}
 
 	/** */
@@ -332,13 +337,16 @@ public class CatalogController extends AbstractController {
 	
 	/** */
 	private void encodeArtifact(MLPArtifact theArtifact, HttpServletRequest theRequest) throws URISyntaxException {
-		URI requestUri = new URI(theRequest.getRequestURL().toString());
-		URI artifactUri = API.ARTIFACT_DOWNLOAD
-											.buildUri(
-												new URI(requestUri.getScheme(), null, requestUri.getHost(),
-																requestUri.getPort(), null, null, null).toString(),
-												theArtifact.getArtifactId());
-		log.debug(EELFLoggerDelegate.debugLogger,	"getSolutionRevisionArtifacts: content uri " + artifactUri);
-		theArtifact.setUri(artifactUri.toString());
+		if (theArtifact.getUri() != null) {
+			URI requestUri = new URI(theRequest.getRequestURL().toString());
+			URI artifactUri = API.ARTIFACT_DOWNLOAD
+												.buildUri(
+													new URI(requestUri.getScheme(), null, requestUri.getHost(),
+																	requestUri.getPort(), null, null, null).toString(),
+													theArtifact.getArtifactId());
+			log.debug(EELFLoggerDelegate.debugLogger,	"getSolutionRevisionArtifacts: encoded content uri " + artifactUri);
+			theArtifact.setUri(artifactUri.toString());
+		}
 	}
+
 }

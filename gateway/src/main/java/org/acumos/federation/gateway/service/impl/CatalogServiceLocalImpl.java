@@ -50,14 +50,8 @@ import org.apache.commons.io.FileUtils;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.ServiceContext;
+import org.acumos.federation.gateway.service.ServiceException;
 import org.acumos.federation.gateway.util.Utils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.stereotype.Service;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import org.acumos.cds.AccessTypeCode;
 import org.acumos.cds.ValidationStatusCode;
@@ -66,6 +60,15 @@ import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.transport.RestPageResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 
 /**
  * 
@@ -180,7 +183,8 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	}
 
 	@Override
-	public InputStreamResource getSolutionRevisionArtifactContent(String theArtifactId, ServiceContext theContext) {
+	public InputStreamResource getSolutionRevisionArtifactContent(String theArtifactId, ServiceContext theContext) 
+																																																throws ServiceException {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifactContent");
 		// cumbersome
@@ -192,7 +196,8 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 							return new InputStreamResource(new URI(artifact.getUri()).toURL().openStream());
 						} catch (Exception x) {
 							log.debug(EELFLoggerDelegate.debugLogger,
-									"failed to load content from " + artifact.getUri(), x);
+									"failed to load artifact content from " + artifact.getUri(), x);
+							throw new ServiceException("Failed to retrieve content for artifact " + theArtifactId, x);
 						}
 					}
 				}

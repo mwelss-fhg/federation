@@ -40,12 +40,8 @@ import org.apache.commons.io.FileUtils;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.ServiceContext;
+import org.acumos.federation.gateway.service.ServiceException;
 import org.acumos.federation.gateway.util.Utils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.stereotype.Service;
-import org.springframework.context.annotation.Conditional;
 
 import org.acumos.nexus.client.NexusArtifactClient;
 
@@ -56,6 +52,13 @@ import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.transport.RestPageResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Conditional;
+
 
 /**
  * CDS based implementation of the CatalogService.
@@ -137,34 +140,29 @@ public class CatalogServiceImpl extends AbstractServiceImpl implements CatalogSe
 		return mlpArtifacts;
 	}
 
+	/**
+	 * @return a resource containing the content or null if the artifact has no content
+	 * @throws ServiceException if failing to retrieve artifact information or retrieve content 
+	 */
 	@Override
-	public InputStreamResource getSolutionRevisionArtifactContent(String theArtifactId, ServiceContext theContext) {
+	public InputStreamResource getSolutionRevisionArtifactContent(String theArtifactId, ServiceContext theContext) throws ServiceException {
 
 		InputStreamResource streamResource = null;
-		ByteArrayOutputStream byteArrayOutputStream = null;
 		try {
 			ICommonDataServiceRestClient cdsClient = getClient();
-			MLPArtifact mlpArtifact = cdsClient.getArtifact(theArtifactId);
+			MLPArtifact artifact = cdsClient.getArtifact(theArtifactId);
 
-			NexusArtifactClient artifactClient = this.clients.getNexusClient();
-
-			byteArrayOutputStream = artifactClient.getArtifact(mlpArtifact.getUri());
-			InputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-
-			// Plain Old Java. Sprint 3 will use try resource handling
-			if (inputStream != null) {
-				streamResource = new InputStreamResource(inputStream
-				/*
-				 * , some_description
-				 */);
+			if (artifact.getUri() != null) {
+				NexusArtifactClient artifactClient = this.clients.getNexusClient();
+				streamResource = new InputStreamResource(
+													new ByteArrayInputStream(
+														artifactClient.getArtifact(artifact.getUri()).toByteArray()
+													));
 			}
-			if (byteArrayOutputStream != null) {
-				byteArrayOutputStream.close();
-			}
-
 		}
 		catch (Exception x) {
-			log.error(EELFLoggerDelegate.errorLogger, "getSolutionRevisionArtifactiContent", x);
+			log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve artifact content for artifact " + theArtifactId, x);
+			throw new ServiceException("Failed to retrieve artifsact content for artifact " + theArtifactId, x);
 		}
 		return streamResource;
 	}

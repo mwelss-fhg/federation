@@ -173,6 +173,7 @@ public interface CatalogService {
 	 *            the execution context
 	 * @return resource containing access to the actual artifact content
 	 */
-	public InputStreamResource getSolutionRevisionArtifactContent(String theArtifactId, ServiceContext theContext);
+	public InputStreamResource getSolutionRevisionArtifactContent(String theArtifactId, ServiceContext theContext)
+																																													throws ServiceException;
 
 }

@@ -476,14 +476,17 @@ public class PeerGateway {
 						}
 					}
 
-					boolean doContent = (SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
+					boolean doContent = (peerArtifact.getUri() != null) &&
+															(SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
 					if (doContent) {
+						log.info(EELFLoggerDelegate.debugLogger, "Processing content for artifact {}", peerArtifact); 
 						// TODO: we are trying to access the artifact by its identifier which
 						// is fine in the common case but the uri specified in the artifact
 						// data is a more flexible approach.
 						Resource artifactContent = null;
 						try {
 							artifactContent = fedClient.downloadArtifact(peerArtifact.getArtifactId());
+							log.info(EELFLoggerDelegate.debugLogger, "Received {} bytes of artifact content", artifactContent.contentLength()); 
 						}
 						catch (Exception x) {
 							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos artifact content", x);
@@ -497,6 +500,7 @@ public class PeerGateway {
 												localArtifact.getName(), /* probably wrong */
 												localArtifact.getVersion(), "", /* should receive this from peer */
 												artifactContent.contentLength(), artifactContent.getInputStream());
+								log.info(EELFLoggerDelegate.debugLogger, "Wrote artifact content locally to {}", uploadInfo.getArtifactMvnPath()); 
 							}
 							catch (Exception x) {
 								log.error(EELFLoggerDelegate.errorLogger,
@@ -515,6 +519,7 @@ public class PeerGateway {
 					if (doUpdate) {
 						try {
 							cdsClient.updateArtifact(localArtifact);
+							log.info(EELFLoggerDelegate.debugLogger, "Local artifact updated with local content reference: {}", localArtifact); 
 						}
 						catch (HttpStatusCodeException restx) {
 							log.error(EELFLoggerDelegate.errorLogger,
