@@ -72,6 +72,7 @@ public enum API {
 		return theParams;
 	}
 
+	@Override
 	public String toString() {
 		return this.path;
 	}
@@ -136,7 +137,7 @@ public enum API {
 		return uriBuilder(theHttpUrl).buildAndExpand(theParams).encode().toUri();
 	}
 
-	public static class Roots {
+	public static interface Roots {
 
 		public static final String FEDERATION = "/";
 		/**
@@ -145,7 +146,7 @@ public enum API {
 		public static final String LOCAL = "/peer/{peerId}";
 	}
 
-	public static class Paths {
+	public static interface Paths {
 
 		public static final String SOLUTIONS = "/solutions";
 		public static final String SOLUTION_DETAILS = "/solutions/{solutionId}";
@@ -166,12 +167,12 @@ public enum API {
 		public static final String PEER_UNREGISTER = "/peer/unregister";
 	}
 
-	public static class QueryParameters {
+	public static interface QueryParameters {
 
 		public static final String SOLUTIONS_SELECTOR = "selector";
 	}
 
-	public static class Queries {
+	public static interface Queries {
 
 		public static final String[] SOLUTIONS = { QueryParameters.SOLUTIONS_SELECTOR };
 	}

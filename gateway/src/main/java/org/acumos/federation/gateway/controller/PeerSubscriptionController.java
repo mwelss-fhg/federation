@@ -83,7 +83,6 @@ public class PeerSubscriptionController extends AbstractController {
 		log.debug(EELFLoggerDelegate.debugLogger, API.Roots.LOCAL + "" + API.Paths.SUBSCRIPTION);
 		JsonResponse<String> response = null;
 		try {
-			response = new JsonResponse<String>();
 			log.debug(EELFLoggerDelegate.debugLogger, "trigger");
 	
 			MLPPeer peer = this.peerService.getPeerById(thePeerId);

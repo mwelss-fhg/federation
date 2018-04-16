@@ -36,7 +36,7 @@ public class Utils {
 
 	private final static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(Utils.class);
 
-	public static ObjectMapper objectMapper = new ObjectMapper();
+	private static ObjectMapper objectMapper = new ObjectMapper();
 
 	public Utils() {
 	}

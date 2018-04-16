@@ -391,7 +391,8 @@ public class InterfaceConfiguration {
 
 		if (this.ssl == null) {
 			log.info(EELFLoggerDelegate.debugLogger, "No ssl config was provided");
-		} else {
+		}
+		else {
 			KeyStore keyStore = null;
 			if (this.ssl.hasKeyStoreInfo()) {
 				InputStream keyStoreSource = null;
@@ -417,6 +418,14 @@ public class InterfaceConfiguration {
 				}
 				catch (Exception x) {
 					throw new IllegalStateException("Error loading key material: " + x, x);
+				}
+				finally {
+					try {
+						keyStoreSource.close();
+					}
+					catch (IOException iox) {
+						log.debug(EELFLoggerDelegate.debugLogger, "Error closing key store source", iox);
+					}
 				}
 			}
 
@@ -445,6 +454,14 @@ public class InterfaceConfiguration {
 				}
 				catch (Exception x) {
 					throw new IllegalStateException("Error loading trust material: " + x, x);
+				}
+				finally {
+					try {
+						trustStoreSource.close();
+					}
+					catch (IOException iox) {
+						log.debug(EELFLoggerDelegate.debugLogger, "Error closing trust store source", iox);
+					}
 				}
 			}
 

@@ -164,7 +164,7 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 				.orElse(null);
 		log.info(EELFLoggerDelegate.debugLogger,
 				"Peer " + thePeerId + " subs:" + (peer == null ? "none" : peer.getSubscriptions()));
-		return peer == Collections.EMPTY_LIST ? null : peer.getSubscriptions();
+		return peer == null ? Collections.EMPTY_LIST : peer.getSubscriptions();
 	}
 
 	/** */

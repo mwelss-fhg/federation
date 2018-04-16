@@ -90,7 +90,6 @@ public class CatalogController extends AbstractController {
 		List<MLPSolution> solutions = null;
 		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTIONS);
 		try {
-			response = new JsonResponse<List<MLPSolution>>();
 			log.debug(EELFLoggerDelegate.debugLogger, "getSolutionsListFromPeer: selector " + theSelector);
 			Map<String, ?> selector = null;
 			if (theSelector != null)
@@ -255,7 +254,6 @@ public class CatalogController extends AbstractController {
 		log.debug(EELFLoggerDelegate.debugLogger,
 				API.Paths.SOLUTION_REVISION_ARTIFACTS + "(" + theSolutionId + "," + theRevisionId + ")");
 		try {
-			response = new JsonResponse<List<MLPArtifact>>();
 			solutionRevisionArtifacts = catalogService.getSolutionRevisionArtifacts(theSolutionId, theRevisionId, context);
 			if (solutionRevisionArtifacts != null &&
 					!context.getPeer().getPeerInfo().isLocal()) {

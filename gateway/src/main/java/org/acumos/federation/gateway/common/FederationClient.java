@@ -76,7 +76,7 @@ public class FederationClient extends AbstractClient {
 					});
 		}
 		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
 			throw x;
 		}
 		catch (Throwable t) {
@@ -101,7 +101,7 @@ public class FederationClient extends AbstractClient {
 					});
 		}
 		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
 			throw x;
 		}
 		catch (Throwable t) {
@@ -146,7 +146,7 @@ public class FederationClient extends AbstractClient {
 					});
 		}
 		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
 			throw x;
 		}
 		catch (Throwable t) {
@@ -175,7 +175,7 @@ public class FederationClient extends AbstractClient {
 					});
 		}
 		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
 			throw x;
 		}
 		catch (Throwable t) {
@@ -208,7 +208,7 @@ public class FederationClient extends AbstractClient {
 					});
 		}
 		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
 			throw x;
 		}
 		catch (Throwable t) {
@@ -241,7 +241,7 @@ public class FederationClient extends AbstractClient {
 					});
 		}
 		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
 			throw x;
 		}
 		catch (Throwable t) {
@@ -268,7 +268,7 @@ public class FederationClient extends AbstractClient {
 			response = restTemplate.exchange(uri, HttpMethod.GET, null, Resource.class);
 		}
 		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
 			throw x;
 		}
 		catch (Throwable t) {
@@ -301,7 +301,7 @@ public class FederationClient extends AbstractClient {
 					});
 		}
 		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed" + ((response == null) ? "" : (" " + response)), x);
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
 			throw x;
 		}
 		catch (Throwable t) {
