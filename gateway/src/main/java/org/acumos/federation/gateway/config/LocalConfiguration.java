@@ -1,8 +1,8 @@
 /*-
  * ===============LICENSE_START=======================================================
- * Acumos
+ * Acumos Apache-2.0
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2018 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -41,12 +41,13 @@ import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletCon
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.controller.PeerPingController;
+import org.acumos.federation.gateway.controller.PeerPeersController;
 import org.acumos.federation.gateway.controller.PeerCatalogController;
 import org.acumos.federation.gateway.controller.PeerSubscriptionController;
 import org.acumos.federation.gateway.security.AuthenticationConfiguration;
 
 /**
- * Provides the neans used in interactions with the local Acumos system
+ * Provides the beans used in interactions with the local Acumos system
  */
 @Configuration
 @Import(AuthenticationConfiguration.class)
@@ -75,6 +76,12 @@ public class LocalConfiguration /* implements ApplicationContextAware */ {
 	public PeerSubscriptionController peerSubscriptionServer() {
 		return new PeerSubscriptionController();
 	}
+	
+	@Bean
+	public PeerPeersController peerPeersServer() {
+		return new PeerPeersController();
+	}
+
 	/**
    * Build a client for interacting with other local Acumos components
 	 * through the local interface.
