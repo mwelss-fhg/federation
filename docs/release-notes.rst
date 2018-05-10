@@ -16,14 +16,46 @@
 .. limitations under the License.
 .. ===============LICENSE_END=========================================================
 
-===============================
-Federated Gateway Release Notes
-===============================
+=============
+Release Notes
+=============
 
-The Federated Gateway is a dockerized spring boot application.  
+The Federated Gateway server is available as a Docker image in a Docker registry.
 
-1.2.0, 2017-11-28
----------------------------
+Version 1.1.3, 2018-05-10
+-------------------------
+
+* Upgrade to CDS 1.14.4
+
+Version 1.1.2, 2018-04-19
+-------------------------
+
+* Revise code for Sonar warnings (ACUMOS-672)
+
+Version 1.1.1, 2018-04-13
+-------------------------
+
+* Unit tests for local interface
+* Separate federation and local service interfaces (ACUMOS-276)
+
+Version 1.1.0, 2018-03-09
+-------------------------
+
+* Separate between federation and local interface with respect to network configuration, authorization and available REST API.
+* Upgrade to CDS 1.14.0
+
+Version 1.0.0, 2018-02-12
+-------------------------
+
+* Use release (not snapshot) versions of acumos-nexus-client and common-dataservice libraries
+* Limit JVM memory use via Docker start command
+* Revise docker projects to deploy images to nexus3.acumos.org
+* Make aspectjweaver part of runtime
+* Add dependency copy plugin
+
+Version 0.2.0, 2017-11-28
+-------------------------
+
 * Support to CDS 1.9.0
 * 2-Way SSL Support
 * X509 Subject Principal Authentication
