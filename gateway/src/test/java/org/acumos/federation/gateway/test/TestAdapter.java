@@ -38,6 +38,8 @@ import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
+import org.acumos.federation.gateway.cds.Solution;
+
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -132,8 +134,9 @@ public class TestAdapter {
 
 					List<MLPSolutionRevision> revisions = null;
 					try {
-						revisions = (List<MLPSolutionRevision>) fedClient.getSolutionRevisions(solution.getSolutionId())
-								.getContent();
+						Solution sol = (Solution)fedClient.getSolution(solution.getSolutionId()).getContent();
+						log.info(EELFLoggerDelegate.debugLogger, "retrieved solution {}", solution);
+						revisions = sol.getRevisions();
 					}
 					catch (Exception x) {
 						log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve revisions", x);

@@ -28,7 +28,9 @@ import java.util.stream.Collectors;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
+import org.acumos.federation.gateway.service.ServiceException;
 import org.acumos.federation.gateway.util.Utils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,8 @@ import org.acumos.cds.transport.RestPageResponse;
 @Service
 public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements PeerSubscriptionService {
 
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(PeerSubscriptionServiceImpl.class.getName());
+
 	@Autowired
 	private Environment env;
 
@@ -52,58 +56,33 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 	 * 
 	 */
 	public PeerSubscriptionServiceImpl() {
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	public List<MLPPeerSubscription> getPeerSubscriptions(String peerId) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscriptions:{}", peerId);
-		List<MLPPeerSubscription> peerSubscriptions = null;
-		// Temporary Fix as COmmon Data Service does not handle proper Serialization
-		peerSubscriptions = getClient().getPeerSubscriptions(peerId);
-		/*
-		 * if(!Utils.isEmptyList(mlpPeerSubscriptions)) { //mlpPeerSubscriptions =
-		 * mlpPeerSubscriptionPaged.getContent(); mlpPeerSubscriptions =
-		 * mlpPeerSubscriptions.stream().filter(mlpPeerSubscription ->
-		 * (mlpPeerSubscription.getPeerId().contains(peerId))).collect(Collectors.toList
-		 * ()); }
-		 */
-		log.debug(EELFLoggerDelegate.debugLogger, "peer {} subscriptions : {}", peerId, peerSubscriptions.size());
+	public List<MLPPeerSubscription> getPeerSubscriptions(String thePeerId) {
+		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscriptions:{}", thePeerId);
+		List<MLPPeerSubscription> peerSubscriptions = getClient().getPeerSubscriptions(thePeerId);
+		log.debug(EELFLoggerDelegate.debugLogger, "peer {} subscriptions : {}", thePeerId, peerSubscriptions.size());
 		return peerSubscriptions;
 	}
 
 	@Override
-	public MLPPeerSubscription getPeerSubscription(Long subId) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription:{}", subId);
-		ICommonDataServiceRestClient cdsClient = getClient();
-		MLPPeerSubscription existingMLPPeerSubscription = null;
-		existingMLPPeerSubscription = cdsClient.getPeerSubscription(subId);
-		if (existingMLPPeerSubscription != null) {
-			log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription :{}",
-					existingMLPPeerSubscription.toString());
-		}
-		return existingMLPPeerSubscription;
+	public MLPPeerSubscription getPeerSubscription(Long theSubId) {
+		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription:{}", theSubId);
+		MLPPeerSubscription peerSubscription = getClient().getPeerSubscription(theSubId);
+		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription :{}", peerSubscription);
+		return peerSubscription;
 	}
 
 	@Override
-	public boolean updatePeerSubscription(MLPPeerSubscription mlpPeerSubscription) {
+	public void updatePeerSubscription(MLPPeerSubscription theSubscription) throws ServiceException {
 		log.debug(EELFLoggerDelegate.debugLogger, "updatePeerSubscription");
 		ICommonDataServiceRestClient cdsClient = getClient();
-		boolean isUpdatedSuccessfully = false;
-		MLPPeerSubscription existingMLPPeerSubscription = null;
-		try {
-			existingMLPPeerSubscription = getPeerSubscription(mlpPeerSubscription.getSubId());
-			if (existingMLPPeerSubscription != null) {
-				if (mlpPeerSubscription.getPeerId().equalsIgnoreCase(existingMLPPeerSubscription.getPeerId()))
-					cdsClient.updatePeerSubscription(mlpPeerSubscription);
-				isUpdatedSuccessfully = true;
-			}
-		} catch (Exception e) {
-			isUpdatedSuccessfully = false;
-			log.error(EELFLoggerDelegate.debugLogger,
-					"updatePeer: Exception while deleting the MLPPeerSubscription record:", e);
-		}
-		return isUpdatedSuccessfully;
+		MLPPeerSubscription existingSubscription = cdsClient.getPeerSubscription(theSubscription.getSubId());
+		//this effectively stops one from re-assigning a subscription to another peer.
+		if (!theSubscription.getPeerId().equalsIgnoreCase(existingSubscription.getPeerId()))
+			throw new ServiceException("Peer id mismatch with existing subscription");
+		cdsClient.updatePeerSubscription(theSubscription);
 	}
 
 }

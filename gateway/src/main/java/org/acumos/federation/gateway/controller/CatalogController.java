@@ -25,6 +25,7 @@ import java.net.URISyntaxException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,14 +33,17 @@ import javax.servlet.http.HttpServletResponse;
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.federation.gateway.cds.ArtifactType;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JSONTags;
 import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.security.Peer;
 import org.acumos.federation.gateway.service.CatalogService;
+import org.acumos.federation.gateway.service.ArtifactService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.util.Utils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
@@ -56,6 +60,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import io.swagger.annotations.ApiOperation;
 
+import com.github.dockerjava.api.model.Identifier;
+
 /**
  * 
  *
@@ -68,6 +74,8 @@ public class CatalogController extends AbstractController {
 
 	@Autowired
 	private CatalogService catalogService;
+	@Autowired
+	private ArtifactService artifactService;
 
 	/**
 	 * @param theHttpResponse
@@ -255,10 +263,8 @@ public class CatalogController extends AbstractController {
 				API.Paths.SOLUTION_REVISION_ARTIFACTS + "(" + theSolutionId + "," + theRevisionId + ")");
 		try {
 			solutionRevisionArtifacts = catalogService.getSolutionRevisionArtifacts(theSolutionId, theRevisionId, context);
-			if (solutionRevisionArtifacts != null &&
-					!context.getPeer().getPeerInfo().isLocal()) {
-				// re-encode the artifact uri
-				for (MLPArtifact artifact : solutionRevisionArtifacts) {
+			for (MLPArtifact artifact : solutionRevisionArtifacts) {
+				if (!context.getPeer().getPeerInfo().isLocal()) {
 					encodeArtifact(artifact, theHttpRequest);
 				}
 			}
@@ -295,28 +301,28 @@ public class CatalogController extends AbstractController {
 	@RequestMapping(value = {
 			API.Paths.ARTIFACT_DOWNLOAD }, method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
 	@ResponseBody
-	public InputStreamResource downloadSolutionArtifact(HttpServletRequest theHttpRequest,
+	public Callable<InputStreamResource> downloadSolutionArtifact(HttpServletRequest theHttpRequest,
 			HttpServletResponse theHttpResponse, @PathVariable("artifactId") String theArtifactId) {
-		InputStreamResource resource = null;
-		try {
-			resource = catalogService.getSolutionRevisionArtifactContent(theArtifactId,
-					new ControllerContext());
-			if (resource == null) {
-				theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			
+		theHttpResponse.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+		theHttpResponse.setHeader("Pragma", "no-cache");
+		theHttpResponse.setHeader("Expires", "0");
+		theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+
+		final ControllerContext ctx = new ControllerContext();
+		return new Callable<InputStreamResource>() {
+			public InputStreamResource call() throws Exception {
+				try {	
+					return artifactService.getArtifactContent(
+									catalogService.getSolutionRevisionArtifact(theArtifactId, ctx), ctx);
+				} 
+				catch (Exception x) {
+					log.error(EELFLoggerDelegate.errorLogger,
+						"An error occurred while retrieving artifact content " + theArtifactId, x);
+					throw x;
+				}
 			}
-			else {
-				theHttpResponse.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-				theHttpResponse.setHeader("Pragma", "no-cache");
-				theHttpResponse.setHeader("Expires", "0");
-				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-			}
-		} 
-		catch (Exception x) {
-			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger,
-					"An error occurred while downloading artifact " + theArtifactId, x);
-		}
-		return resource;
+		};
 	}
 
 	/** */
@@ -335,16 +341,31 @@ public class CatalogController extends AbstractController {
 	
 	/** */
 	private void encodeArtifact(MLPArtifact theArtifact, HttpServletRequest theRequest) throws URISyntaxException {
-		if (theArtifact.getUri() != null) {
+
+		String artifactUri = theArtifact.getUri();
+
+		//redirect		
+		{
 			URI requestUri = new URI(theRequest.getRequestURL().toString());
-			URI artifactUri = API.ARTIFACT_DOWNLOAD
+			URI redirectUri = API.ARTIFACT_DOWNLOAD
 												.buildUri(
 													new URI(requestUri.getScheme(), null, requestUri.getHost(),
 																	requestUri.getPort(), null, null, null).toString(),
 													theArtifact.getArtifactId());
-			log.debug(EELFLoggerDelegate.debugLogger,	"getSolutionRevisionArtifacts: encoded content uri " + artifactUri);
-			theArtifact.setUri(artifactUri.toString());
+			log.debug(EELFLoggerDelegate.debugLogger,	"getSolutionRevisionArtifacts: redirected artifact uri " + redirectUri);
+			theArtifact.setUri(redirectUri.toString());
+		}
+		
+		if (ArtifactType.DockerImage == ArtifactType.forCode(theArtifact.getArtifactTypeCode())) {
+			if (artifactUri != null) {
+				Identifier imageId = Identifier.fromCompoundString(artifactUri);
+			
+				String imageTag = imageId.tag.get(); //there should always be a tag, right??
+				log.debug(EELFLoggerDelegate.debugLogger,	"getSolutionRevisionArtifacts: encoded docker image uri to tag " + imageTag);
+				theArtifact.setName(imageTag);
+				theArtifact.setDescription(imageTag);
+			}
 		}
 	}
-
+	
 }

@@ -47,9 +47,7 @@ public interface PeerSubscriptionService {
 	/**
 	 * @param mlpPeerSubscription
 	 *            MLPPeer Configuration that needs to be updated on the Platform
-	 * 
-	 * @return MLPPeerSubscription configuration that has been updated.
 	 */
-	boolean updatePeerSubscription(MLPPeerSubscription mlpPeerSubscription);
+	void updatePeerSubscription(MLPPeerSubscription mlpPeerSubscription) throws ServiceException;
 
 }

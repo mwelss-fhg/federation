@@ -24,7 +24,7 @@
      {
       "artifactId":"2a0f28e3-ccd9-40e1-a57c-62a57fb46b76",
       "name":"configuration",
-      "uri":"classpath:application-acumosb.properties",
+      "uri":"file:///home/jora/data/acumos/image",
       "metadata":"acumosb",
   	  "created":"2017-09-10",
   	  "modified":"2017-09-11"

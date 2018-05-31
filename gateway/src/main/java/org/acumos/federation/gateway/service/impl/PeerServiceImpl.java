@@ -24,10 +24,10 @@
 package org.acumos.federation.gateway.service.impl;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import java.util.ArrayList;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.util.MapBuilder;
@@ -44,6 +44,7 @@ import org.springframework.context.annotation.Conditional;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.transport.RestPageResponse;
+import org.acumos.cds.transport.RestPageRequest;
 
 /**
  * 
@@ -51,6 +52,8 @@ import org.acumos.cds.transport.RestPageResponse;
  */
 @Service
 public class PeerServiceImpl extends AbstractServiceImpl implements PeerService {
+
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(PeerServiceImpl.class.getName());
 
 	/**
 	 * 
@@ -62,6 +65,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	public MLPPeer getSelf() {
 		RestPageResponse<MLPPeer> response = 
 			getClient().searchPeers(new MapBuilder().put("isSelf", Boolean.TRUE).build(), false, null);
+		log.debug(EELFLoggerDelegate.errorLogger, "Peers representing 'self': " + response.getContent());
 		if (response.getSize() != 1) {
 			log.warn(EELFLoggerDelegate.errorLogger, "Number of peers representing 'self' not 1: " + response.getSize());
 			return null;
@@ -75,19 +79,22 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	@Override
 	public List<MLPPeer> getPeers(ServiceContext theContext) {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeers");
+
+		RestPageRequest pageRequest = new RestPageRequest(0, 100);
+		RestPageResponse<MLPPeer> pageResponse = null;
+		List<MLPPeer> peers = new ArrayList<MLPPeer>(),
+									pagePeers = null;
 		ICommonDataServiceRestClient cdsClient = getClient();
-		List<MLPPeer> mlpPeers = null;
-		/*
-		 * cdsClient.searchPeers( new MapBuilder() .put("status", PeerStatus.ACTIVE)
-		 * .build(), false);
-		 */
-		RestPageResponse<MLPPeer> mlpPeersPage = cdsClient.getPeers(null);
-		if (mlpPeersPage != null)
-			mlpPeers = mlpPeersPage.getContent();
-		if (mlpPeers != null) {
-			log.debug(EELFLoggerDelegate.debugLogger, "getPeers size:{}", mlpPeers.size());
+
+		do {
+			pageResponse = cdsClient.getPeers(pageRequest);
+			peers.addAll(pageResponse.getContent());
+		
+			pageRequest.setPage(pageResponse.getNumber() + 1);
 		}
-		return mlpPeers;
+		while (!pageResponse.isLast());
+
+		return peers;
 	}
 
 	@Override

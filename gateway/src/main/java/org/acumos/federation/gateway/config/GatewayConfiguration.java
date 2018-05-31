@@ -33,26 +33,32 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.PeerService;
+import org.acumos.federation.gateway.service.ArtifactService;
 
 import org.acumos.federation.gateway.service.impl.CatalogServiceImpl;
 import org.acumos.federation.gateway.service.impl.PeerSubscriptionServiceImpl;
 import org.acumos.federation.gateway.service.impl.PeerServiceImpl;
+import org.acumos.federation.gateway.service.impl.ArtifactServiceImpl;
+import org.acumos.federation.gateway.service.impl.ArtifactServiceLocalImpl;
 import org.acumos.federation.gateway.common.Clients;
 
 import org.acumos.federation.gateway.adapter.PeerGateway;
 
 import org.acumos.federation.gateway.task.TaskConfiguration;
+import org.acumos.federation.gateway.security.AuthenticationConfiguration;
 
 
 /**
  * Specifies common configuration required by the federation gateway.
  * Lists/provides all the beans required in running a federation gateway.
+ * 
  */
 @Configuration
-//@EnableAutoConfiguration
-@Import(TaskConfiguration.class)
+@Import({TaskConfiguration.class,
+				 AuthenticationConfiguration.class})
 @EnableConfigurationProperties({FederationInterfaceConfiguration.class,
-																LocalInterfaceConfiguration.class})
+																LocalInterfaceConfiguration.class,
+																DockerConfiguration.class})
 @Conditional({GatewayCondition.class})
 @EnableScheduling
 public class GatewayConfiguration {
@@ -76,6 +82,23 @@ public class GatewayConfiguration {
 	public PeerSubscriptionService peerSubscriptionService() {
 		return new PeerSubscriptionServiceImpl();
 	}
+
+	/**
+	 * The 'local' profile allows us to run a gateway based on a local artifact supplier, for testing purposes.
+
+	 */
+	@Bean
+	@Profile({"!local"})
+	public ArtifactService artifactService() {
+		return new ArtifactServiceImpl();
+	}
+
+	@Bean
+	@Profile({"local"})
+	public ArtifactService localArtifactService() {
+		return new ArtifactServiceLocalImpl();
+	}
+
 
 	@Bean
 	public Clients clients() {

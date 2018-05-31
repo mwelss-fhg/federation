@@ -20,6 +20,9 @@
 
 package org.acumos.federation.gateway.common;
 
+import java.io.IOException;
+import java.util.HashMap;
+
 import org.apache.http.client.HttpClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,18 +32,26 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 
 import org.acumos.nexus.client.NexusArtifactClient;
 import org.acumos.nexus.client.RepositoryLocation;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.core.DockerClientBuilder;
+
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.config.DockerConfiguration;
 import org.acumos.federation.gateway.config.InterfaceConfiguration;
 import org.acumos.federation.gateway.config.LocalInterfaceConfiguration;
 import org.acumos.federation.gateway.config.FederationInterfaceConfiguration;
+import org.acumos.federation.gateway.cds.Mapper;
 
-import org.acumos.cds.client.CommonDataServiceRestClientImpl;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
+import org.acumos.cds.client.CommonDataServiceRestClientImpl;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Unique entry point for building clients: peer access clients, cds clients
@@ -57,52 +68,71 @@ public class Clients {
 	private LocalInterfaceConfiguration localConfig = null;
 	@Autowired
 	private FederationInterfaceConfiguration federationConfig = null;
+	@Autowired
+	private DockerConfiguration dockerConfig = null;
 
 	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
 	public Clients() {
-		log.trace(EELFLoggerDelegate.debugLogger, "Clients::new");
 	}
-	
+
 	/**
 	 * @return The standard CDS client
 	 */
 	public ICommonDataServiceRestClient getCDSClient() {
 
+		MappingJackson2HttpMessageConverter cdsMessageConverter = new MappingJackson2HttpMessageConverter();
+    cdsMessageConverter.setObjectMapper(Mapper.build()); //try to avoid building one every time
+
 		RestTemplateBuilder builder =
 			new RestTemplateBuilder()
 				.requestFactory(new HttpComponentsClientHttpRequestFactory( 
-													/*(HttpClient)this.appCtx.getBean("localClient")*/
 													localConfig.buildClient()))
 				//.rootUri(env.getProperty("cdms.client.url"))
 				.basicAuthorization(env.getProperty("cdms.client.username"),
-														env.getProperty("cdms.client.password"));
+														env.getProperty("cdms.client.password"))
+				.messageConverters(cdsMessageConverter)
+				;
 
 			return new CommonDataServiceRestClientImpl(
 				env.getProperty("cdms.client.url"), builder.build());
-		//return new CommonDataServiceRestClientImpl(
-		//		env.getProperty("cdms.client.url"),
-		//		env.getProperty("cdms.client.username"),
-		//		env.getProperty("cdms.client.password"));
 	}
 
 	/**
 	 * Build a client for the given peer uri
 	 */
 	public FederationClient getFederationClient(String thePeerURI) {
-		return new FederationClient(thePeerURI, /*(HttpClient)this.appCtx.getBean("federationClient")*/federationConfig.buildClient());
+		return new FederationClient(thePeerURI, federationConfig.buildClient(), Mapper.build());
 	}
 
 	/** */
 	public NexusArtifactClient getNexusClient() {
 		RepositoryLocation repositoryLocation = new RepositoryLocation();
 
-		repositoryLocation.setId("1");
+		log.info(EELFLoggerDelegate.debugLogger, "Building Nexus client with {}, {}", env.getProperty("nexus.url"), env.getProperty("nexus.username")); 
 
+		repositoryLocation.setId("1");
 		repositoryLocation.setUrl(env.getProperty("nexus.url"));
 		repositoryLocation.setUsername(env.getProperty("nexus.username"));
 		repositoryLocation.setPassword(env.getProperty("nexus.password"));
 		repositoryLocation.setProxy(env.getProperty("nexus.proxy"));
 		return new NexusArtifactClient(repositoryLocation);
+	}
+
+	/** */
+	public Object getNexusProperty(String theName) {
+		return env.getProperty("nexus." + theName);
+	}
+
+	/** */
+	public DockerClient	getDockerClient() {
+    return DockerClientBuilder.getInstance(dockerConfig.buildConfig())
+        		.withDockerCmdExecFactory(DockerClientBuilder.getDefaultDockerCmdExecFactory())
+        		.build();
+	}
+
+	/** */
+	public Object getDockerProperty(String theName) {
+		return env.getProperty("docker." + theName);
 	}
 }

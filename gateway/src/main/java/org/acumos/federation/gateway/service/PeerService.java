@@ -56,7 +56,7 @@ public interface PeerService {
 	 * @return list of peers for the local acumoms system
 	 */
 	public default List<MLPPeer> getPeers() {
-		return getPeers(ServiceContext.selfService());
+		return getPeers(selfService());
 	}
 
 	/**
@@ -81,7 +81,7 @@ public interface PeerService {
 	 *         entry.
 	 */
 	public default List<MLPPeer> getPeerBySubjectName(String theSubjectName) {
-		return getPeerBySubjectName(theSubjectName, ServiceContext.selfService());
+		return getPeerBySubjectName(theSubjectName, selfService());
 	}
 
 	/**
@@ -104,7 +104,7 @@ public interface PeerService {
 	 * @return peer information
 	 */
 	public default MLPPeer getPeerById(String thePeerId) {
-		return getPeerById(thePeerId, ServiceContext.selfService());
+		return getPeerById(thePeerId, selfService());
 	}
 
 	/**
@@ -130,5 +130,10 @@ public interface PeerService {
 	 *             if anything goes wrong during the check/provisioning process
 	 */
 	public void unregisterPeer(MLPPeer thePeer) throws ServiceException;
+
+	/**
+	 * Provide a context for self service calls, ie calls made on the behalf of the gateway itself.
+	 */
+	public ServiceContext selfService();
 
 }

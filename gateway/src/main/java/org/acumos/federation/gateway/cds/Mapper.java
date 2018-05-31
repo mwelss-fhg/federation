@@ -1,0 +1,104 @@
+/*-
+ * ===============LICENSE_START=======================================================
+ * Acumos
+ * ===================================================================================
+ * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * ===================================================================================
+ * This Acumos software file is distributed by AT&T and Tech Mahindra
+ * under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *  
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *  
+ * This file is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ===============LICENSE_END=========================================================
+ */
+package org.acumos.federation.gateway.cds;
+
+import java.io.IOException;
+
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.acumos.cds.domain.MLPSolution;
+import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.cds.domain.MLPArtifact;
+
+/**
+ * Provides a Jackson ObjectMapper configured with an extension module for processing
+ * federation data where CDS data is declared.
+ */
+public class Mapper {
+
+
+	public static ObjectMapper build() {
+		ObjectMapper mapper = new ObjectMapper();
+
+		SimpleModule fedModule =
+      new SimpleModule("CDSModule",
+          new Version(1, 0, 0, null));
+    fedModule.addDeserializer(MLPSolution.class, new SolutionDeserializer());
+    fedModule.addDeserializer(MLPSolutionRevision.class, new SolutionRevisionDeserializer());
+    fedModule.addDeserializer(MLPArtifact.class, new ArtifactDeserializer());
+		mapper.registerModule(fedModule);
+
+
+		return mapper;
+	}
+	
+	private static class SolutionDeserializer extends StdDeserializer<MLPSolution> {
+ 
+		public SolutionDeserializer() {
+			super(MLPSolution.class);
+		}
+ 
+		@Override
+  	public MLPSolution deserialize(JsonParser theParser, DeserializationContext theCtx) 
+      																								throws IOException, JsonProcessingException {
+  	  ObjectMapper mapper = (ObjectMapper) theParser.getCodec();
+    	return mapper.readValue(theParser, Solution.class);
+  	}
+	}
+
+	private static class SolutionRevisionDeserializer extends StdDeserializer<MLPSolutionRevision> {
+ 
+		public SolutionRevisionDeserializer() {
+			super(MLPSolutionRevision.class);
+		}
+ 
+		@Override
+  	public MLPSolutionRevision deserialize(JsonParser theParser, DeserializationContext theCtx) 
+      																									throws IOException, JsonProcessingException {
+  	  ObjectMapper mapper = (ObjectMapper) theParser.getCodec();
+    	return mapper.readValue(theParser, SolutionRevision.class);
+  	}
+	}
+
+	private static class ArtifactDeserializer extends StdDeserializer<MLPArtifact> {
+ 
+		public ArtifactDeserializer() {
+			super(MLPArtifact.class);
+		}
+ 
+		@Override
+  	public MLPArtifact deserialize(JsonParser theParser, DeserializationContext theCtx) 
+      																								throws IOException, JsonProcessingException {
+  	  ObjectMapper mapper = (ObjectMapper) theParser.getCodec();
+    	return mapper.readValue(theParser, Artifact.class);
+  	}
+	}
+
+
+}
+

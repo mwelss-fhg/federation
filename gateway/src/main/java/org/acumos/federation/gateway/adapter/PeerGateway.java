@@ -42,8 +42,12 @@ import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.util.Errors;
 import org.acumos.federation.gateway.cds.SubscriptionScope;
+import org.acumos.federation.gateway.cds.Solution;
+import org.acumos.federation.gateway.cds.SolutionRevision;
+import org.acumos.federation.gateway.cds.Artifact;
 
-import org.acumos.nexus.client.data.UploadArtifactInfo;
+import org.acumos.federation.gateway.service.ArtifactService;
+import org.acumos.federation.gateway.service.ServiceException;
 
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +73,9 @@ public class PeerGateway {
 	private Environment env;
 	@Autowired
 	private Clients clients;
+	@Autowired
+	private ArtifactService artifacts;
+
 
 	public PeerGateway() {
 		log.trace(EELFLoggerDelegate.debugLogger, "PeerGateway::new");
@@ -183,23 +190,15 @@ public class PeerGateway {
 		private MLPSolution createMLPSolution(MLPSolution peerSolution, ICommonDataServiceRestClient cdsClient) {
 			log.info(EELFLoggerDelegate.debugLogger,
 					"Creating Local MLP Solution for peer solution " + peerSolution);
-			MLPSolution localSolution = new MLPSolution();
-			localSolution.setSolutionId(peerSolution.getSolutionId());
-			localSolution.setName(peerSolution.getName());
-			localSolution.setDescription(peerSolution.getDescription());
-			localSolution.setAccessTypeCode(this.sub.getAccessType());
-			localSolution.setMetadata(peerSolution.getMetadata());
-			localSolution.setModelTypeCode(peerSolution.getModelTypeCode());
-			localSolution.setProvider(this.peer.getName());
-			localSolution.setActive(peerSolution.isActive());
-			localSolution.setToolkitTypeCode(peerSolution.getToolkitTypeCode());
-			localSolution.setValidationStatusCode(this.peer.getValidationStatusCode());
+
+			Solution localSolution = Solution.buildFrom(peerSolution)
+																	.withAccessTypeCode(this.sub.getAccessType())
+																	.withValidationStatusCode(this.peer.getValidationStatusCode())
+																	.withProvider(this.peer.getName())
 			//should the creted/modified reflect this information or the information we got from the peer ?
-			localSolution.setCreated(peerSolution.getCreated());
-			localSolution.setModified(peerSolution.getModified());
-			localSolution.setOwnerId(getOwnerId(this.sub));
-			localSolution.setSourceId(this.peer.getPeerId());
-			localSolution.setOrigin(peerSolution.getOrigin());
+																	.withOwner(getOwnerId(this.sub))
+																	.withSource(this.peer.getPeerId())
+																	.build();
 			try {
 				cdsClient.createSolution(localSolution);
 				return localSolution;
@@ -215,21 +214,16 @@ public class PeerGateway {
 			}
 		}
 
-		private MLPSolutionRevision createMLPSolutionRevision(MLPSolutionRevision peerSolutionRevision,
+		private MLPSolutionRevision createMLPSolutionRevision(MLPSolutionRevision peerRevision,
 				ICommonDataServiceRestClient cdsClient) {
-			MLPSolutionRevision localSolutionRevision = new MLPSolutionRevision();
-			localSolutionRevision.setSolutionId(peerSolutionRevision.getSolutionId());
-			localSolutionRevision.setRevisionId(peerSolutionRevision.getRevisionId());
-			localSolutionRevision.setVersion(peerSolutionRevision.getVersion());
-			localSolutionRevision.setDescription(peerSolutionRevision.getDescription());
-			localSolutionRevision.setOwnerId(getOwnerId(this.sub));
-			localSolutionRevision.setMetadata(peerSolutionRevision.getMetadata());
-			localSolutionRevision.setCreated(peerSolutionRevision.getCreated());
-			localSolutionRevision.setModified(peerSolutionRevision.getModified());
-			localSolutionRevision.setSourceId(this.peer.getPeerId());
+
+			SolutionRevision localRevision = SolutionRevision.buildFrom(peerRevision)
+																					.withOwner(getOwnerId(this.sub))
+																					.withSource(this.peer.getPeerId())
+																					.build();
 			try {
-				cdsClient.createSolutionRevision(localSolutionRevision);
-				return localSolutionRevision;
+				cdsClient.createSolutionRevision(localRevision);
+				return localRevision;
 			}
 			catch (HttpStatusCodeException restx) {
 				log.error(EELFLoggerDelegate.errorLogger,
@@ -243,24 +237,15 @@ public class PeerGateway {
 			}
 		}
 
-		private MLPArtifact createMLPArtifact(String theSolutionId, String theRevisionId, MLPArtifact mlpArtifact,
+		private MLPArtifact createMLPArtifact(String theSolutionId, String theRevisionId, MLPArtifact peerArtifact,
 				ICommonDataServiceRestClient cdsClient) {
-			MLPArtifact artifact = new MLPArtifact();
-			artifact.setArtifactId(mlpArtifact.getArtifactId());
-			artifact.setArtifactTypeCode(mlpArtifact.getArtifactTypeCode());
-			artifact.setCreated(mlpArtifact.getCreated());
-			artifact.setDescription(mlpArtifact.getDescription());
-			artifact.setMetadata(mlpArtifact.getMetadata());
-			artifact.setModified(mlpArtifact.getModified());
-			artifact.setName(mlpArtifact.getName());
-			artifact.setOwnerId(getOwnerId(this.sub));
-			artifact.setSize(mlpArtifact.getSize());
-			;
-			artifact.setUri(mlpArtifact.getUri());
-			artifact.setVersion(mlpArtifact.getVersion());
+
+			Artifact artifact = Artifact.buildFrom(peerArtifact)
+														.withOwner(getOwnerId(this.sub))
+														.build();
 			try {
 				cdsClient.createArtifact(artifact);
-				cdsClient.addSolutionRevisionArtifact(theSolutionId, theRevisionId, mlpArtifact.getArtifactId());
+				cdsClient.addSolutionRevisionArtifact(theSolutionId, theRevisionId, artifact.getArtifactId());
 				return artifact;
 			}
 			catch (HttpStatusCodeException restx) {
@@ -274,23 +259,16 @@ public class PeerGateway {
 			}
 		}
 
-		private MLPArtifact copyMLPArtifact(MLPArtifact peerMLPArtifact, MLPArtifact localMLPArtifact) {
+		/* we create a new one as nothing is preserved. assumes matching ids. */
+		private MLPArtifact copyMLPArtifact(MLPArtifact peerArtifact, MLPArtifact localArtifact) {
 
-			localMLPArtifact.setArtifactId(peerMLPArtifact.getArtifactId());
-			localMLPArtifact.setArtifactTypeCode(peerMLPArtifact.getArtifactTypeCode());
-			localMLPArtifact.setCreated(peerMLPArtifact.getCreated());
-			localMLPArtifact.setDescription(peerMLPArtifact.getDescription());
-			localMLPArtifact.setMetadata(peerMLPArtifact.getMetadata());
-			localMLPArtifact.setModified(peerMLPArtifact.getModified());
-			localMLPArtifact.setName(peerMLPArtifact.getName());
-			localMLPArtifact.setOwnerId(getOwnerId(this.sub));
-			localMLPArtifact.setSize(peerMLPArtifact.getSize());
-			localMLPArtifact.setUri(peerMLPArtifact.getUri());
-			localMLPArtifact.setVersion(peerMLPArtifact.getVersion());
-			return localMLPArtifact;
+			return Artifact.buildFrom(peerArtifact)
+								.withId(localArtifact.getArtifactId())
+								.withOwner(getOwnerId(this.sub))
+								.build();
 		}
 
-		private MLPSolution updateMLPSolution(MLPSolution peerSolution, MLPSolution localSolution,
+		private MLPSolution updateMLPSolution(final MLPSolution peerSolution, final MLPSolution localSolution,
 				ICommonDataServiceRestClient cdsClient) {
 			log.info(EELFLoggerDelegate.debugLogger,
 					"Updating Local MLP Solution for peer solution " + peerSolution);
@@ -298,43 +276,38 @@ public class PeerGateway {
 			if (!peerSolution.getSolutionId().equals(localSolution.getSolutionId()))
 				throw new IllegalArgumentException("Local and Peer identifier mismatch");
 
-			//localSolution.setSolutionId(peerSolution.getSolutionId());
-			localSolution.setName(peerSolution.getName());
-			localSolution.setDescription(peerSolution.getDescription());
-			localSolution.setAccessTypeCode(peerSolution.getAccessTypeCode());
-			localSolution.setMetadata(peerSolution.getMetadata());
-			localSolution.setModelTypeCode(peerSolution.getModelTypeCode());
-			localSolution.setProvider(peerSolution.getProvider());
-			localSolution.setActive(peerSolution.isActive());
-			localSolution.setToolkitTypeCode(peerSolution.getToolkitTypeCode());
-			// reset validation status to its default
-			localSolution.setValidationStatusCode(this.peer.getValidationStatusCode());
-			{
-				String newOwnerId = getOwnerId(this.sub);
-				if (!newOwnerId.equals(localSolution.getOwnerId())) {
-					// is this solution being updated as part of different/new subscription?
-					log.warn(EELFLoggerDelegate.errorLogger, "updating solution " + localSolution.getSolutionId()
-							+ " as part of subscription " + this.sub.getSubId() + " triggers an ownership change");
-				}
-				localSolution.setOwnerId(newOwnerId);
-			}
-
-			{
-				if (localSolution.getSourceId() == null) {
-					//this is a local solution that made its way back
-					log.info(EELFLoggerDelegate.debugLogger, "Solution " + localSolution.getSolutionId()
-							+ " as part of subscription " + this.sub.getSubId() + " was originally provisioned locally");
-				}
-				else {
-					String newSourceId = this.peer.getPeerId();
-					if (!newSourceId.equals(localSolution.getSourceId())) {
-						// we will see this if a solution is available in more than one peer
-						log.warn(EELFLoggerDelegate.errorLogger, "updating solution " + localSolution.getSolutionId()
-								+ " as part of subscription " + this.sub.getSubId() + " triggers a source change");
-					}
-					localSolution.setSourceId(newSourceId);
-				}
-			}
+			//start with the peer solution and pick the few local values we ought to preserve or impose
+			Solution solution = Solution.buildFrom(peerSolution)
+															.withAccessTypeCode(localSolution.getAccessTypeCode())
+															.withValidationStatusCode(this.peer.getValidationStatusCode()) //reset
+															.withProvider(this.peer.getName())
+															.withOwner((Object... args) -> {
+																	String newOwnerId = getOwnerId(this.sub);
+																		if (!newOwnerId.equals(localSolution.getOwnerId())) {
+																			// is this solution being updated as part of different/new subscription?
+																			log.warn(EELFLoggerDelegate.errorLogger, "updating solution " +localSolution.getSolutionId()
+																			+ " as part of subscription " + this.sub.getSubId() + " triggers an ownership change");
+																		}
+																		return newOwnerId;
+																})
+															.withSource((Object... args) -> {
+																	if (localSolution.getSourceId() == null) {
+																		//this is a local solution that made its way back
+																		log.info(EELFLoggerDelegate.debugLogger, "Solution " + localSolution.getSolutionId()
+																		+ " as part of subscription " + this.sub.getSubId() + " was originally provisioned locally");
+																		return null;
+																	}
+																	else {
+																		String newSourceId = this.peer.getPeerId();
+																		if (!newSourceId.equals(localSolution.getSourceId())) {
+																			// we will see this if a solution is available in more than one peer
+																			log.warn(EELFLoggerDelegate.errorLogger, "updating solution " +localSolution.getSolutionId()
+																			+ " as part of subscription " + this.sub.getSubId() + " triggers a source change");
+																		}
+																		return newSourceId;
+																	}
+																})
+															.build();
 
 			try {
 				cdsClient.updateSolution(localSolution);
@@ -466,7 +439,7 @@ public class PeerGateway {
 					else {
 						if (!peerArtifact.getVersion().equals(localArtifact.getVersion())) {
 							// update local artifact
-							copyMLPArtifact(peerArtifact, localArtifact);
+							localArtifact = copyMLPArtifact(peerArtifact, localArtifact);
 							doUpdate = true;
 						}
 					}
@@ -487,27 +460,13 @@ public class PeerGateway {
 							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos artifact content", x);
 						}
 
-						UploadArtifactInfo uploadInfo = null;
-						if (artifactContent != null) {
-							try {
-								uploadInfo = PeerGateway.this.clients.getNexusClient()
-										.uploadArtifact(PeerGateway.this.env.getProperty("nexus.groupId"),
-												localArtifact.getName(), /* probably wrong */
-												localArtifact.getVersion(), "", /* should receive this from peer */
-												artifactContent.contentLength(), artifactContent.getInputStream());
-								log.info(EELFLoggerDelegate.debugLogger, "Wrote artifact content locally to {}", uploadInfo.getArtifactMvnPath()); 
-							}
-							catch (Exception x) {
-								log.error(EELFLoggerDelegate.errorLogger,
-										"Failed to push artifact content to local Nexus repo", x);
-							}
-						}
-
-						if (uploadInfo != null) {
-							// update artifact with local repo reference
-							localArtifact.setUri(uploadInfo.getArtifactMvnPath());
-							// the artifact info will need to be updated with local content uri
+						try {
+							artifacts.putArtifactContent(localArtifact, artifactContent);
 							doUpdate = true;
+						}
+						catch (ServiceException sx) {
+							log.error(EELFLoggerDelegate.errorLogger,
+										"Failed to store artifact content to local repo", sx);
 						}
 					}
 
