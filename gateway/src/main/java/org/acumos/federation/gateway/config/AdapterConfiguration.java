@@ -33,13 +33,17 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.PeerService;
+import org.acumos.federation.gateway.service.ArtifactService;
 import org.acumos.federation.gateway.service.LocalWatchService;
 
+import org.acumos.federation.gateway.service.impl.ArtifactServiceImpl;
+import org.acumos.federation.gateway.service.impl.ArtifactServiceLocalImpl;
 import org.acumos.federation.gateway.service.impl.CatalogServiceLocalImpl;
 import org.acumos.federation.gateway.service.impl.PeerServiceLocalImpl;
 import org.acumos.federation.gateway.common.Clients;
 
 import org.acumos.federation.gateway.task.TaskConfiguration;
+import org.acumos.federation.gateway.security.AuthenticationConfiguration;
 
 /**
  * Specifies common configuration required by the federation adapter.
@@ -47,11 +51,11 @@ import org.acumos.federation.gateway.task.TaskConfiguration;
  * not specified.
  */
 @Configuration
-//@EnableAutoConfiguration
-@Import(TaskConfiguration.class)
+@Import({TaskConfiguration.class,
+				 AuthenticationConfiguration.class})
 @EnableConfigurationProperties({FederationInterfaceConfiguration.class,
-																LocalInterfaceConfiguration.class})
-//@Profile({"adapter"})
+																LocalInterfaceConfiguration.class,
+																DockerConfiguration.class})
 @Conditional({AdapterCondition.class})
 @EnableScheduling
 public abstract class AdapterConfiguration  {
@@ -70,14 +74,18 @@ public abstract class AdapterConfiguration  {
 	
 	@Bean
 	public PeerSubscriptionService peerSubscriptionService() {
-	//	return new PeerServiceLocalImpl(); //another instance ??
 		return this.peerSubSrv;
 	}
 
 	@Bean
-	public LocalWatchService watchService() {
-		return new LocalWatchService();
+	public ArtifactService localArtifactService() {
+		return new ArtifactServiceLocalImpl();
 	}
+
+  @Bean
+  public LocalWatchService watchService() {
+    return new LocalWatchService();
+  }
 
 	@Bean
 	public Clients clients() {

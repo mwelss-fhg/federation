@@ -21,10 +21,8 @@
 package org.acumos.federation.gateway.common;
 
 /**
-* This class represents a common format set for the response send to the client.
-* Getters and setters encapsulate the fields of a class by making them accessible 
-* only through its public methods and keep the values themselves private.
-* @JsonProperty(name), tells Jackson ObjectMapper to map the JSON property name to the annotated Java field's name.
+* This class represents a common format set for the response send to the client over
+* the REST interface.
 */
 
 import java.io.Serializable;

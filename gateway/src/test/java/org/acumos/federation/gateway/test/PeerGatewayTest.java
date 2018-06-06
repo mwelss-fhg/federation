@@ -268,17 +268,35 @@ public class PeerGatewayTest {
 					any(Map.class), any(Boolean.class), any(RestPageRequest.class)
 				)
 			)
-			.thenAnswer(new Answer<List<MLPPeer>>() {
-					public List<MLPPeer> answer(InvocationOnMock theInvocation) {
+			.thenAnswer(new Answer<RestPageResponse<MLPPeer>>() {
+					public RestPageResponse<MLPPeer> answer(InvocationOnMock theInvocation) {
+						Map selector = (Map)theInvocation.getArguments()[0];
 						MLPPeer peer = new MLPPeer();
-						peer.setPeerId("1");
-						peer.setName("testPeer");
-						peer.setSubjectName("test.org");
-						peer.setStatusCode(PeerStatus.Active.code());
-						peer.setSelf(false);
-						peer.setApiUrl("https://localhost:1111");
-
-						return Collections.singletonList(peer);
+						if (selector != null && selector.containsKey("isSelf") && selector.get("isSelf").equals(Boolean.TRUE)) {
+							peer.setPeerId("0");
+							peer.setName("testSelf");
+							peer.setSubjectName("test.org");
+							peer.setStatusCode(PeerStatus.Active.code());
+							peer.setSelf(true);
+							peer.setApiUrl("https://localhost:1110");
+						}
+						else {
+							peer.setPeerId("1");
+							peer.setName("testPeer");
+							peer.setSubjectName("test.org");
+							peer.setStatusCode(PeerStatus.Active.code());
+							peer.setSelf(false);
+							peer.setApiUrl("https://localhost:1111");
+						}
+	
+						RestPageResponse page = new RestPageResponse(Collections.singletonList(peer));
+						page.setNumber(1);
+						page.setSize(1);
+						page.setTotalPages(1);
+						page.setTotalElements(1);
+						page.setFirst(true);
+						page.setLast(true);
+						return page;
 					}
 				});
 		
@@ -288,8 +306,7 @@ public class PeerGatewayTest {
 				)
 			)
 			.thenAnswer(new Answer<RestPageResponse<MLPPeer>>() {
-					public RestPageResponse<MLPPeer>
-						answer(InvocationOnMock theInvocation) {
+					public RestPageResponse<MLPPeer> answer(InvocationOnMock theInvocation) {
 						MLPPeer peer = new MLPPeer();
 						peer.setPeerId("1");
 						peer.setName("testPeer");
@@ -298,7 +315,14 @@ public class PeerGatewayTest {
 						peer.setSelf(false);
 						peer.setApiUrl("https://localhost:1111");
 
-						return new RestPageResponse(Collections.singletonList(peer));
+						RestPageResponse page = new RestPageResponse(Collections.singletonList(peer));
+						page.setNumber(1);
+						page.setSize(1);
+						page.setTotalPages(1);
+						page.setTotalElements(1);
+						page.setFirst(true);
+						page.setLast(true);
+						return page;
 					}
 				});
 	

@@ -17,11 +17,10 @@
  * limitations under the License.
  * ===============LICENSE_END=========================================================
  */
-
-/**
- * 
- */
 package org.acumos.federation.gateway.service;
+
+import java.util.Map;
+import java.util.HashMap;
 
 import org.acumos.federation.gateway.security.Peer;
 
@@ -30,6 +29,14 @@ import org.acumos.federation.gateway.security.Peer;
  * provided).
  */
 public interface ServiceContext {
+
+	/*
+	 */
+	public ServiceContext withAttribute(String theName, Object theValue);
+
+	/*
+	 */
+	public Object getAttribute(String theName);
 
 	/*
 	 * In who's behalf are we providing the service.
@@ -44,9 +51,33 @@ public interface ServiceContext {
 	}
 
 	/*
-	 * Only feasible for as long as this interface is down to 'getPeer'
 	 */
-	public static ServiceContext selfService() {
-		return () -> Peer.self();
+	//public static ServiceContext selfService() {
+	//	return forPeer(/*how to get a reference to the self peer in here ??*/);
+	//}
+
+	/*
+	 */
+	public static ServiceContext forPeer(final Peer thePeer) {
+		return new ServiceContext() {
+
+			private Map<String, Object> attributes = new HashMap<String, Object>();
+			private Peer								peer;
+
+			{
+				peer = thePeer;
+			}
+
+			public Peer getPeer() { return peer; }
+
+			public ServiceContext withAttribute(String theName, Object theValue) {
+				attributes.put(theName, theValue);
+				return this;
+			}
+
+			public Object getAttribute(String theName) {
+				return attributes.get(theName);
+			}
+		};
 	}
 }

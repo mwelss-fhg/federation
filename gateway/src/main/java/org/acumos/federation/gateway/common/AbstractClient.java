@@ -28,25 +28,27 @@ import java.util.Map;
 
 import org.acumos.cds.transport.RestPageRequest;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+
 import org.apache.http.client.HttpClient;
+
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
- * 
- * 
- * 
- * Temporary Client until we have login functions available in Common Data
- * MicroService
+ * Support class for building clients of other components of the Acumos universe that expose an http based
+ * service interface.
  */
 public abstract class AbstractClient {
 
 	protected final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
-	protected final String baseUrl;
-	protected final RestTemplate restTemplate;
+	protected String baseUrl;
+	protected RestTemplate restTemplate;
 
 	/**
 	 * Builds a restTemplate. If user and pass are both supplied, uses basic HTTP
@@ -58,6 +60,28 @@ public abstract class AbstractClient {
 	 *            underlying http client
 	 */
 	public AbstractClient(String theTarget, HttpClient theClient) {
+		setTarget(theTarget);
+		this.restTemplate = new RestTemplateBuilder()
+													.requestFactory(new HttpComponentsClientHttpRequestFactory(theClient))
+													.rootUri(this.baseUrl)
+													.build();
+	}
+	
+	public AbstractClient(String theTarget, HttpClient theClient, ObjectMapper theMapper) {
+		setTarget(theTarget);
+		
+		MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
+    messageConverter.setObjectMapper(theMapper); //try to avoid building one every time
+
+		this.restTemplate = new RestTemplateBuilder()
+													.requestFactory(new HttpComponentsClientHttpRequestFactory(theClient))
+													.messageConverters(messageConverter)
+													.rootUri(this.baseUrl)
+													.build();
+	
+	}
+
+	protected void setTarget(String theTarget) {
 		if (theTarget == null)
 			throw new IllegalArgumentException("Null URL not permitted");
 
@@ -67,12 +91,9 @@ public abstract class AbstractClient {
 			this.baseUrl = url.toExternalForm();
 		}
 		catch (MalformedURLException ex) {
-			throw new RuntimeException("Failed to parse targedt URL", ex);
+			throw new IllegalArgumentException("Failed to parse target URL", ex);
 		}
-
-		this.restTemplate = new RestTemplateBuilder()
-				.requestFactory(new HttpComponentsClientHttpRequestFactory(theClient)).rootUri(this.baseUrl).build();
-	}
+	}	
 
 	/**
 	 * Builds URI by adding specified path segments and query parameters to the base

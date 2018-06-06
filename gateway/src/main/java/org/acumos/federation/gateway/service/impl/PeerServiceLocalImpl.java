@@ -56,8 +56,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerService;
-import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
+import org.acumos.federation.gateway.service.ServiceContext;
+import org.acumos.federation.gateway.service.ServiceException;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
@@ -67,6 +68,8 @@ import org.apache.commons.io.IOUtils;
 @Service
 @ConfigurationProperties(prefix = "peersLocal")
 public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements PeerService, PeerSubscriptionService {
+
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(PeerServiceLocalImpl.class.getName());
 
 	private List<FLPPeer> peers;
 
@@ -181,18 +184,18 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 
 	/** */
 	@Override
-	public boolean updatePeerSubscription(MLPPeerSubscription theSub) {
+	public void updatePeerSubscription(MLPPeerSubscription theSub) throws ServiceException {
 		for (FLPPeer peer : this.peers) {
 			for (int i = 0; i < peer.getSubscriptions().size(); i++) {
 				MLPPeerSubscription peerSub = peer.getSubscriptions().get(i);
 				if (theSub.getSubId().equals(peerSub.getSubId()) &&
 						theSub.getPeerId().equals(peerSub.getPeerId())) {
 					peer.getSubscriptions().set(i, theSub);
-					return true;
+					return;
 				}
 			}
 		}
-		return false;
+		throw new ServiceException("No such subscription");
 	}
 
 	/** */

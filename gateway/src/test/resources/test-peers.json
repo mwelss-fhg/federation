@@ -21,7 +21,7 @@
 			{
 				"subId":1,
 				"peerId":"11111111-1111-1111-1111-111111111111",
-				"selector":"{\"modelTypeCode\":\"CL,PR\"}",
+				"selector":"{\"modelTypeCode\":[\"CL\",\"PR\"]}",
 				"refreshInterval":"120",
 				"maxArtifactSize":"2048",
 				"created":"2017-09-21",

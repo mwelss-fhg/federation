@@ -22,6 +22,7 @@ package org.acumos.federation.gateway.task;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
@@ -87,17 +88,29 @@ public class PeerSubscriptionTask implements Runnable {
 			return;
 		}
 
+		Map selector = Utils.jsonStringToMap(this.subscription.getSelector());
+		Date lastProcessed = this.subscription.getProcessed();
+		if (lastProcessed != null) {
+			selector.put("modified", lastProcessed);
+		}
+
 		try {
 			log.info(EELFLoggerDelegate.debugLogger, "Peer task for peer {}, subscription {}", this.peer.getName(), this.subscription.getSubId());
 			FederationClient fedClient = clients.getFederationClient(this.peer.getApiUrl());
-			JsonResponse<List<MLPSolution>> response =
-				fedClient.getSolutions(Utils.jsonStringToMap(this.subscription.getSelector()));
+			JsonResponse<List<MLPSolution>> response = fedClient.getSolutions(selector);
 			log.info(EELFLoggerDelegate.debugLogger, "Peer task for peer {}, subscription {} got response {}", this.peer.getName(), this.subscription.getSubId(), response);
-			if (response != null && response.getContent() != null) {
+			if (response != null) {
 				List<MLPSolution> solutions = response.getContent();
-				if (solutions.size() > 0) {
-					this.eventPublisher.publishEvent(
+				if (solutions != null) {
+					//keep only those updated since last processed
+					//this assumes we can trust the last processed to be maintained correctly by the peer .. unreliable
+					//solutions = solutions.stream()
+					//							.filter(solution -> solution.getLastUpdate().after(this.subscription.getProcessed()))
+					//							.collect(Collectors.toList());
+					if (solutions.size() > 0) {
+						this.eventPublisher.publishEvent(
 							new PeerSubscriptionEvent(this, this.peer, this.subscription, solutions));
+					}
 				}
 			}
 

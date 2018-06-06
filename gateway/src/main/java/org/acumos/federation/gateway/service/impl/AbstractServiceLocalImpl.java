@@ -29,14 +29,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.acumos.federation.gateway.service.ServiceContext;
+import org.acumos.federation.gateway.security.Peer;
 import org.acumos.federation.gateway.service.LocalWatchService;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 import org.apache.commons.io.IOUtils;
 
+
 public class AbstractServiceLocalImpl {
 
-	protected EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 	protected Resource resource;
 
 	@Autowired
@@ -60,4 +62,7 @@ public class AbstractServiceLocalImpl {
 		}
 	}
 
+	public ServiceContext selfService() {
+		return ServiceContext.forPeer((Peer)appCtx.getBean("self"));		
+	}
 }

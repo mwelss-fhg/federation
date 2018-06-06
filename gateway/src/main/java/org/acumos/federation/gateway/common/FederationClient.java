@@ -33,7 +33,9 @@ import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.util.Utils;
+
 import org.apache.http.client.HttpClient;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
@@ -41,12 +43,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
- * 
- * 
- * 
- * Temporary Client until we have login functions available in Common Data
- * MicroService
  */
 public class FederationClient extends AbstractClient {
 
@@ -58,6 +57,10 @@ public class FederationClient extends AbstractClient {
 	 */
 	public FederationClient(String theTarget, HttpClient theClient) {
 		super(theTarget, theClient);
+	}
+
+	public FederationClient(String theTarget, HttpClient theClient, ObjectMapper theMapper) {
+		super(theTarget, theClient, theMapper);
 	}
 
 	/**

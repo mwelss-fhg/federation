@@ -20,7 +20,8 @@
 
 package org.acumos.federation.gateway.controller;
 
-import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,12 +33,29 @@ import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.security.Peer;
 
 /**
- * 
- *
+ * The security context is thread local so we do the same for attributes.
+ * There is a risk when attribute are not cleared and processing threads are pooled.
  */
 public class ControllerContext implements ServiceContext {
+
+	private ThreadLocal<Map<String, Object>> attributes =
+		new ThreadLocal<Map<String, Object>>() {
+			public Map<String, Object> initialValue() {
+				return new HashMap<String, Object>();
+			}
+		};																				
 
 	public Peer getPeer() {
 		return (Peer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
+	
+	public ServiceContext withAttribute(String theName, Object theValue) {
+		attributes.get().put(theName, theValue);
+		return this;
+	}
+
+	public Object getAttribute(String theName) {
+		return attributes.get().get(theName);
+	}
+	
 }

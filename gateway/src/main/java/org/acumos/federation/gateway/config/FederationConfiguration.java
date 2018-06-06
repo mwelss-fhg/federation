@@ -49,9 +49,7 @@ import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletCon
  * Provide those beans used in the interaction with other peers (federation)
  */
 @Configuration
-@Import(AuthenticationConfiguration.class)
 @EnableAutoConfiguration
-//@ConfigurationProperties(prefix = "federation", ignoreInvalidFields = true)
 public class FederationConfiguration {
 
 	@Autowired
@@ -98,15 +96,6 @@ public class FederationConfiguration {
 		return this.interfaceConfig.buildClient();
 	}
 
-/*
-	@Bean
-	public EmbeddedServletContainerFactory federationServer() {
-		TomcatEmbeddedServletContainerFactory tomcat =
-			new TomcatEmbeddedServletContainerFactory();
-		tomcat.addAdditionalTomcatConnectors(this.interfaceConfig.buildConnector());
-		return tomcat;
-	}
-*/
 	@Bean
 	public EmbeddedServletContainerCustomizer federationServer() {
 		log.debug(EELFLoggerDelegate.debugLogger, this + "::federationServer from " + this.interfaceConfig);

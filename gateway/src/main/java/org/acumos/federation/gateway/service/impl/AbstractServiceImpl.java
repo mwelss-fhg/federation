@@ -20,10 +20,13 @@
 
 package org.acumos.federation.gateway.service.impl;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.service.ServiceContext;
+import org.acumos.federation.gateway.security.Peer;
 
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 
@@ -32,11 +35,14 @@ public abstract class AbstractServiceImpl {
 
 	@Autowired
 	protected Clients clients;
-
-	protected final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+	@Autowired
+	protected ApplicationContext appCtx;
 
 	public ICommonDataServiceRestClient getClient() {
 		return clients.getCDSClient();
 	}
 
+	public ServiceContext selfService() {
+		return ServiceContext.forPeer((Peer)appCtx.getBean("self"));		
+	}
 }

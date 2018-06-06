@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -78,6 +79,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "catalogLocal")
 public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements CatalogService {
 
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(CatalogServiceLocalImpl.class.getName());
+
 	private List<FLPSolution> solutions;
 
 	@PostConstruct
@@ -118,30 +121,17 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	}
 
 	@Override
-	public List<MLPSolution> getSolutions(Map<String, ?> theSelector, ServiceContext theContext) {
+	public List<MLPSolution> getSolutions(Map<String, ?> theSelector, ServiceContext theContext) throws ServiceException {
 
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions");
-		String modelTypeSelector = theSelector == null ? null : (String) theSelector.get("modelTypeCode");
-		String toolkitTypeSelector = theSelector == null ? null : (String) theSelector.get("toolkitTypeCode");
-		final List<String> modelTypes = modelTypeSelector == null ? null : Arrays.asList(modelTypeSelector.split(","));
-		final List<String> toolkitTypes = toolkitTypeSelector == null ? null : Arrays.asList(toolkitTypeSelector.split(","));
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions, selector {}", theSelector);
 
 		return solutions.stream()
-			.filter(solution -> {
-				log.debug(EELFLoggerDelegate.debugLogger,
-					"getPeerCatalogSolutionsList: looking for model type " + modelTypes + ", has " + solution.getModelTypeCode());
-				return modelTypes == null || modelTypes.contains(solution.getModelTypeCode());
-			})
-			.filter(solution -> {
-				log.debug(EELFLoggerDelegate.debugLogger,
-					"getPeerCatalogSolutionsList: looking for toolkit type " + toolkitTypes + ", has " + solution.getToolkitTypeCode());
-				return toolkitTypes == null || toolkitTypes.contains(solution.getToolkitTypeCode());
-			})
+			.filter(solution -> ServiceImpl.isSelectable(solution, theSelector))
 			.collect(Collectors.toList());
 	}
 
 	@Override
-	public MLPSolution getSolution(final String theSolutionId, ServiceContext theContext) {
+	public MLPSolution getSolution(final String theSolutionId, ServiceContext theContext) throws ServiceException {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolution");
 		return solutions.stream().filter(solution -> {
@@ -150,7 +140,7 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	}
 
 	@Override
-	public List<MLPSolutionRevision> getSolutionRevisions(final String theSolutionId, ServiceContext theContext) {
+	public List<MLPSolutionRevision> getSolutionRevisions(final String theSolutionId, ServiceContext theContext) throws ServiceException {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisions");
 		FLPSolution solution = this.solutions.stream().filter(sol -> sol.getSolutionId().equals(theSolutionId))
@@ -161,7 +151,7 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 
 	@Override
 	public MLPSolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
-			ServiceContext theContext) {
+			ServiceContext theContext) throws ServiceException  {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
 		List<MLPSolutionRevision> revisions = getSolutionRevisions(theSolutionId, theContext);
@@ -174,7 +164,7 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 
 	@Override
 	public List<MLPArtifact> getSolutionRevisionArtifacts(final String theSolutionId, final String theRevisionId,
-			ServiceContext theContext) {
+			ServiceContext theContext) throws ServiceException {
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts");
 
 		FLPRevision revision = (FLPRevision) getSolutionRevision(theSolutionId, theRevisionId, theContext);
@@ -183,22 +173,15 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	}
 
 	@Override
-	public InputStreamResource getSolutionRevisionArtifactContent(String theArtifactId, ServiceContext theContext) 
+	public MLPArtifact getSolutionRevisionArtifact(String theArtifactId, ServiceContext theContext) 
 																																																throws ServiceException {
-
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifactContent");
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifact");
 		// cumbersome
 		for (FLPSolution solution : this.solutions) {
 			for (FLPRevision revision : solution.getRevisions()) {
 				for (MLPArtifact artifact : revision.getArtifacts()) {
 					if (artifact.getArtifactId().equals(theArtifactId)) {
-						try {
-							return new InputStreamResource(new URI(artifact.getUri()).toURL().openStream());
-						} catch (Exception x) {
-							log.debug(EELFLoggerDelegate.debugLogger,
-									"failed to load artifact content from " + artifact.getUri(), x);
-							throw new ServiceException("Failed to retrieve content for artifact " + theArtifactId, x);
-						}
+						return artifact;
 					}
 				}
 			}
@@ -211,7 +194,7 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	public static class FLPSolution extends MLPSolution {
 
 		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-		private List<FLPRevision> revisions;
+		private List<FLPRevision> revisions = Collections.EMPTY_LIST;
 
 		// @JsonIgnore
 		public List<FLPRevision> getRevisions() {
@@ -234,7 +217,7 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	public static class FLPRevision extends MLPSolutionRevision {
 
 		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-		private List<MLPArtifact> artifacts;
+		private List<MLPArtifact> artifacts = Collections.EMPTY_LIST;
 
 		// @JsonIgnore
 		// we send a deep clone as the client can modify them and we only have one copy
