@@ -26,6 +26,7 @@ Version 1.1.4, 2018-06-20
 -------------------------
 
 * Fix result size test when retrieving 'self' peer
+* Fix handling of null solutions filter in the service. Fix the handling of no such item errors in catalog controller.
 
 Version 1.1.3, 2018-05-10
 -------------------------

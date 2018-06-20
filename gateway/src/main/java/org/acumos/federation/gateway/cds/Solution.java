@@ -30,6 +30,23 @@ import org.acumos.cds.domain.MLPSolutionRevision;
  */
 public class Solution extends MLPSolution {
 
+	/**
+	 * For the purpose of defining constants for search criteria.
+	 * This exposes CDS maintained information so it has to be kept in sync.
+	 * We only define those of interest for searching.
+	 */
+	public static interface Fields {
+		public static final String solutionId = "solutionId";
+		public static final String name = "name";
+		public static final String active = "active";
+		public static final String modelTypeCode = "modelTypeCode";
+		public static final String toolkitTypeCode = "toolkitTypeCode";
+		public static final String accessTypeCode = "accessTypeCode";
+		public static final String validationStatusCode = "validationStatusCode";
+		public static final String modified = "modified";
+		public static final String sourceId = "sourceId";
+	};
+
 	private List<MLPSolutionRevision>		revisions;
 
 	public Solution() {

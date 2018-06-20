@@ -87,11 +87,11 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 		baseSelector = new HashMap<String, Object>();
 
 		// Fetch all active solutions
-		baseSelector.put("active", true);
+		baseSelector.put(Solution.Fields.active, true);
 		// Fetch allowed only for Public models
-		baseSelector.put("accessTypeCode", AccessTypeCode.PB.toString());
+		baseSelector.put(Solution.Fields.accessTypeCode, AccessTypeCode.PB.toString());
 		// Validation status should be passed locally
-		baseSelector.put("validationStatusCode", ValidationStatusCode.PS.toString());
+		baseSelector.put(Solution.Fields.validationStatusCode, ValidationStatusCode.PS.toString());
 	}
 
 	@Override
@@ -116,15 +116,15 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 
 		do {
 			log.debug(EELFLoggerDelegate.debugLogger, "getSolutions page {}", pageResponse);
-			if (theSelector.containsKey("modified")) {
+			if (selector.containsKey(Solution.Fields.modified)) {
 				//Use the dedicated api: this is a 'deep' application of the 'modified' criteria as it will look into revisions
 				//and artifacts for related information modified since.
 				pageResponse =
 					cdsClient.findSolutionsByDate(
-						(Boolean)baseSelector.get("active"),
-						new String[] {baseSelector.get("accessTypeCode").toString()},
-						new String[] {baseSelector.get("validationStatusCode").toString()},
-						new Date((Long)theSelector.get("modified")),
+						(Boolean)baseSelector.get(Solution.Fields.active),
+						new String[] {selector.get(Solution.Fields.accessTypeCode).toString()},
+						new String[] {selector.get(Solution.Fields.validationStatusCode).toString()},
+						new Date((Long)selector.get(Solution.Fields.modified)),
 						pageRequest);
 			
 				//we need to post-process all other selection criteria

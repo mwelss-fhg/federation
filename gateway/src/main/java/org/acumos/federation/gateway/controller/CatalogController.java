@@ -98,7 +98,7 @@ public class CatalogController extends AbstractController {
 		List<MLPSolution> solutions = null;
 		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTIONS);
 		try {
-			log.debug(EELFLoggerDelegate.debugLogger, "getSolutionsListFromPeer: selector " + theSelector);
+			log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: selector " + theSelector);
 			Map<String, ?> selector = null;
 			if (theSelector != null)
 				selector = Utils.jsonStringToMap(new String(Base64Utils.decodeFromString(theSelector), "UTF-8"));
@@ -141,12 +141,20 @@ public class CatalogController extends AbstractController {
 		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTION_DETAILS + ": " + theSolutionId);
 		try {
 			solution = catalogService.getSolution(theSolutionId, new ControllerContext());
-			encodeSolution(solution, theHttpRequest);
-			response = JsonResponse.<MLPSolution> buildResponse()
-														.withMessage("solution details")
-														.withContent(solution)
-														.build();
-			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+			if (null == solution) {
+				response = JsonResponse.<MLPSolution> buildResponse()
+															.withMessage("No solution with id " + theSolutionId + " is available.")
+															.build();
+				theHttpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			}
+			else {
+				encodeSolution(solution, theHttpRequest);
+				response = JsonResponse.<MLPSolution> buildResponse()
+															.withMessage("solution details")
+															.withContent(solution)
+															.build();
+				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+			}
 		}
 		catch (Exception x) {
 			response = JsonResponse.<MLPSolution> buildErrorResponse()
@@ -177,13 +185,21 @@ public class CatalogController extends AbstractController {
 		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTION_REVISIONS);
 		try {
 			solutionRevisions = catalogService.getSolutionRevisions(theSolutionId, new ControllerContext());
-			response = JsonResponse.<List<MLPSolutionRevision>> buildResponse()
-														.withMessage("solution revisions")
-														.withContent(solutionRevisions)
-														.build();
-			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-			log.debug(EELFLoggerDelegate.debugLogger, "getSolutionsRevisions for solution {} provided {} revisions",
+			if (null == solutionRevisions) {
+				response = JsonResponse.<List<MLPSolutionRevision>> buildResponse()
+															.withMessage("No solution with id " + theSolutionId + " is available.")
+															.build();
+				theHttpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			}
+			else {
+				response = JsonResponse.<List<MLPSolutionRevision>> buildResponse()
+															.withMessage("solution revisions")
+															.withContent(solutionRevisions)
+															.build();
+				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+				log.debug(EELFLoggerDelegate.debugLogger, "getSolutionsRevisions for solution {} provided {} revisions",
 						theSolutionId, solutionRevisions == null ? 0 : solutionRevisions.size());
+			}
 		}
 		catch (Exception x) {
 			response = JsonResponse.<List<MLPSolutionRevision>> buildErrorResponse()
@@ -220,11 +236,19 @@ public class CatalogController extends AbstractController {
 		try {
 			solutionRevision = catalogService.getSolutionRevision(theSolutionId, theRevisionId,
 					new ControllerContext());
-			response = JsonResponse.<MLPSolutionRevision> buildResponse()
-														.withMessage("solution revision details")
-														.withContent(solutionRevision)
-														.build();
-			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+			if (null == solutionRevision) {
+				response = JsonResponse.<MLPSolutionRevision> buildResponse()
+																.withMessage("No solution revision " + theSolutionId + "/" + theRevisionId + " is available.")
+																.build();
+				theHttpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			}
+			else {
+				response = JsonResponse.<MLPSolutionRevision> buildResponse()
+																.withMessage("solution revision details")
+																.withContent(solutionRevision)
+																.build();
+				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+			}
 		}
 		catch (Exception x) {
 			response = JsonResponse.<MLPSolutionRevision> buildErrorResponse()
@@ -263,18 +287,26 @@ public class CatalogController extends AbstractController {
 				API.Paths.SOLUTION_REVISION_ARTIFACTS + "(" + theSolutionId + "," + theRevisionId + ")");
 		try {
 			solutionRevisionArtifacts = catalogService.getSolutionRevisionArtifacts(theSolutionId, theRevisionId, context);
-			for (MLPArtifact artifact : solutionRevisionArtifacts) {
-				if (!context.getPeer().getPeerInfo().isLocal()) {
-					encodeArtifact(artifact, theHttpRequest);
-				}
+			if (null == solutionRevisionArtifacts) {
+				response = JsonResponse.<List<MLPArtifact>> buildResponse()
+																.withMessage("No solution revision " + theSolutionId + "/" + theRevisionId + " is available.")
+																.build();
+				theHttpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			}
-			response = JsonResponse.<List<MLPArtifact>> buildResponse()
-													.withMessage("solution revision artifacts")
-													.withContent(solutionRevisionArtifacts)
-													.build();
-			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-			log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts provided {} artifacts",
-						solutionRevisionArtifacts == null ? 0 : solutionRevisionArtifacts.size());
+			else {
+				for (MLPArtifact artifact : solutionRevisionArtifacts) {
+					if (!context.getPeer().getPeerInfo().isLocal()) {
+						encodeArtifact(artifact, theHttpRequest);
+					}
+				}
+				response = JsonResponse.<List<MLPArtifact>> buildResponse()
+														.withMessage("solution revision artifacts")
+														.withContent(solutionRevisionArtifacts)
+														.build();
+				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+				log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts provided {} artifacts",
+							solutionRevisionArtifacts == null ? 0 : solutionRevisionArtifacts.size());
+			}
 		} 
 		catch (Exception x) {
 			response = JsonResponse.<List<MLPArtifact>> buildErrorResponse()
