@@ -2,45 +2,52 @@ version: '2.0'
 services:
   federation:
     container_name: federation-gateway
-    image: federation-gateway:1.1.0-SNAPSHOT
+    image: federation-gateway:1.1.4-SNAPSHOT
     environment:
       SPRING_APPLICATION_JSON: '{
         "federation" : {
           "instance" : "gateway",
           "instance.name" : "ATT",
-          "operator" : "d468656f-57d0-46e3-9f94-7ffa4f66dc03",
+          "operator" : "user_uuid",
           "address" : "0.0.0.0",
           "server" : {
-            "port" : 9002
+            "port" : 9084
           },
           "ssl" : {
-            "key-store" : "/app/acumosa.pkcs12",
-            "key-store-password" : "acumosa",
+            "key-store" : "/app/your_keystore.pkcs12",
+            "key-store-password" : "keystore_password",
             "key-store-type" : "PKCS12",
-   	        "key-password" : "acumosa",
-     	      "trust-store" : "/app/acumosTrustStore.jks",
-            "trust-store-password" : "acumos"
+   	        "key-password" : "key_password",
+     	      "trust-store" : "/app/your_truststore.jks",
+            "trust-store-password" : "changeit"
          	}
         },
         "local" : {
           "address": "0.0.0.0",
           "server": {
-            "port" : 9022
+            "port" : 9884
           },
           "ssl" : {
-            "key-store" : "/app/acumosa.pkcs12",
-            "key-store-password" : "acumosa",
+            "key-store" : "/app/your_keystore.pkcs12",
+            "key-store-password" : "keystore_password",
             "key-store-type" : "PKCS12",
-            "key-password" : "acumosa",
-      	    "trust-store" : "/app/acumosTrustStore.jks",
-        	  "trust-store-password" : "acumos"
+            "key-password" : "key_password",
+      	    "trust-store" : "/app/youro_truststore.jks",
+        	  "trust-store-password" : "changeit"
           }
         },
+        "docker": {
+          "host": "tcp://your_host:port",
+          "registryUrl": "your_registry:port",
+          "registryUsername": "docker_username",
+          "registryPassword": "docker_password",
+          "registryEmail": ""
+        },
         "nexus": {
-          "url": "http://cognita-nexus01.eastus.cloudapp.azure.com:8081/repository/repo_cognita_model_maven/",
+          "url": "http://your_nexus:port/some_path/",
           "proxy": "",
-          "password": "not4you",
-          "username": "cognita_model_rw",
+          "username": "nexus_username",
+          "password": "nexus_password",
           "groupid": "com.artifact"
         },
         "peer": {
@@ -50,9 +57,9 @@ services:
         },
         "cdms" : {
           "client" : {
-            "url": "http://mlp-cmn-data-svc:8000/ccds",
-            "username": "ccds_client",
-            "password": "ccds_client"
+            "url": "cds_reference",
+            "username": "cds_username",
+            "password": "cds_password"
           }
         }
       }'
@@ -64,6 +71,7 @@ services:
       - "9022:9022"
     volumes:
       - ./:/app
+      - /var/run/docker.sock:/var/run/docker.sock
     logging:
       driver: json-file
 

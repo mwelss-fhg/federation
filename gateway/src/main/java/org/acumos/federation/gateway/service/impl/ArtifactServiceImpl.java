@@ -52,6 +52,7 @@ import org.acumos.nexus.client.data.UploadArtifactInfo;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Identifier;
 import com.github.dockerjava.api.model.Repository;
+import com.github.dockerjava.api.model.PullResponseItem;
 import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.github.dockerjava.core.command.PushImageResultCallback;
 
@@ -96,12 +97,12 @@ public class ArtifactServiceImpl extends AbstractServiceImpl
 				//pull followed by save
 				DockerClient docker = this.clients.getDockerClient();
 
-				PullImageResultCallback pullResult = new PullImageResultCallback();
+				PullImageResultCallback pullResult = new PullImageResultCallback(); 
 				docker.pullImageCmd(theArtifact.getUri())
 							.exec(pullResult);
 				pullResult.awaitCompletion();
 
-				return new InputStreamResource(docker.saveImageCmd(theArtifact.getName()).exec());
+				return new InputStreamResource(docker.saveImageCmd(theArtifact.getUri()).exec());
 			}
 			else {	
 				NexusArtifactClient artifactClient = this.clients.getNexusClient();

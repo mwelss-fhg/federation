@@ -20,12 +20,16 @@
 
 package org.acumos.federation.gateway.config;
 
+import java.lang.invoke.MethodHandles;
+
 import org.springframework.stereotype.Component;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import com.github.dockerjava.core.DockerClientConfig; 
 import com.github.dockerjava.core.DefaultDockerClientConfig; 
+
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 /**
  * 
@@ -34,6 +38,7 @@ import com.github.dockerjava.core.DefaultDockerClientConfig;
 @ConfigurationProperties(prefix = "docker")
 public class DockerConfiguration {
 
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 	private DefaultDockerClientConfig.Builder builder;
 
 	public DockerConfiguration() {
