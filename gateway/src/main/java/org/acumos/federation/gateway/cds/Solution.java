@@ -47,7 +47,7 @@ public class Solution extends MLPSolution {
 		public static final String sourceId = "sourceId";
 	};
 
-	private List<MLPSolutionRevision>		revisions;
+	private List<? extends MLPSolutionRevision>		revisions;
 
 	public Solution() {
 	}
@@ -56,11 +56,11 @@ public class Solution extends MLPSolution {
 		super(theCDSSolution);
 	}
 
-	public void setRevisions(List<MLPSolutionRevision> theRevisions) {
+	public void setRevisions(List<? extends MLPSolutionRevision> theRevisions) {
 		this.revisions = theRevisions;
 	}
 
-	public List<MLPSolutionRevision>	getRevisions() {
+	public List<? extends MLPSolutionRevision>	getRevisions() {
 		return this.revisions;
 	}
 	

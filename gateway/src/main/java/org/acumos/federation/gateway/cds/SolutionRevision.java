@@ -30,7 +30,7 @@ import org.acumos.cds.domain.MLPArtifact;
  */
 public class SolutionRevision extends MLPSolutionRevision {
 
-	private List<MLPArtifact>		artifacts;
+	private List<? extends MLPArtifact>		artifacts;
 
 	public SolutionRevision() {
 	}
@@ -39,11 +39,11 @@ public class SolutionRevision extends MLPSolutionRevision {
 		super(theCDSRevision);
 	}
 
-	public void setArtifacts(List<MLPArtifact> theArtifacts) {
+	public void setArtifacts(List<? extends MLPArtifact> theArtifacts) {
 		this.artifacts = theArtifacts;
 	}
 
-	public List<MLPArtifact>	getArtifacts() {
+	public List<? extends MLPArtifact>	getArtifacts() {
 		return this.artifacts;
 	}
 

@@ -54,6 +54,11 @@ import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.acumos.federation.gateway.util.Utils;
 
+import org.acumos.federation.gateway.cds.Solution;
+import org.acumos.federation.gateway.cds.SolutionRevision;
+import org.acumos.federation.gateway.cds.Artifact;
+import org.acumos.federation.gateway.cds.Mapper;
+
 import org.acumos.cds.AccessTypeCode;
 import org.acumos.cds.ValidationStatusCode;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
@@ -81,7 +86,7 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 
 	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(CatalogServiceLocalImpl.class.getName());
 
-	private List<FLPSolution> solutions;
+	private List<Solution> solutions;
 
 	@PostConstruct
 	public void initService() {
@@ -110,7 +115,7 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	private void loadSolutionsCatalogInfo() {
 		synchronized (this) {
 			try {
-				ObjectReader objectReader = new ObjectMapper().reader(FLPSolution.class);
+ 				ObjectReader objectReader = Mapper.build().reader(Solution.class);
 				MappingIterator objectIterator = objectReader.readValues(this.resource.getURL());
 				this.solutions = objectIterator.readAll();
 				log.info(EELFLoggerDelegate.debugLogger, "loaded " + this.solutions.size() + " solutions");
@@ -131,7 +136,7 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	}
 
 	@Override
-	public MLPSolution getSolution(final String theSolutionId, ServiceContext theContext) throws ServiceException {
+	public Solution getSolution(final String theSolutionId, ServiceContext theContext) throws ServiceException {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolution");
 		return solutions.stream().filter(solution -> {
@@ -143,23 +148,18 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	public List<MLPSolutionRevision> getSolutionRevisions(final String theSolutionId, ServiceContext theContext) throws ServiceException {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisions");
-		FLPSolution solution = this.solutions.stream().filter(sol -> sol.getSolutionId().equals(theSolutionId))
-				.findFirst().orElse(null);
 
-		return (solution == null) ? null : solution.getMLPRevisions();
+		Solution solution = getSolution(theSolutionId, theContext);
+		return (solution == null) ? Collections.EMPTY_LIST : (List)solution.getRevisions();
 	}
 
 	@Override
-	public MLPSolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
+	public SolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
 			ServiceContext theContext) throws ServiceException  {
 
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
-		List<MLPSolutionRevision> revisions = getSolutionRevisions(theSolutionId, theContext);
-
-		if (revisions == null)
-			return null;
-
-		return revisions.stream().filter(rev -> rev.getRevisionId().equals(theRevisionId)).findFirst().orElse(null);
+		return (SolutionRevision)getSolutionRevisions(theSolutionId, theContext).stream()
+						.filter(rev -> rev.getRevisionId().equals(theRevisionId)).findFirst().orElse(null);
 	}
 
 	@Override
@@ -167,21 +167,20 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 			ServiceContext theContext) throws ServiceException {
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts");
 
-		FLPRevision revision = (FLPRevision) getSolutionRevision(theSolutionId, theRevisionId, theContext);
-
-		return (revision == null) ? null : revision.getArtifacts();
+		SolutionRevision revision = getSolutionRevision(theSolutionId, theRevisionId, theContext);
+		return (revision == null) ? Collections.EMPTY_LIST : (List)revision.getArtifacts();
 	}
 
 	@Override
-	public MLPArtifact getSolutionRevisionArtifact(String theArtifactId, ServiceContext theContext) 
+	public Artifact getSolutionRevisionArtifact(String theArtifactId, ServiceContext theContext) 
 																																																throws ServiceException {
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifact");
 		// cumbersome
-		for (FLPSolution solution : this.solutions) {
-			for (FLPRevision revision : solution.getRevisions()) {
-				for (MLPArtifact artifact : revision.getArtifacts()) {
+		for (Solution solution : this.solutions) {
+			for (MLPSolutionRevision revision : solution.getRevisions()) {
+				for (MLPArtifact artifact : ((SolutionRevision)revision).getArtifacts()) {
 					if (artifact.getArtifactId().equals(theArtifactId)) {
-						return artifact;
+						return (Artifact)artifact;
 					}
 				}
 			}
@@ -189,61 +188,4 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 
 		return null;
 	}
-
-	/** */
-	public static class FLPSolution extends MLPSolution {
-
-		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-		private List<FLPRevision> revisions = Collections.EMPTY_LIST;
-
-		// @JsonIgnore
-		public List<FLPRevision> getRevisions() {
-			return this.revisions;
-		}
-
-		// @JsonIgnore
-		protected List<MLPSolutionRevision> getMLPRevisions() {
-			return this.revisions == null ? null
-					: this.revisions.stream().map(rev -> (MLPSolutionRevision) rev).collect(Collectors.toList());
-		}
-
-		public void setRevisions(List<FLPRevision> theRevisions) {
-			this.revisions = theRevisions;
-		}
-
-	}
-
-	/** */
-	public static class FLPRevision extends MLPSolutionRevision {
-
-		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-		private List<MLPArtifact> artifacts = Collections.EMPTY_LIST;
-
-		// @JsonIgnore
-		// we send a deep clone as the client can modify them and we only have one copy
-		public List<MLPArtifact> getArtifacts() {
-			List<MLPArtifact> copy = new LinkedList<MLPArtifact>();
-			for (MLPArtifact artifact : this.artifacts) {
-				MLPArtifact acopy = new MLPArtifact();
-				acopy.setArtifactId(artifact.getArtifactId());
-				acopy.setArtifactTypeCode(artifact.getArtifactTypeCode());
-				acopy.setDescription(artifact.getDescription());
-				acopy.setUri(artifact.getUri());
-				acopy.setName(artifact.getName());
-				acopy.setSize(artifact.getSize());
-				acopy.setOwnerId(artifact.getOwnerId());
-				acopy.setCreated(artifact.getCreated());
-				acopy.setModified(artifact.getModified());
-				acopy.setMetadata(artifact.getMetadata());
-
-				copy.add(acopy);
-			}
-			return copy;
-		}
-
-		public void setArtifacts(List<MLPArtifact> theArtifacts) {
-			this.artifacts = theArtifacts;
-		}
-	}
-
 }
