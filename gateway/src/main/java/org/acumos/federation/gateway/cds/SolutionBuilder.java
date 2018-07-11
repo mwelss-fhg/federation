@@ -78,6 +78,11 @@ public class SolutionBuilder {
 		return this;
 	}
 
+	public SolutionBuilder withAccessTypeCode(String theCode) {
+		this.solution.setAccessTypeCode(theCode);
+		return this;
+	}
+
 	public SolutionBuilder withModelTypeCode(String theCode) {
 		this.solution.setModelTypeCode(theCode);
 		return this;
@@ -85,6 +90,11 @@ public class SolutionBuilder {
 
 	public SolutionBuilder withToolkitTypeCode(String theCode) {
 		this.solution.setToolkitTypeCode(theCode);
+		return this;
+	}
+
+	public SolutionBuilder withValidationStatusCode(String theCode) {
+		this.solution.setValidationStatusCode(theCode);
 		return this;
 	}
 

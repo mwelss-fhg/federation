@@ -66,7 +66,6 @@ import org.springframework.web.client.HttpStatusCodeException;
 
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
-import org.acumos.federation.gateway.cds.Artifact;
 
 /**
  * CDS based implementation of the CatalogService.
@@ -145,12 +144,12 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 		}
 		while (!pageResponse.isLast());
 
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: solutions count {}", solutions.size());
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: cds solutions count {}", solutions.size());
 		return solutions;
 	}
 
 	@Override
-	public Solution getSolution(String theSolutionId, ServiceContext theContext) throws ServiceException {
+	public MLPSolution getSolution(String theSolutionId, ServiceContext theContext) throws ServiceException {
 
 		log.trace(EELFLoggerDelegate.debugLogger, "getSolution {}", theSolutionId);
 		ICommonDataServiceRestClient cdsClient = getClient();
@@ -183,7 +182,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	}
 
 	@Override
-	public SolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
+	public MLPSolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
 			ServiceContext theContext) throws ServiceException {
 
 		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
@@ -223,11 +222,11 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	 * @throws ServiceException if failing to retrieve artifact information or retrieve content 
 	 */
 	@Override
-	public Artifact getSolutionRevisionArtifact(String theArtifactId, ServiceContext theContext) throws ServiceException {
+	public MLPArtifact getSolutionRevisionArtifact(String theArtifactId, ServiceContext theContext) throws ServiceException {
 
 		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifact");
 		try {
-			return (Artifact)getClient().getArtifact(theArtifactId);
+			return getClient().getArtifact(theArtifactId);
 		}	
 		catch (HttpStatusCodeException restx) {
 			if (Errors.isCDSNotFound(restx))

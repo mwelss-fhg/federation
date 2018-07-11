@@ -29,13 +29,10 @@ import java.util.List;
 
 import org.springframework.core.io.InputStreamResource;
 
-import org.acumos.federation.gateway.cds.Artifact;
-import org.acumos.federation.gateway.cds.Solution;
-import org.acumos.federation.gateway.cds.SolutionRevision;
-
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.cds.transport.RestPageResponse;
 
 /**
  * Handles access to the solutions catalog. The APIs of tis interface take a
@@ -83,11 +80,10 @@ public interface CatalogService {
 	 *            solution identifier (UUID).
 	 * @param theContext
 	 *            the execution context
-	 * @return Extended solution information, possibly inclulding related revision information.
-	 * 				 Will return null if the given solution id does not match an existing solution;
+	 * @return solution information. Will return null if the given solution id does not match an existing solution;
 	 * @throws ServiceException if an error is encoutered during processing
 	 */
-	public Solution getSolution(String theSolutionId, ServiceContext theContext) throws ServiceException ;
+	public MLPSolution getSolution(String theSolutionId, ServiceContext theContext) throws ServiceException ;
 
 	/**
 	 * Default solution access interface for calls in behalf of the local Acumos
@@ -95,10 +91,10 @@ public interface CatalogService {
 	 *
 	 * @param theSolutionId
 	 *            solution identifier (UUID).
-	 * @return Extended solution information
+	 * @return solution information
 	 * @throws ServiceException if an error is encoutered during processing
 	 */
-	public default Solution getSolution(String theSolutionId) throws ServiceException {
+	public default MLPSolution getSolution(String theSolutionId) throws ServiceException {
 		return getSolution(theSolutionId, selfService());
 	}
 
@@ -128,11 +124,10 @@ public interface CatalogService {
 	 *            revision identifier (UUID).
 	 * @param theContext
 	 *            the execution context
-	 * @return Extended solution revision information, possibly including related artifact information.
-	 * 				 Null if given solution id/revision id do ont match existing information.
+	 * @return solution revision information
 	 * @throws ServiceException if an error is encoutered during processing
 	 */
-	public SolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
+	public MLPSolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
 			ServiceContext theContext) throws ServiceException ;
 
 	/**
@@ -143,10 +138,10 @@ public interface CatalogService {
 	 *            solution identifier (UUID).
 	 * @param theRevisionId
 	 *            revision identifier (UUID).
-	 * @return Extended solution revision information
+	 * @return solution revision information
 	 * @throws ServiceException if an error is encoutered during processing
 	 */
-	public default SolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId) throws ServiceException {
+	public default MLPSolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId) throws ServiceException {
 		return getSolutionRevision(theSolutionId, theRevisionId, selfService());
 	}
 
@@ -188,10 +183,10 @@ public interface CatalogService {
 	 *            retrieved
 	 * @param theContext
 	 *            the execution context
-	 * @return Extended artifact information
+	 * @return the artifact information
 	 * @throws ServiceException if an error is encoutered during processing
 	 */
-	public Artifact getSolutionRevisionArtifact(String theArtifactId, ServiceContext theContext)
+	public MLPArtifact getSolutionRevisionArtifact(String theArtifactId, ServiceContext theContext)
 																																													throws ServiceException;
 
 	/**
@@ -200,10 +195,10 @@ public interface CatalogService {
 	 * @param theArtifactId
 	 *            identifier of the acumos artifact whose content needs to be
 	 *            retrieved
-	 * @return Extended artifact information
+	 * @return the artifact information
 	 * @throws ServiceException if an error is encoutered during processing
 	 */
-	public default Artifact getSolutionRevisionArtifact(String theArtifactId) throws ServiceException {
+	public default MLPArtifact getSolutionRevisionArtifact(String theArtifactId) throws ServiceException {
 		return getSolutionRevisionArtifact(theArtifactId, selfService());
 	}
 

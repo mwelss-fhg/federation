@@ -192,6 +192,8 @@ public class PeerGateway {
 					"Creating Local MLP Solution for peer solution " + peerSolution);
 
 			Solution localSolution = Solution.buildFrom(peerSolution)
+																	.withAccessTypeCode(this.sub.getAccessType())
+																	.withValidationStatusCode(this.peer.getValidationStatusCode())
 																	.withProvider(this.peer.getName())
 			//should the creted/modified reflect this information or the information we got from the peer ?
 																	.withOwner(getOwnerId(this.sub))
@@ -218,8 +220,6 @@ public class PeerGateway {
 			SolutionRevision localRevision = SolutionRevision.buildFrom(peerRevision)
 																					.withOwner(getOwnerId(this.sub))
 																					.withSource(this.peer.getPeerId())
-																					.withAccessTypeCode(this.sub.getAccessType())
-																					.withValidationStatusCode(this.peer.getValidationStatusCode())
 																					.build();
 			try {
 				cdsClient.createSolutionRevision(localRevision);
@@ -278,6 +278,8 @@ public class PeerGateway {
 
 			//start with the peer solution and pick the few local values we ought to preserve or impose
 			Solution solution = Solution.buildFrom(peerSolution)
+															.withAccessTypeCode(localSolution.getAccessTypeCode())
+															.withValidationStatusCode(this.peer.getValidationStatusCode()) //reset
 															.withProvider(this.peer.getName())
 															.withOwner((Object... args) -> {
 																	String newOwnerId = getOwnerId(this.sub);

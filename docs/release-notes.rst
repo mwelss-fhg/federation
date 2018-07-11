@@ -16,16 +16,16 @@
 .. limitations under the License.
 .. ===============LICENSE_END=========================================================
 
-===============================
-Federated Gateway Release Notes
-===============================
+=============
+Release Notes
+=============
 
 The Federated Gateway server is available as a Docker image in a Docker registry.
 
-Version 1.1.5, 2018-07-6
+Version 1.1.4.1, 2018-07-11
 -------------------------
 
-* Aligns with the data model changes from CDS 1.15
+* Fix handling of docker images with no tags
 
 Version 1.1.4, 2018-06-20
 -------------------------

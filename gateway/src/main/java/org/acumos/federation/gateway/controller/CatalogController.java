@@ -392,10 +392,12 @@ public class CatalogController extends AbstractController {
 			if (artifactUri != null) {
 				Identifier imageId = Identifier.fromCompoundString(artifactUri);
 			
-				String imageTag = imageId.tag.get(); //there should always be a tag, right??
-				log.debug(EELFLoggerDelegate.debugLogger,	"getSolutionRevisionArtifacts: encoded docker image uri to tag " + imageTag);
-				theArtifact.setName(imageTag);
-				theArtifact.setDescription(imageTag);
+				String imageTag = imageId.tag.orNull();
+				if (imageTag != null) {
+					log.debug(EELFLoggerDelegate.debugLogger,	"getSolutionRevisionArtifacts: encoded docker image uri to tag " + imageTag);
+					theArtifact.setName(imageTag);
+					theArtifact.setDescription(imageTag);
+				}
 			}
 		}
 	}
