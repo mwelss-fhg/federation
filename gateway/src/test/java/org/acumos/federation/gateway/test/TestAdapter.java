@@ -136,7 +136,7 @@ public class TestAdapter {
 					try {
 						Solution sol = (Solution)fedClient.getSolution(solution.getSolutionId()).getContent();
 						log.info(EELFLoggerDelegate.debugLogger, "retrieved solution {}", solution);
-						revisions = sol.getRevisions();
+						revisions = (List)sol.getRevisions();
 					}
 					catch (Exception x) {
 						log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve revisions", x);

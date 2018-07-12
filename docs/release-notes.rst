@@ -16,16 +16,21 @@
 .. limitations under the License.
 .. ===============LICENSE_END=========================================================
 
-=============
-Release Notes
-=============
+===============================
+Federated Gateway Release Notes
+===============================
 
 The Federated Gateway server is available as a Docker image in a Docker registry.
 
-Version 1.1.4.1, 2018-07-11
+Version 1.1.5, 2018-07-12
 -------------------------
 
-* Fix handling of docker images with no tags
+* Aligns with the data model changes from CDS 1.15 (ACUMOS-1330)
+
+Version 1.1.4.1, 2018-07-11
+---------------------------
+
+* Fix handling of docker images with no tags (ACUMOS-1015)
 
 Version 1.1.4, 2018-06-20
 -------------------------

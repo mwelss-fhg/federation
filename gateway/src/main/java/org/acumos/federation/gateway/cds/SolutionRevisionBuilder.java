@@ -66,6 +66,16 @@ public class SolutionRevisionBuilder {
 		return this;
 	}
 
+	public SolutionRevisionBuilder withValidationStatusCode(String theCode) {
+		this.revision.setValidationStatusCode(theCode);
+		return this;
+	}
+
+	public SolutionRevisionBuilder withAccessTypeCode(String theCode) {
+		this.revision.setAccessTypeCode(theCode);
+		return this;
+	}
+
 	public SolutionRevisionBuilder withOrigin(String theOrigin) {
 		this.revision.setOrigin(theOrigin);
 		return this;
