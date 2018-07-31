@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import java.lang.invoke.MethodHandles;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -70,7 +72,7 @@ import com.github.dockerjava.api.model.Identifier;
 @RequestMapping(API.Roots.FEDERATION)
 public class CatalogController extends AbstractController {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(CatalogController.class.getName());
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private CatalogService catalogService;
@@ -198,7 +200,7 @@ public class CatalogController extends AbstractController {
 															.build();
 				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
 				log.debug(EELFLoggerDelegate.debugLogger, "getSolutionsRevisions for solution {} provided {} revisions",
-						theSolutionId, solutionRevisions == null ? 0 : solutionRevisions.size());
+						theSolutionId, solutionRevisions.size());
 			}
 		}
 		catch (Exception x) {
@@ -305,7 +307,7 @@ public class CatalogController extends AbstractController {
 														.build();
 				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
 				log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts provided {} artifacts",
-							solutionRevisionArtifacts == null ? 0 : solutionRevisionArtifacts.size());
+							solutionRevisionArtifacts.size());
 			}
 		} 
 		catch (Exception x) {

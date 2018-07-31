@@ -40,13 +40,15 @@ public enum Role {
 	 * Common active peer, grants generic solution catalog access
 	 */
 	PEER(Collections.unmodifiableList(Arrays.asList(Priviledge.CATALOG_ACCESS,
-																									Priviledge.PING_ACCESS))),
+																									Priviledge.PING_ACCESS,
+																									Priviledge.REGISTRATION_ACCESS))),
 	/**
 	 * Enhanced peer, gains (some lovel of) read access to the local peer list
 	 */
-	PARTNER(Collections.unmodifiableList(Arrays.asList(Priviledge.CATALOG_ACCESS,
-																										 Priviledge.PEERS_ACCESS,
-																										 Priviledge.PING_ACCESS))),
+	PARTNER(Collections.unmodifiableList(Arrays.asList(Priviledge.PEERS_ACCESS,
+																										 Priviledge.CATALOG_ACCESS,
+																										 Priviledge.PING_ACCESS,
+																										 Priviledge.REGISTRATION_ACCESS))),
 	/**
 	 * The Acumos instance this gateway is serving, including local calls and calls
 	 * received through the gateways' private interface from other components,

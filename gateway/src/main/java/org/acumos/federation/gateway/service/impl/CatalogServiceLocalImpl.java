@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+import java.lang.invoke.MethodHandles;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -84,7 +86,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "catalogLocal")
 public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements CatalogService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(CatalogServiceLocalImpl.class.getName());
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	private List<Solution> solutions;
 

@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
 
+import java.lang.invoke.MethodHandles;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -58,7 +60,7 @@ import com.google.common.collect.Table;
 @EnableScheduling
 public class PeerSubscriptionTaskScheduler {
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private Environment env;
@@ -157,6 +159,8 @@ public class PeerSubscriptionTaskScheduler {
 			if (peer.isSelf())
 				continue;
 
+			log.debug(EELFLoggerDelegate.debugLogger,
+						"processing peer {}", peer.getPeerId());
 			// cancel peer tasks for non-active peers
 			if (PeerStatus.Active != PeerStatus.forCode(peer.getStatusCode())) {
 				// cancel all peer sub tasks for this peer

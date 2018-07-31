@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
+import java.lang.invoke.MethodHandles;
+
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.util.MapBuilder;
 import org.acumos.federation.gateway.service.PeerService;
@@ -53,7 +55,7 @@ import org.acumos.cds.transport.RestPageRequest;
 @Service
 public class PeerServiceImpl extends AbstractServiceImpl implements PeerService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(PeerServiceImpl.class.getName());
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	/**
 	 * 
@@ -130,31 +132,11 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 		RestPageResponse<MLPPeer> response = 
 			cdsClient.searchPeers(new MapBuilder().put("subjectName", subjectName).build(), false, null);
 
-		if (response.getSize() != 0) {
-			//if (response.getSize() == 1) { //should be the only alternative
-			MLPPeer peer = response.getContent().get(0);
-			PeerStatus status = PeerStatus.forCode(peer.getStatusCode());
-			if (null == status) {
-				throw new ServiceException("Invalid peer status found: " + peer.getStatusCode());
-			}
-
-			if (status == PeerStatus.Requested) {
-				throw new ServiceException("Peer registration request is pending");
-			}
-			else if (status == PeerStatus.Active || status == PeerStatus.Inactive) {
-				log.info(EELFLoggerDelegate.applicationLogger, "registering an active/inactive peer: " + peer);
-				return;
-			}
-			else if (status == PeerStatus.Declined) {
-				throw new ServiceException("Peer registration request was declined");
-			}
-			else if (status == PeerStatus.Renounced) {
-				throw new ServiceException("Peer unregistration request is pending");
-			}
-			throw new ServiceException("Peer with subjectName '" + subjectName + "' already exists: " + peer);
+		if (response.getNumberOfElements() > 0) {
+			assertPeerRegistration(response.getContent().get(0));
 		}
 
-		log.error(EELFLoggerDelegate.debugLogger, "registerPeer: new peer with subjectName {}, create CDS record",
+		log.info(EELFLoggerDelegate.debugLogger, "registerPeer: new peer with subjectName {}, create CDS record",
 				thePeer.getSubjectName());
 		//enforce
 		thePeer.setStatusCode(PeerStatus.Requested.code());
@@ -163,7 +145,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 			cdsClient.createPeer(thePeer);
 		}
 		catch (Exception x) {
-			throw new ServiceException("Failed to create peer");
+			throw new ServiceException("Failed to create peer", x);
 		}
 	}
 
@@ -179,30 +161,15 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 		RestPageResponse<MLPPeer> response = 
 			cdsClient.searchPeers(new MapBuilder().put("subjectName", subjectName).build(), false, null);
 
-		if (response.getSize() != 1) {
-			throw new ServiceException("Search for peer with subjectName '" + subjectName + "' yielded invalid number of items: " + response);
+		if (response.getNumberOfElements() != 1) {
+			throw new ServiceException("Search for peer with subjectName '" + subjectName + "' yielded invalid number of items: " + response.getNumberOfElements());
 		}
 
 		MLPPeer peer = response.getContent().get(0);
-		PeerStatus status = PeerStatus.forCode(peer.getStatusCode());
-		if (null == status) {
-			throw new ServiceException("Invalid peer status found: " + peer.getStatusCode());
-		}
+		assertPeerUnregistration(peer);
 
-		if (status == PeerStatus.Requested) {
-			throw new ServiceException("Peer registration request is pending");
-			//can we simply delete the peer ??
-		}
-		else if (status == PeerStatus.Declined) {
-			throw new ServiceException("Peer registration request was declined");
-			//can we simply delete the peer ??
-		}
-		else if (status == PeerStatus.Renounced) {
-			throw new ServiceException("Peer unregistration request is pending");
-		}
 		//active/inactive peers moved to renounced
-
-		log.error(EELFLoggerDelegate.debugLogger, "unregisterPeer: peer with subjectName {}, update CDS record",
+		log.info(EELFLoggerDelegate.debugLogger, "unregisterPeer: peer with subjectName {}, update CDS record",
 				thePeer.getSubjectName());
 		thePeer.setStatusCode(PeerStatus.Renounced.code());
 

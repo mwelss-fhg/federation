@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+import java.lang.invoke.MethodHandles;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FileUtils;
@@ -77,7 +79,7 @@ import org.springframework.context.annotation.Conditional;
 public class ArtifactServiceImpl extends AbstractServiceImpl
 																	implements ArtifactService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(ArtifactServiceImpl.class.getName());
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	/**
 	 * @return a resource containing the content or null if the artifact has no content
@@ -97,10 +99,11 @@ public class ArtifactServiceImpl extends AbstractServiceImpl
 				//pull followed by save
 				DockerClient docker = this.clients.getDockerClient();
 
-				PullImageResultCallback pullResult = new PullImageResultCallback(); 
-				docker.pullImageCmd(theArtifact.getUri())
-							.exec(pullResult);
-				pullResult.awaitCompletion();
+				try (PullImageResultCallback pullResult = new PullImageResultCallback()) {
+					docker.pullImageCmd(theArtifact.getUri())
+								.exec(pullResult);
+					pullResult.awaitCompletion();
+				}
 
 				return new InputStreamResource(docker.saveImageCmd(theArtifact.getUri()).exec());
 			}
@@ -133,15 +136,15 @@ public class ArtifactServiceImpl extends AbstractServiceImpl
 							.exec(); //sync xecution
 
 				// there is an assumption here that the repo info was stripped from the artifact name by the originator
-				PushImageResultCallback pushResult = new PushImageResultCallback();
 				Identifier imageId =
 					new Identifier(
 						new Repository(this.clients.getDockerProperty("registryUrl").toString()),
-						theArtifact.getName() /*the tag*/);
-				docker.pushImageCmd(imageId)
-							.exec(pushResult);
-				pushResult.awaitCompletion();
-				
+													 theArtifact.getName() /*the tag*/);
+				try (PushImageResultCallback pushResult = new PushImageResultCallback()) {
+					docker.pushImageCmd(imageId)
+								.exec(pushResult);
+					pushResult.awaitCompletion();
+				}	
 				// update artifact with local repo reference. we also update the name and description in order to stay
 				// alligned with on-boarding's unwritten rules
 				theArtifact.setUri(imageId.toString());

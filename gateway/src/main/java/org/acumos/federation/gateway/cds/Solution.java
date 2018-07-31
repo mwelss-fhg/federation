@@ -38,6 +38,8 @@ public class Solution extends MLPSolution {
 	public static interface Fields {
 		public static final String solutionId = "solutionId";
 		public static final String name = "name";
+		public static final String description = "description";
+		public static final String tags = "tags";
 		public static final String active = "active";
 		public static final String modelTypeCode = "modelTypeCode";
 		public static final String toolkitTypeCode = "toolkitTypeCode";

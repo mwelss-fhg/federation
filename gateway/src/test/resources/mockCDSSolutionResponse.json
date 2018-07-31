@@ -1,0 +1,29 @@
+{
+  "created": 1524660769000,
+  "modified": 1524734111000,
+  "solutionId": "10101010-1010-1010-1010-101010101010",
+  "name": "test",
+  "description": "test",
+  "provider": "Acumos",
+  "metadata": null,
+  "active": true,
+  "modelTypeCode": "PR",
+  "toolkitTypeCode": "CP",
+  "origin": null,
+  "ownerId": "d1e838c8-d8be-4ca4-968c-2ba5c6c04e55",
+  "sourceId": null,
+  "tags": [
+    {
+      "tag": "testPubTag"
+    }
+  ],
+  "webStats": {
+  	"solutionId": "10101010-1010-1010-1010-101010101010",
+    "viewCount": 4,
+    "downloadCount": 0,
+    "lastDownload": 1525254094000,
+    "ratingCount": 0,
+    "ratingAverageTenths": 0,
+    "featured": false
+  }
+}

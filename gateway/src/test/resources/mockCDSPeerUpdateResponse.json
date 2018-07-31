@@ -1,0 +1,15 @@
+{
+  "created": 1532025563000,
+  "modified": 1532636037000,
+  "peerId": "a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0",
+  "name": "acumosa",
+  "subjectName": "gateway.acumosa.org",
+  "description": "acumosa",
+  "apiUrl": "https://gateway.acumosa.org:9084",
+  "webUrl": "https://gateway.acumosa.org:9084",
+  "contact1": "admin@acumosa.org",
+  "statusCode": "RN",
+  "validationStatusCode": "PS",
+  "local": false,
+  "self": false
+}

@@ -17,14 +17,12 @@
  * limitations under the License.
  * ===============LICENSE_END=========================================================
  */
-
-/**
- * 
- */
 package org.acumos.federation.gateway.service.impl;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import java.lang.invoke.MethodHandles;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
@@ -41,20 +39,16 @@ import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.cds.transport.RestPageResponse;
 
 /**
- * 
- *
+ * CDS based implementation of PeerSubscriptionService.
  */
 @Service
 public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements PeerSubscriptionService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(PeerSubscriptionServiceImpl.class.getName());
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private Environment env;
 
-	/**
-	 * 
-	 */
 	public PeerSubscriptionServiceImpl() {
 	}
 

@@ -1,0 +1,15 @@
+{
+  "created": 1532025563000,
+  "modified": 1532636037000,
+  "peerId": "c0c0c0c0-c0c0-c0c0-c0c0-c0c0c0c0c0c0",
+  "name": "acumosc",
+  "subjectName": "gateway.acumosc.org",
+  "description": "acumosc",
+  "apiUrl": "https://gateway.acumosc.org:9084",
+  "webUrl": "https://gateway.acumosc.org:9084",
+  "contact1": "admin@acumosc.org",
+  "statusCode": "RQ",
+  "validationStatusCode": "PS",
+  "local": false,
+  "self": false
+}

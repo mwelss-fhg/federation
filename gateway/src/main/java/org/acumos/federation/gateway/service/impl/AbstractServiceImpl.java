@@ -42,7 +42,23 @@ public abstract class AbstractServiceImpl {
 		return clients.getCDSClient();
 	}
 
+	public ICommonDataServiceRestClient getClient(ServiceContext theContext) {
+		ICommonDataServiceRestClient client = (ICommonDataServiceRestClient)theContext.getAttribute(Attributes.cdsClient);
+		if (client == null)
+			client = getClient();
+
+		return client;
+	}
+
 	public ServiceContext selfService() {
 		return ServiceContext.forPeer((Peer)appCtx.getBean("self"));		
+	}
+
+	/**
+	 * Define context attributes used by derived implementations.
+	 */
+	public static interface Attributes {
+
+		public static final String cdsClient = "cdsClient";
 	}
 }

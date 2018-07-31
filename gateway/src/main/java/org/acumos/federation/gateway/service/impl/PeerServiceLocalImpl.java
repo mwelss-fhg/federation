@@ -37,6 +37,8 @@ import java.util.Date;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+import java.lang.invoke.MethodHandles;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -69,7 +71,7 @@ import org.apache.commons.io.IOUtils;
 @ConfigurationProperties(prefix = "peersLocal")
 public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements PeerService, PeerSubscriptionService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(PeerServiceLocalImpl.class.getName());
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	private List<FLPPeer> peers;
 
@@ -149,15 +151,26 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 
 	/** */
 	@Override
-	public void registerPeer(MLPPeer mlpPeer) {
-		log.info(EELFLoggerDelegate.debugLogger, "Registered peer {}", mlpPeer);
-		//this.peers.put(new FLPPeer(mlpPeer));
+	public void registerPeer(MLPPeer thePeer) throws ServiceException {
+		log.info(EELFLoggerDelegate.debugLogger, "Registered peer {}", thePeer);
+		List<MLPPeer> peers = getPeerBySubjectName(thePeer.getSubjectName());
+		if (peers.size() > 0) {
+			assertPeerRegistration(peers.get(0));
+		}
+		this.peers.add(new FLPPeer(thePeer));
 	}
 
 	/** */
 	@Override
-	public void unregisterPeer(MLPPeer mlpPeer) {
-		throw new UnsupportedOperationException();
+	public void unregisterPeer(MLPPeer thePeer) throws ServiceException {
+		log.info(EELFLoggerDelegate.debugLogger, "Unregistered peer {}", thePeer);
+		List<MLPPeer> peers = getPeerBySubjectName(thePeer.getSubjectName());
+		if (peers.size() > 0) {
+			assertPeerUnregistration(peers.get(0));
+			this.peers.remove(peers.get(0));
+		}
+		else
+			throw new ServiceException("No such peer " + thePeer);
 	}
 
 	/** */
@@ -203,6 +216,13 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 
 		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 		private List<MLPPeerSubscription> subscriptions;
+
+		public FLPPeer() {
+		}
+
+		public FLPPeer(MLPPeer theSource) {
+			super(theSource);
+		}
 
 		// @JsonIgnore
 		public List<MLPPeerSubscription> getSubscriptions() {

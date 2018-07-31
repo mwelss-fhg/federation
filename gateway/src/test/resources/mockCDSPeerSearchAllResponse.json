@@ -1,0 +1,42 @@
+{
+  "content": [
+     {
+      "created": 1532025563000,
+      "modified": 1532025563000,
+      "peerId": "b0b0b0b0-b0b0-b0b0-b0b0-b0b0b0b0b0b0",
+      "name": "acumosb",
+      "subjectName": "gateway.acumosb.org",
+      "description": "test",
+      "apiUrl": "https://gateway.acumosb.org:9084",
+      "webUrl": "https://gateway.acumosb.org:9084",
+      "contact1": "admin@acumosb.org",
+      "statusCode": "AC",
+      "validationStatusCode": "PS",
+      "local": false,
+      "self": true
+    },
+    {
+      "created": 1532025563000,
+      "modified": 1532025563000,
+      "peerId": "a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0",
+      "name": "acumosa",
+      "subjectName": "gateway.acumosa.org",
+      "description": "test",
+      "apiUrl": "https://gateway.acumosa.org:9084",
+      "webUrl": "https://gateway.acumosa.org:9084",
+      "contact1": "admin@acumosa.org",
+      "statusCode": "AC",
+      "validationStatusCode": "PS",
+      "local": false,
+      "self": false
+    }
+  ],
+  "last": true,
+  "totalPages": 1,
+  "totalElements": 2,
+  "sort": null,
+  "first": true,
+  "numberOfElements": 2,
+  "size": 100,
+  "number": 0
+}

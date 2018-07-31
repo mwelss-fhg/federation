@@ -85,7 +85,8 @@ import org.acumos.cds.domain.MLPArtifact;
 									"federation.ssl.key-password = acumosa",
 									"federation.ssl.trust-store=classpath:acumosTrustStore.jks",
 									"federation.ssl.trust-store-password=acumos",
-									"federation.ssl.client-auth=need"
+									"federation.ssl.client-auth=need",
+									"federation.registration.enabled=true"
 								})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ControllerTest {
@@ -194,6 +195,72 @@ public class ControllerTest {
 		assertTrue(response.getStatusCodeValue() == 200);
 		assertTrue(response.getBody().getContent().size() == 1); //no errors
 	}
+	
+	@Test
+	public void testRegister() {
+
+    ((HttpComponentsClientHttpRequestFactory)
+			this.restTemplate.getRestTemplate().getRequestFactory())
+				.setHttpClient(prepareHttpClient("acumosc"));
+
+		ResponseEntity<JsonResponse<MLPPeer>> response =
+			this.restTemplate.exchange("/peer/register", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
+		if (response != null)	{
+			log.info(EELFLoggerDelegate.debugLogger, "testRegister: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "testRegister: {}", response);
+		}
+	
+		assertTrue(response != null);
+		assertTrue("Expected 202 status code, got " + response.getStatusCodeValue(), response.getStatusCodeValue() == 202);
+
+		//an attempt to re-register should trigger an error
+		response =
+			this.restTemplate.exchange("/peer/register", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
+		if (response != null)	{
+			log.info(EELFLoggerDelegate.debugLogger, "test(re)Register: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "test(re)Register: {}", response);
+		}
+	
+		assertTrue(response != null);
+		assertTrue("Expected 400 status code, got " + response.getStatusCodeValue(), response.getStatusCodeValue() == 400);
+	}
+
+	@Test
+	public void testUnregister() {
+
+    ((HttpComponentsClientHttpRequestFactory)
+			this.restTemplate.getRestTemplate().getRequestFactory())
+				.setHttpClient(prepareHttpClient("acumosb"));
+
+		ResponseEntity<JsonResponse<MLPPeer>> response =
+			this.restTemplate.exchange("/peer/unregister", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
+		if (response != null)	{
+			log.info(EELFLoggerDelegate.debugLogger, "testUnregister: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "testUnregister: {}", response);
+		}
+	
+		assertTrue(response != null);
+		assertTrue("Expected 202 status code, got " + response.getStatusCodeValue(), response.getStatusCodeValue() == 202);
+	}
+
+	@Test
+	public void testUnregisterNonExistent() {
+
+    ((HttpComponentsClientHttpRequestFactory)
+			this.restTemplate.getRestTemplate().getRequestFactory())
+				.setHttpClient(prepareHttpClient("acumosc"));
+
+		ResponseEntity<JsonResponse<MLPPeer>> response =
+			this.restTemplate.exchange("/peer/unregister", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
+		if (response != null)	{
+			log.info(EELFLoggerDelegate.debugLogger, "testUnregisterNonExistent: {}", response.getBody());
+			log.info(EELFLoggerDelegate.debugLogger, "testUnregisterNonExistent: {}", response);
+		}
+	
+		assertTrue(response != null);
+		assertTrue("Expected 400 status code, got " + response.getStatusCodeValue(), response.getStatusCodeValue() == 400);
+	}
+
 
 	@Test
 	public void testPeersForbidden() {
@@ -232,10 +299,14 @@ public class ControllerTest {
 	}
 
 	private HttpClient prepareHttpClient() {
+		return prepareHttpClient("acumosb");
+	}
+
+	private HttpClient prepareHttpClient(String theIdentity) {
 		return new InterfaceConfigurationBuilder()
 								.withSSL(new SSLBuilder()
-															.withKeyStore("classpath:/acumosb.pkcs12")
-															.withKeyStorePassword("acumosb")
+															.withKeyStore("classpath:/" + theIdentity + ".pkcs12")
+															.withKeyStorePassword(theIdentity)
 															//.withKeyPassword("acumosb")
 															.withTrustStore("classpath:/acumosTrustStore.jks")
 															.withTrustStoreType("JKS")

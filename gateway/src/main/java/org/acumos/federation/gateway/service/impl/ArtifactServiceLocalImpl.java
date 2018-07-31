@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.stream.Collectors;
 
+import java.lang.invoke.MethodHandles;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FileUtils;
@@ -58,7 +60,7 @@ import org.apache.commons.io.FileUtils;
 public class ArtifactServiceLocalImpl extends AbstractServiceImpl
 																	implements ArtifactService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(ArtifactServiceLocalImpl.class.getName());
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	/**
 	 * @return a resource containing the content or null if the artifact has no content

@@ -111,7 +111,7 @@ public class AuthorizationTest {
 		}
 		
 		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 401);
+		assertTrue("Expected status code 401, got " + response.getStatusCodeValue(), response.getStatusCodeValue() == 401);
 	}
 
 	@Test
@@ -130,7 +130,7 @@ public class AuthorizationTest {
 		}
 		
 		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
+		assertTrue("Expected status code 200, got " + response.getStatusCodeValue(), response.getStatusCodeValue() == 200);
 		assertTrue(response.getBody().getContent().size() == 1);
 	
 	}
@@ -151,7 +151,7 @@ public class AuthorizationTest {
 		}
 		
 		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 202); //401 ??
+		assertTrue("Expected status code 202, got " + response.getStatusCodeValue(), response.getStatusCodeValue() == 202);
 	}
 
 

@@ -1,0 +1,27 @@
+{
+  "content": [
+    {
+      "created": 1532025563000,
+      "modified": 1532025563000,
+      "peerId": "a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0",
+      "name": "acumosa",
+      "subjectName": "gateway.acumosa.org",
+      "description": "test",
+      "apiUrl": "https://gateway.acumosa.org:9084",
+      "webUrl": "https://gateway.acumosa.org:9084",
+      "contact1": "admin@acumosa.org",
+      "statusCode": "AC",
+      "validationStatusCode": "PS",
+      "local": false,
+      "self": false
+    }
+  ],
+  "last": true,
+  "totalPages": 1,
+  "totalElements": 1,
+  "sort": null,
+  "first": true,
+  "numberOfElements": 1,
+  "size": 20,
+  "number": 0
+}

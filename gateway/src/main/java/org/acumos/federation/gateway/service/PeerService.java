@@ -23,6 +23,7 @@ package org.acumos.federation.gateway.service;
 import java.util.List;
 
 import org.acumos.cds.domain.MLPPeer;
+import org.acumos.federation.gateway.cds.PeerStatus;
 
 /**
  * Defines the interface of a service providing local peer information.
@@ -121,6 +122,40 @@ public interface PeerService {
 	public void registerPeer(MLPPeer thePeer) throws ServiceException;
 
 	/**
+	 * Asserts the registration request pre-conditions.
+	 * Returns if peer registration can continue.
+	 *
+	 * @param thePeer
+	 *            new peer info to be registered
+	 * @throws ServiceException
+	 *             In order to signal an invalid peer status at the time of a registration request
+	 */
+	public default void assertPeerRegistration(MLPPeer thePeer) throws ServiceException {
+
+		if (thePeer == null)
+			return;
+			
+		PeerStatus status = PeerStatus.forCode(thePeer.getStatusCode());
+		if (null == status) {
+			throw new ServiceException("Invalid peer status found: " + thePeer.getStatusCode());
+		}
+
+		if (status == PeerStatus.Requested) {
+			throw new ServiceException("Peer registration request is pending");
+		}
+		else if (status == PeerStatus.Declined) {
+			throw new ServiceException("Peer registration request was declined");
+		}
+		else if (status == PeerStatus.Renounced) {
+			throw new ServiceException("Peer unregistration request is pending");
+		}
+		else { //if (status == PeerStatus.Active || status == PeerStatus.Inactive) {
+			throw new ServiceException("Peer already exists: " + thePeer);
+		}
+	}
+	
+
+	/**
 	 * Optional operation allowing the gateway to update a peer and mark it for
 	 * removal as part of a in-band peer handshake mechanism.
 	 *
@@ -130,6 +165,36 @@ public interface PeerService {
 	 *             if anything goes wrong during the check/provisioning process
 	 */
 	public void unregisterPeer(MLPPeer thePeer) throws ServiceException;
+
+	/**
+	 * Asserts the unregistration request pre-conditions.
+	 * Returns if peer unregistration can continue.
+	 *
+	 * @param thePeer
+	 *            Peer info.
+	 * @throws ServiceException
+	 *             In order to signal an invalid peer status at the time of a unregistration request
+	 */
+	public default void assertPeerUnregistration(MLPPeer thePeer) throws ServiceException {
+	
+		if (thePeer == null)
+			throw new ServiceException("No such peer found: " + thePeer.getSubjectName());
+
+		PeerStatus status = PeerStatus.forCode(thePeer.getStatusCode());
+		if (null == status) {
+			throw new ServiceException("Invalid peer status found: " + thePeer.getStatusCode());
+		}
+
+		if (status == PeerStatus.Requested) {
+			throw new ServiceException("Peer registration request is pending");
+		}
+		else if (status == PeerStatus.Declined) {
+			throw new ServiceException("Peer registration request was declined");
+		}
+		else if (status == PeerStatus.Renounced) {
+			throw new ServiceException("Peer unregistration request is pending");
+		}
+	}
 
 	/**
 	 * Provide a context for self service calls, ie calls made on the behalf of the gateway itself.
