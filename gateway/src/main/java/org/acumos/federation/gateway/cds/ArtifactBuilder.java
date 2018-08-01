@@ -20,7 +20,6 @@
 package org.acumos.federation.gateway.cds;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  */
@@ -51,8 +50,8 @@ public class ArtifactBuilder {
 		return this;
 	}
 
-	public ArtifactBuilder withOwner(String theOwnerId) {
-		this.artifact.setOwnerId(theOwnerId);
+	public ArtifactBuilder withUser(String theUserId) {
+		this.artifact.setUserId(theUserId);
 		return this;
 	}
 

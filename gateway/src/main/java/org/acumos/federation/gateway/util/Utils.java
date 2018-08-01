@@ -22,6 +22,7 @@ package org.acumos.federation.gateway.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Utils {
 
-	private final static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(Utils.class);
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	private static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -81,39 +82,39 @@ public class Utils {
 	}
 
 	public static String getTempFolderPath(String artifactName, String version, String nexusTempPath) {
-		logger.debug("--------------- getTempFolderPath() started --------------");
+		log.debug("--------------- getTempFolderPath() started --------------");
 		if (!isEmptyOrNullString(nexusTempPath)) {
 			nexusTempPath = nexusTempPath + "/" + artifactName + "/" + version;
 			// create the directory for the solution and version specified
 			File dir = new File(nexusTempPath);
-			logger.debug("------------ Directory for artifactName and Version : -------------" + dir);
+			log.debug("------------ Directory for artifactName and Version : -------------" + dir);
 			if (!dir.exists()) {
-				logger.debug("------------ Directory not exists for artifactName and Version : --------------------");
+				log.debug("------------ Directory not exists for artifactName and Version : --------------------");
 				dir.mkdir();
-				logger.debug("----------- New Directory created for artifactName and Version : ----------------" + dir);
+				log.debug("----------- New Directory created for artifactName and Version : ----------------" + dir);
 			}
 		}
-		logger.debug("-------------  getTempFolderPath() ended ---------------");
+		log.debug("-------------  getTempFolderPath() ended ---------------");
 		return nexusTempPath;
 	}
 
 	public static void deletetTempFiles(String tempFolder) throws Exception {
-		logger.info("--------  deletetTempFiles() Started ------------");
+		log.info("--------  deletetTempFiles() Started ------------");
 
 		File directory = new File(tempFolder);
 
 		// make sure directory exists
 		if (!directory.exists()) {
-			logger.debug("----------- Directory does not exist. ----------");
+			log.debug("----------- Directory does not exist. ----------");
 
 		} else {
 
 			try {
 
 				delete(directory);
-				logger.info("----------- deletetTempFiles() Ended ----------------");
+				log.info("----------- deletetTempFiles() Ended ----------------");
 			} catch (Exception e) {
-				logger.error("--------- Exception deletetTempFiles() -------------", e);
+				log.error("--------- Exception deletetTempFiles() -------------", e);
 				throw e;
 			}
 		}
@@ -121,7 +122,7 @@ public class Utils {
 	}
 
 	public static void delete(File file) throws IOException {
-		logger.debug("------------  delete() started ------------");
+		log.debug("------------  delete() started ------------");
 		try {
 			if (file.isDirectory()) {
 
@@ -129,7 +130,7 @@ public class Utils {
 				if (file.list().length == 0) {
 
 					file.delete();
-					logger.debug("--------- Directory is deleted : ----------- " + file.getAbsolutePath());
+					log.debug("--------- Directory is deleted : ----------- " + file.getAbsolutePath());
 
 				} else {
 
@@ -149,18 +150,18 @@ public class Utils {
 					// check the directory again, if empty then delete it
 					if (file.list().length == 0) {
 						file.delete();
-						logger.debug(" -------Directory is deleted :------------- " + file.getAbsolutePath());
+						log.debug(" -------Directory is deleted :------------- " + file.getAbsolutePath());
 					}
 				}
 
 			} else {
 				// if file, then delete it
 				file.delete();
-				logger.debug("---------File is deleted :----------- " + file.getAbsolutePath());
+				log.debug("---------File is deleted :----------- " + file.getAbsolutePath());
 			}
-			logger.debug("------------- delete() ended ---------------");
+			log.debug("------------- delete() ended ---------------");
 		} catch (Exception ex) {
-			logger.error("----------- Exceptoin Occured delete() ---------------", ex);
+			log.error("----------- Exceptoin Occured delete() ---------------", ex);
 
 		}
 	}

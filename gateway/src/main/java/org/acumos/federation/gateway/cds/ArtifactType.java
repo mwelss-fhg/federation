@@ -20,7 +20,7 @@
 package org.acumos.federation.gateway.cds;
 
 import java.util.EnumSet;
-import org.acumos.cds.domain.MLPArtifactType;
+
 import org.acumos.cds.ArtifactTypeCode;
 
 /**

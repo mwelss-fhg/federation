@@ -6,13 +6,12 @@
       "solutionId": "26cc5a84-b888-40ff-92aa-989c4972390a",
       "name": "subtract",
       "description": null,
-      "provider": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "RG",
       "toolkitTypeCode": "SK",
       "origin": null,
-      "ownerId": "fea37214-e7ef-4ec7-8c12-b10f88669a28",
+      "userId": "fea37214-e7ef-4ec7-8c12-b10f88669a28",
       "sourceId": null,
       "tags": [
         {
@@ -35,13 +34,12 @@
       "solutionId": "26cd2116-c1e1-49a7-9b2e-2200eaaf379a",
       "name": "TestClear",
       "description": "Test",
-      "provider": "Acumos",
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
       "toolkitTypeCode": "CP",
       "origin": null,
-      "ownerId": "fea37214-e7ef-4ec7-8c12-b10f88669a28",
+      "userId": "fea37214-e7ef-4ec7-8c12-b10f88669a28",
       "sourceId": null,
       "tags": [
         {
@@ -64,13 +62,12 @@
       "solutionId": "26d4ed7e-3bef-49d7-9a6a-84f131d8b3b7",
       "name": "Sanity_15062018",
       "description": "Test",
-      "provider": "Acumos",
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
       "toolkitTypeCode": "CP",
       "origin": null,
-      "ownerId": "fea37214-e7ef-4ec7-8c12-b10f88669a28",
+      "userId": "fea37214-e7ef-4ec7-8c12-b10f88669a28",
       "sourceId": null,
       "tags": [
         {
@@ -93,13 +90,12 @@
       "solutionId": "34cc31da-491a-4f52-99b8-475d82e9268a",
       "name": "poutput",
       "description": null,
-      "provider": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "RG",
       "toolkitTypeCode": "SK",
       "origin": null,
-      "ownerId": "fea37214-e7ef-4ec7-8c12-b10f88669a28",
+      "userId": "fea37214-e7ef-4ec7-8c12-b10f88669a28",
       "sourceId": null,
       "tags": [
         {
@@ -122,13 +118,12 @@
       "solutionId": "38efeef1-e4f4-4298-9f68-6f0052d6ade9",
       "name": "Predictor",
       "description": null,
-      "provider": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
       "toolkitTypeCode": "TF",
       "origin": null,
-      "ownerId": "fea37214-e7ef-4ec7-8c12-b10f88669a28",
+      "userId": "fea37214-e7ef-4ec7-8c12-b10f88669a28",
       "sourceId": null,
       "tags": [
         {

@@ -23,10 +23,9 @@
  */
 package org.acumos.federation.gateway.service;
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.InputStreamResource;
-
 import org.acumos.cds.domain.MLPArtifact;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 
 /**
  * Handles access to the artifacts repository. 

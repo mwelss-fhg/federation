@@ -20,8 +20,8 @@
 package org.acumos.federation.gateway.common;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.Collection;
+import java.util.Map;
 
 import org.springframework.web.util.UriComponentsBuilder;
 

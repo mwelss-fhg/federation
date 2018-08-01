@@ -23,19 +23,15 @@
  */
 package org.acumos.federation.gateway.service;
 
-import java.io.File;
-import java.util.Map;
 import java.util.List;
-
-import org.springframework.core.io.InputStreamResource;
-
-import org.acumos.federation.gateway.cds.Artifact;
-import org.acumos.federation.gateway.cds.Solution;
-import org.acumos.federation.gateway.cds.SolutionRevision;
+import java.util.Map;
 
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.federation.gateway.cds.Artifact;
+import org.acumos.federation.gateway.cds.Solution;
+import org.acumos.federation.gateway.cds.SolutionRevision;
 
 /**
  * Handles access to the solutions catalog. The APIs of tis interface take a

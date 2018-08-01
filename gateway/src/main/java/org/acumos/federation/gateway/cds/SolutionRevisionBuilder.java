@@ -20,7 +20,6 @@
 package org.acumos.federation.gateway.cds;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  */
@@ -81,8 +80,8 @@ public class SolutionRevisionBuilder {
 		return this;
 	}
 
-	public SolutionRevisionBuilder withOwner(String theOwnerId) {
-		this.revision.setOwnerId(theOwnerId);
+	public SolutionRevisionBuilder withUser(String theUserId) {
+		this.revision.setUserId(theUserId);
 		return this;
 	}
 	

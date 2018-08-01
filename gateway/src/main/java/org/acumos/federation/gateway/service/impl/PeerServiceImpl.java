@@ -23,30 +23,21 @@
  */
 package org.acumos.federation.gateway.service.impl;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-
 import java.lang.invoke.MethodHandles;
-
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.util.MapBuilder;
-import org.acumos.federation.gateway.service.PeerService;
-import org.acumos.federation.gateway.service.ServiceContext;
-import org.acumos.federation.gateway.service.ServiceException;
-import org.acumos.federation.gateway.cds.PeerStatus;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
-import org.springframework.context.annotation.Conditional;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.cds.domain.MLPPeer;
-import org.acumos.cds.transport.RestPageResponse;
 import org.acumos.cds.transport.RestPageRequest;
+import org.acumos.cds.transport.RestPageResponse;
+import org.acumos.federation.gateway.cds.PeerStatus;
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.service.PeerService;
+import org.acumos.federation.gateway.service.ServiceContext;
+import org.acumos.federation.gateway.service.ServiceException;
+import org.acumos.federation.gateway.util.MapBuilder;
+import org.springframework.stereotype.Service;
 
 /**
  * 

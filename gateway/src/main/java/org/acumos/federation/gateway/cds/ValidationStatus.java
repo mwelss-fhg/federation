@@ -20,7 +20,6 @@
 package org.acumos.federation.gateway.cds;
 
 import java.util.EnumSet;
-import org.acumos.cds.domain.MLPValidationStatus;
 
 /**
  * Supplements the CDS representation of a solution validation status information.

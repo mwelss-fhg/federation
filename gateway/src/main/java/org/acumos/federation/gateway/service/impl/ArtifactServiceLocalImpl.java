@@ -17,40 +17,22 @@
  * limitations under the License.
  * ===============LICENSE_END=========================================================
  */
-
-/**
- * 
- */
 package org.acumos.federation.gateway.service.impl;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.util.stream.Collectors;
-
 import java.lang.invoke.MethodHandles;
+import java.net.URI;
 
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.io.FileUtils;
-
-import org.acumos.federation.gateway.util.Utils;
+import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.ArtifactService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
-
-import org.acumos.cds.domain.MLPArtifact;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.stereotype.Service;
-import org.springframework.context.annotation.Conditional;
-
 import org.apache.commons.io.FileUtils;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
 
 /**
  * File based implementation of the ArtifactService.

@@ -27,10 +27,7 @@ import java.util.Date;
 import java.util.Map;
 
 import org.acumos.cds.transport.RestPageRequest;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-
 import org.apache.http.client.HttpClient;
-
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -44,8 +41,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * service interface.
  */
 public abstract class AbstractClient {
-
-	protected final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
 	protected String baseUrl;
 	protected RestTemplate restTemplate;

@@ -19,46 +19,39 @@
  */
 package org.acumos.federation.gateway.test;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.List;
 import java.util.Scanner;
 
-import static org.junit.Assert.assertTrue;
-import static org.assertj.core.api.Assertions.assertThat; 
-
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextHierarchy;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.core.ParameterizedTypeReference;
-
-import org.apache.http.client.HttpClient;
-
-/* this is not good for unit testing .. */
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
-import static org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
-
+import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
-import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.federation.gateway.common.JsonResponse;
+/* this is not good for unit testing .. */
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
+import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
+import org.apache.http.client.HttpClient;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
+import org.springframework.test.context.junit4.SpringRunner;
 
 
 
@@ -173,7 +166,7 @@ public class ControllerTest {
 
 		assertTrue(response != null);
 		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getContent().getOwnerId().equals("admin")); //no errors
+		assertTrue(response.getBody().getContent().getUserId().equals("admin")); //no errors
 	}
 
 	@Test

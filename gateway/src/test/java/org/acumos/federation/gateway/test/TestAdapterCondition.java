@@ -20,11 +20,10 @@
 
 package org.acumos.federation.gateway.test;
 
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.core.env.Environment;
-
 import org.acumos.federation.gateway.config.AdapterCondition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.env.Environment;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * Tests if we are in a test Adapter setup/profile

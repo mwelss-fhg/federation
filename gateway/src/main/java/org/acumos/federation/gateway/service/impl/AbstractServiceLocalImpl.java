@@ -20,21 +20,13 @@
 
 package org.acumos.federation.gateway.service.impl;
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.security.Peer;
 import org.acumos.federation.gateway.service.LocalWatchService;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-
-import org.apache.commons.io.IOUtils;
+import org.acumos.federation.gateway.service.ServiceContext;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
 
 
 public class AbstractServiceLocalImpl {

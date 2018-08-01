@@ -20,10 +20,10 @@
 
 package org.acumos.federation.gateway.adapter;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Collections;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -34,26 +34,22 @@ import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
-
+import org.acumos.federation.gateway.cds.Artifact;
+import org.acumos.federation.gateway.cds.Solution;
+import org.acumos.federation.gateway.cds.SolutionRevision;
+import org.acumos.federation.gateway.cds.SubscriptionScope;
+import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.config.GatewayCondition;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
-import org.acumos.federation.gateway.common.Clients;
-import org.acumos.federation.gateway.common.FederationClient;
-import org.acumos.federation.gateway.util.Errors;
-import org.acumos.federation.gateway.cds.SubscriptionScope;
-import org.acumos.federation.gateway.cds.Solution;
-import org.acumos.federation.gateway.cds.SolutionRevision;
-import org.acumos.federation.gateway.cds.Artifact;
-
 import org.acumos.federation.gateway.service.ArtifactService;
 import org.acumos.federation.gateway.service.ServiceException;
-
+import org.acumos.federation.gateway.util.Errors;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
@@ -116,11 +112,11 @@ public class PeerGateway {
 		log.trace(EELFLoggerDelegate.debugLogger, "PeerGateway destroyed");
 	}
 
-	protected String getOwnerId(MLPPeerSubscription theSubscription/*
+	protected String getUserId(MLPPeerSubscription theSubscription/*
 																	 * , MLPSolution theSolution
 																	 */) {
-		String ownerId = theSubscription.getOwnerId();
-		return ownerId != null ? ownerId : this.env.getProperty("federation.operator");
+		String userId = theSubscription.getUserId();
+		return userId != null ? userId : this.env.getProperty("federation.operator");
 	}
 
 	@EventListener
@@ -192,9 +188,8 @@ public class PeerGateway {
 					"Creating Local MLP Solution for peer solution " + peerSolution);
 
 			Solution localSolution = Solution.buildFrom(peerSolution)
-																	.withProvider(this.peer.getName())
 			//should the creted/modified reflect this information or the information we got from the peer ?
-																	.withOwner(getOwnerId(this.sub))
+																	.withUser(getUserId(this.sub))
 																	.withSource(this.peer.getPeerId())
 																	.build();
 			try {
@@ -216,7 +211,7 @@ public class PeerGateway {
 				ICommonDataServiceRestClient cdsClient) {
 
 			SolutionRevision localRevision = SolutionRevision.buildFrom(peerRevision)
-																					.withOwner(getOwnerId(this.sub))
+																					.withUser(getUserId(this.sub))
 																					.withSource(this.peer.getPeerId())
 																					.withAccessTypeCode(this.sub.getAccessType())
 																					.withValidationStatusCode(this.peer.getValidationStatusCode())
@@ -241,7 +236,7 @@ public class PeerGateway {
 				ICommonDataServiceRestClient cdsClient) {
 
 			Artifact artifact = Artifact.buildFrom(peerArtifact)
-														.withOwner(getOwnerId(this.sub))
+														.withUser(getUserId(this.sub))
 														.build();
 			try {
 				cdsClient.createArtifact(artifact);
@@ -264,7 +259,7 @@ public class PeerGateway {
 
 			return Artifact.buildFrom(peerArtifact)
 								.withId(localArtifact.getArtifactId())
-								.withOwner(getOwnerId(this.sub))
+								.withUser(getUserId(this.sub))
 								.build();
 		}
 
@@ -278,15 +273,14 @@ public class PeerGateway {
 
 			//start with the peer solution and pick the few local values we ought to preserve or impose
 			Solution solution = Solution.buildFrom(peerSolution)
-															.withProvider(this.peer.getName())
-															.withOwner((Object... args) -> {
-																	String newOwnerId = getOwnerId(this.sub);
-																		if (!newOwnerId.equals(localSolution.getOwnerId())) {
+															.withUser((Object... args) -> {
+																	String newUserId = getUserId(this.sub);
+																		if (!newUserId.equals(localSolution.getUserId())) {
 																			// is this solution being updated as part of different/new subscription?
 																			log.warn(EELFLoggerDelegate.errorLogger, "updating solution " +localSolution.getSolutionId()
-																			+ " as part of subscription " + this.sub.getSubId() + " triggers an ownership change");
+																			+ " as part of subscription " + this.sub.getSubId() + " triggers a user change");
 																		}
-																		return newOwnerId;
+																		return newUserId;
 																})
 															.withSource((Object... args) -> {
 																	if (localSolution.getSourceId() == null) {
@@ -308,8 +302,8 @@ public class PeerGateway {
 															.build();
 
 			try {
-				cdsClient.updateSolution(localSolution);
-				return localSolution;
+				cdsClient.updateSolution(solution);
+				return solution;
 			}
 			catch (HttpStatusCodeException restx) {
 				log.error(EELFLoggerDelegate.errorLogger,
@@ -402,6 +396,10 @@ public class PeerGateway {
 				List<MLPArtifact> cdsArtifacts = Collections.EMPTY_LIST;
 				if (localRevision == null) {
 					localRevision = createMLPSolutionRevision(peerRevision, cdsClient);
+					if (localRevision == null) {
+						//cannot map this revision, move onto the next one
+						//continue
+					}
 				}
 				else {
 					try {

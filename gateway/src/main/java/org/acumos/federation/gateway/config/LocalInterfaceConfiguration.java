@@ -20,9 +20,8 @@
 
 package org.acumos.federation.gateway.config;
 
-import org.springframework.stereotype.Component;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 /**
  * Defines a specific external configuration prefix for the local interface.

@@ -20,10 +20,9 @@
 
 package org.acumos.federation.gateway.util;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
-import java.util.function.BiFunction;
 
 public class MapBuilder<K, V> {
 

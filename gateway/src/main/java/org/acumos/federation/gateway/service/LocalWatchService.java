@@ -20,47 +20,25 @@
 
 package org.acumos.federation.gateway.service;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
 import java.io.IOException;
-
+import java.net.URI;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.nio.file.FileSystems;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import java.util.Set;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Date;
-import java.text.DateFormat;
-import java.util.stream.Collectors;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.json.JSONObject;
-import org.json.JSONArray;
-
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.scheduling.annotation.Scheduled;
-
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-
-import org.apache.commons.io.IOUtils;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 /**
  * Local implementations get their info from local file(s), we help them here a

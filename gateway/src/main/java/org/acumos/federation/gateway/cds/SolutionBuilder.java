@@ -20,7 +20,6 @@
 package org.acumos.federation.gateway.cds;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * Supplements the CDS representation of a solution with related information: revisions.
@@ -63,11 +62,6 @@ public class SolutionBuilder {
 		return this;
 	}
 
-	public SolutionBuilder withProvider(String theProvider) {
-		this.solution.setProvider(theProvider);
-		return this;
-	}
-
 	public SolutionBuilder withDescription(String theDesc) {
 		this.solution.setDescription(theDesc);
 		return this;
@@ -93,15 +87,15 @@ public class SolutionBuilder {
 		return this;
 	}
 
-	public SolutionBuilder withOwner(String theOwnerId) {
-		this.solution.setOwnerId(theOwnerId);
+	public SolutionBuilder withUser(String theUserId) {
+		this.solution.setUserId(theUserId);
 		return this;
 	}
 	
-	public SolutionBuilder withOwner(Updater<String, Object> theUpdater, Object... theArgs) {
-		String newOwner = theUpdater.update(theArgs);
-		if (newOwner != null)
-			this.solution.setOwnerId(newOwner);
+	public SolutionBuilder withUser(Updater<String, Object> theUpdater, Object... theArgs) {
+		String newUser = theUpdater.update(theArgs);
+		if (newUser != null)
+			this.solution.setUserId(newUser);
 		return this;
 	}
 

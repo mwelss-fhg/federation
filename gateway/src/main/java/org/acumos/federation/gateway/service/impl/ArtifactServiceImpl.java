@@ -25,50 +25,25 @@ package org.acumos.federation.gateway.service.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Date;
-import java.util.stream.Collectors;
-
 import java.lang.invoke.MethodHandles;
 
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.io.FileUtils;
-
+import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.federation.gateway.cds.ArtifactType;
-import org.acumos.federation.gateway.util.Utils;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.ArtifactService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
-
 import org.acumos.nexus.client.NexusArtifactClient;
 import org.acumos.nexus.client.data.UploadArtifactInfo;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Identifier;
 import com.github.dockerjava.api.model.Repository;
-import com.github.dockerjava.api.model.PullResponseItem;
 import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.github.dockerjava.core.command.PushImageResultCallback;
-
-import org.acumos.cds.AccessTypeCode;
-import org.acumos.cds.ValidationStatusCode;
-import org.acumos.cds.client.ICommonDataServiceRestClient;
-import org.acumos.cds.domain.MLPArtifact;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.stereotype.Service;
-import org.springframework.context.annotation.Conditional;
 
 
 /**

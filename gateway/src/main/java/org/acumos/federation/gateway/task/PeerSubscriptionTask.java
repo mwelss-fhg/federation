@@ -20,6 +20,7 @@
 
 package org.acumos.federation.gateway.task;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -27,14 +28,13 @@ import java.util.Map;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.cds.domain.MLPSolution;
+import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
-import org.acumos.federation.gateway.common.Clients;
-import org.acumos.federation.gateway.common.FederationClient;
-import org.acumos.federation.gateway.util.Utils;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
-
+import org.acumos.federation.gateway.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
@@ -50,8 +50,7 @@ import org.springframework.stereotype.Component;
 @Scope("prototype")
 public class PeerSubscriptionTask implements Runnable {
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
-
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	private MLPPeer	peer;
 	private MLPPeerSubscription subscription;

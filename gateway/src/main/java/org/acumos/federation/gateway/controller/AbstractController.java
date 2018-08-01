@@ -22,7 +22,6 @@ package org.acumos.federation.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 /**
  * 
@@ -32,7 +31,6 @@ public abstract class AbstractController {
 
 	protected static final String APPLICATION_JSON = "application/json";
 
-	protected final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 	protected final ObjectMapper mapper;
 
 	public AbstractController() {

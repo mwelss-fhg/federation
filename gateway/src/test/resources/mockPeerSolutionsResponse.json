@@ -4,7 +4,7 @@
   "solutionId":"6793411f-c7a1-4e93-85bc-f91d267541d8",
   "name":"mock model",
   "description":"Test mock model",
-  "ownerId":"admin",
+  "userId":"admin",
   "active":"true",
   "modelTypeCode":"CL",
   "toolkitTypeCode":"",

@@ -20,52 +20,31 @@
 
 package org.acumos.federation.gateway.service.impl;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
 import java.io.IOException;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import java.util.Set;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Date;
-import java.util.Collections;
-import java.util.stream.Collectors;
-
 import java.lang.invoke.MethodHandles;
+import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import org.acumos.cds.domain.MLPPeer;
+import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Service;
 
-import org.acumos.cds.domain.MLPPeer;
-import org.acumos.cds.domain.MLPPeerSubscription;
-
-import org.apache.commons.io.IOUtils;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 
 @Service
 @ConfigurationProperties(prefix = "peersLocal")

@@ -19,11 +19,9 @@
  */
 package org.acumos.federation.gateway.security;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Arrays;
-
-import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Each Role states a predefined set of available federation priviledges.

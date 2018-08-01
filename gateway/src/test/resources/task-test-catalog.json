@@ -2,7 +2,7 @@
   "solutionId":"00000000-0000-0000-0000-000000000000",
   "name":"traffic-ram",
   "description":"Round about traffic model",
-  "ownerId":"admin",
+  "userId":"admin",
   "active":"true",
   "modelTypeCode":"CL",
   "toolkitTypeCode":"",
@@ -18,7 +18,7 @@
     "metadata":"acumosa",
     "validationStatusCode":"PS",
     "accessTypeCode":"PB",
-    "ownerId":"admin",
+    "userId":"admin",
   	"created":"2017-08-10",
   	"modified":"2017-08-11",
     "artifacts":[

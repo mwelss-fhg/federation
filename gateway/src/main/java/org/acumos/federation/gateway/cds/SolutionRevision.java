@@ -21,8 +21,8 @@ package org.acumos.federation.gateway.cds;
 
 import java.util.List;
 
-import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPSolutionRevision;
 
 /**
  * Supplements the CDS representation of a solution with related information: revisions.

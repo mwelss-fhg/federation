@@ -20,10 +20,9 @@
 
 package org.acumos.federation.gateway.util;
 
-import java.util.List;
-import java.util.LinkedList;
 import java.util.Collections;
-
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 

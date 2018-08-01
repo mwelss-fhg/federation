@@ -178,7 +178,7 @@ public interface PeerService {
 	public default void assertPeerUnregistration(MLPPeer thePeer) throws ServiceException {
 	
 		if (thePeer == null)
-			throw new ServiceException("No such peer found: " + thePeer.getSubjectName());
+			throw new ServiceException("No such peer");
 
 		PeerStatus status = PeerStatus.forCode(thePeer.getStatusCode());
 		if (null == status) {

@@ -7,7 +7,7 @@
   "description":"First attempt",
   "version":"1.0",
   "metadata":"acumosa",
-  "ownerId":"admin",
+  "userId":"admin",
   "created":"2017-08-10",
   "modified":"2017-08-11"
  }]

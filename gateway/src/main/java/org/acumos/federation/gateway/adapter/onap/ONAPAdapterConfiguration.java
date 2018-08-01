@@ -20,14 +20,10 @@
 
 package org.acumos.federation.gateway.adapter.onap;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.acumos.federation.gateway.config.AdapterConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-
-import org.acumos.federation.gateway.config.AdapterConfiguration;
 
 
 /**

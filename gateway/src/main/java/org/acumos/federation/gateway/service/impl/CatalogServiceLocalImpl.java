@@ -20,62 +20,34 @@
 
 package org.acumos.federation.gateway.service.impl;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.HashMap;
+import java.lang.invoke.MethodHandles;
+import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Collections;
 import java.util.stream.Collectors;
-
-import java.lang.invoke.MethodHandles;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-
-import org.apache.commons.io.FileUtils;
-
+import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPSolution;
+import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.federation.gateway.cds.Artifact;
+import org.acumos.federation.gateway.cds.Mapper;
+import org.acumos.federation.gateway.cds.Solution;
+import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
-import org.acumos.federation.gateway.util.Utils;
-
-import org.acumos.federation.gateway.cds.Solution;
-import org.acumos.federation.gateway.cds.SolutionRevision;
-import org.acumos.federation.gateway.cds.Artifact;
-import org.acumos.federation.gateway.cds.Mapper;
-
-import org.acumos.cds.AccessTypeCode;
-import org.acumos.cds.ValidationStatusCode;
-import org.acumos.cds.client.ICommonDataServiceRestClient;
-import org.acumos.cds.domain.MLPArtifact;
-import org.acumos.cds.domain.MLPSolution;
-import org.acumos.cds.domain.MLPSolutionRevision;
-import org.acumos.cds.transport.RestPageResponse;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.stereotype.Service;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.ObjectReader;
 
 
 /**

@@ -20,50 +20,22 @@
 package org.acumos.federation.gateway.test;
 
 import java.util.List;
-import java.util.Scanner;
-import java.util.Collections;
-
-import org.springframework.web.client.RestTemplate;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.EventListener;
-import org.springframework.context.annotation.Bean;
-
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.io.ClassPathResource;
-
-import org.apache.http.ProtocolVersion;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.message.BasicStatusLine;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
-
-/* this is not good for unit testing .. */
-import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
-import static org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
+/* this is not good for unit testing .. */
+import org.acumos.federation.gateway.common.JsonResponse;
+import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
+import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
+import org.apache.http.client.HttpClient;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
 
 

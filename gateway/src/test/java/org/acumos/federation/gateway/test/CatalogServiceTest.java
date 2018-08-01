@@ -19,102 +19,30 @@
  */
 package org.acumos.federation.gateway.test;
 
-import java.io.InputStream;
-import java.io.Closeable;
-import java.io.IOException;
-
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Collections;
-
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.CountDownLatch;
-
-import org.junit.Before;
 import static org.junit.Assert.assertTrue;
-import static org.assertj.core.api.Assertions.assertThat; 
+import static org.junit.Assert.fail;
 
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import java.util.Collections;
+import java.util.List;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.EventListener;
-import org.springframework.context.annotation.Bean;
-
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.io.ClassPathResource;
-
-import static org.mockito.Mockito.*;
-import static org.mockito.Matchers.*;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.stubbing.Answer;
-import org.mockito.invocation.InvocationOnMock;
-
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.client.methods.CloseableHttpResponse; 
-import org.apache.http.message.BasicStatusLine;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
-
-/* this is not good for unit testing .. */
-import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
-import org.acumos.federation.gateway.common.Clients;
-import org.acumos.federation.gateway.config.LocalInterfaceConfiguration;
-import org.acumos.federation.gateway.cds.PeerStatus;
+import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPPeer;
+import org.acumos.cds.domain.MLPSolution;
+import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.security.Peer;
 import org.acumos.federation.gateway.security.Role;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
-import org.acumos.federation.gateway.cds.Solution;
-import org.acumos.federation.gateway.cds.SolutionRevision;
-
-import org.acumos.cds.domain.MLPPeer;
-import org.acumos.cds.domain.MLPPeerSubscription;
-import org.acumos.cds.domain.MLPSolution;
-import org.acumos.cds.domain.MLPSolutionRevision;
-import org.acumos.cds.domain.MLPArtifact;
-import org.acumos.cds.client.ICommonDataServiceRestClient;
-import org.acumos.cds.transport.RestPageRequest;
-import org.acumos.cds.transport.RestPageResponse;
-
-import org.acumos.nexus.client.NexusArtifactClient;
-import org.acumos.nexus.client.data.UploadArtifactInfo;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.junit4.SpringRunner;
 
 
 /**
@@ -159,13 +87,16 @@ public class CatalogServiceTest extends ServiceTest {
 		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&vsc=PS&active=true&page=1&size=50", MockResponse.success("mockCDSDateSolutionsResponsePage1.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010", MockResponse.success("mockCDSSolutionResponse.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/revision", MockResponse.success("mockCDSSolutionRevisionsResponse.json"));
-		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/revision/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
+		//registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/revision/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
+		registerMockResponse("GET /ccds/revision/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
 		registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
 		registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/revision", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
-		registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/revision/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/artifact", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
+		//registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/revision/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/artifact", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
+		registerMockResponse("GET /ccds/revision/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/artifact", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
 		registerMockResponse("GET /ccds/solution/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
 		registerMockResponse("GET /ccds/solution/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/revision", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
-		registerMockResponse("GET /ccds/solution/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/revision/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/artifact", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
+		//registerMockResponse("GET /ccds/solution/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/revision/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/artifact", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
+		registerMockResponse("GET /ccds/revision/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/artifact", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
 		registerMockResponse("GET /ccds/peer/search?isSelf=true&_j=a", MockResponse.success("mockCDSPeerSearchSelfResponse.json"));
 	}
 
@@ -230,7 +161,7 @@ public class CatalogServiceTest extends ServiceTest {
 			}
 		}
 		catch (Exception x) {
-			assertTrue("Unexpected catalog test outcome: " + x, 1 == 0);
+			fail("Unexpected catalog test outcome: " + x);
 		}
 	}
 

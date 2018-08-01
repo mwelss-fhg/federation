@@ -20,22 +20,18 @@
 
 package org.acumos.federation.gateway.controller;
 
-import java.util.List;
+import java.lang.invoke.MethodHandles;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.common.API;
-import org.acumos.federation.gateway.common.JSONTags;
 import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.security.Peer;
 import org.acumos.federation.gateway.service.PeerService;
-import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,6 +46,8 @@ import io.swagger.annotations.ApiOperation;
 @Controller
 @RequestMapping(API.Roots.FEDERATION)
 public class RegistrationController extends AbstractController {
+
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private PeerService peerService;

@@ -20,17 +20,12 @@
 
 package org.acumos.federation.gateway.controller;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.security.Peer;
+import org.acumos.federation.gateway.service.ServiceContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * The security context is thread local so we do the same for attributes.

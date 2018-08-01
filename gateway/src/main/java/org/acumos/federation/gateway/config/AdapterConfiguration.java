@@ -20,30 +20,23 @@
 
 package org.acumos.federation.gateway.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
-import org.acumos.federation.gateway.service.CatalogService;
-import org.acumos.federation.gateway.service.PeerSubscriptionService;
-import org.acumos.federation.gateway.service.PeerService;
+import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.security.AuthenticationConfiguration;
 import org.acumos.federation.gateway.service.ArtifactService;
+import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.LocalWatchService;
-
-import org.acumos.federation.gateway.service.impl.ArtifactServiceImpl;
+import org.acumos.federation.gateway.service.PeerService;
+import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.impl.ArtifactServiceLocalImpl;
 import org.acumos.federation.gateway.service.impl.CatalogServiceLocalImpl;
 import org.acumos.federation.gateway.service.impl.PeerServiceLocalImpl;
-import org.acumos.federation.gateway.common.Clients;
-
 import org.acumos.federation.gateway.task.TaskConfiguration;
-import org.acumos.federation.gateway.security.AuthenticationConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Specifies common configuration required by the federation adapter.

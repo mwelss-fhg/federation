@@ -22,6 +22,7 @@ package org.acumos.federation.gateway.util;
 
 /**
  * Modeled after the vertx future
+ * @param <T> Class
  */
 public interface Future<T> {
 

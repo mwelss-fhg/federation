@@ -19,78 +19,51 @@
  */
 package org.acumos.federation.gateway.test;
 
-import java.util.List;
-import java.util.Scanner;
-import java.util.Collections;
-
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.CountDownLatch;
-
 import static org.junit.Assert.assertTrue;
-import static org.assertj.core.api.Assertions.assertThat; 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextHierarchy;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.EventListener;
-import org.springframework.context.annotation.Bean;
-
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.io.ClassPathResource;
-
-import static org.mockito.Mockito.*;
-import static org.mockito.Matchers.*;
-import org.mockito.stubbing.Answer;
-import org.mockito.invocation.InvocationOnMock;
-
-import org.apache.http.ProtocolVersion;
+import org.acumos.cds.domain.MLPSolution;
+import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.common.FederationClient;
+import org.acumos.federation.gateway.common.JsonResponse;
+/* this is not good for unit testing .. */
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.protocol.HttpContext;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
-
-/* this is not good for unit testing .. */
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
-import org.acumos.federation.gateway.common.Clients;
-import org.acumos.federation.gateway.common.FederationClient;
-
-import org.acumos.cds.domain.MLPPeer;
-import org.acumos.cds.domain.MLPSolution;
-import org.acumos.cds.domain.MLPSolutionRevision;
-import org.acumos.cds.domain.MLPArtifact;
+import org.apache.http.protocol.HttpContext;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
+import org.springframework.test.context.junit4.SpringRunner;
 
 
 

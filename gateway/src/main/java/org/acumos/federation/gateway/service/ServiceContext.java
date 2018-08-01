@@ -19,8 +19,8 @@
  */
 package org.acumos.federation.gateway.service;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.acumos.federation.gateway.security.Peer;
 

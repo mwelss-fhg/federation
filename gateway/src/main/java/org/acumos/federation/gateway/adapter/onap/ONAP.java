@@ -20,17 +20,16 @@
 
 package org.acumos.federation.gateway.adapter.onap;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.Collections;
-import java.util.Comparator;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -46,26 +45,22 @@ import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.ArtifactType;
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.AssetType;
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.LifecycleState;
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDCException;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
-import org.apache.commons.io.IOUtils;
-
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.json.JSONException;
-
+import org.json.JSONObject;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.util.StreamUtils;
 
 @Component("onap")

@@ -22,11 +22,10 @@ package org.acumos.federation.gateway.adapter.onap.sdc;
 
 import java.util.Arrays;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
-
-import org.json.JSONObject;
-import org.json.JSONArray;
 
 /** */
 public class ASDCException extends Exception {

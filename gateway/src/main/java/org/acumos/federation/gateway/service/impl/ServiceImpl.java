@@ -20,10 +20,8 @@
 
 package org.acumos.federation.gateway.service.impl;
 
-import java.util.Map;
 import java.util.List;
-
-import org.acumos.federation.gateway.service.ServiceException;
+import java.util.Map;
 
 import org.acumos.cds.domain.MLPSolution;
 

@@ -22,8 +22,8 @@ package org.acumos.federation.gateway.config;
 
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.core.env.Environment;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * Expresses the configuration based condition determining wether we expose/enable the registration

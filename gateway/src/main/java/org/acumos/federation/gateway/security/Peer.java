@@ -21,12 +21,9 @@ package org.acumos.federation.gateway.security;
 
 import java.util.Collection;
 
+import org.acumos.cds.domain.MLPPeer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-
-import org.acumos.federation.gateway.cds.PeerStatus;
-
-import org.acumos.cds.domain.MLPPeer;
 
 /**
  * Peers constitute the users of the federation gateway.

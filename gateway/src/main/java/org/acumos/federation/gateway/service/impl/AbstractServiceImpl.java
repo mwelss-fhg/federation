@@ -20,15 +20,12 @@
 
 package org.acumos.federation.gateway.service.impl;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.common.Clients;
-import org.acumos.federation.gateway.service.ServiceContext;
-import org.acumos.federation.gateway.security.Peer;
-
 import org.acumos.cds.client.ICommonDataServiceRestClient;
+import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.security.Peer;
+import org.acumos.federation.gateway.service.ServiceContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 /** */
 public abstract class AbstractServiceImpl {
