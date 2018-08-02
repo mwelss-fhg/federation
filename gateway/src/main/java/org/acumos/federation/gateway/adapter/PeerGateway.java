@@ -398,7 +398,7 @@ public class PeerGateway {
 					localRevision = createMLPSolutionRevision(peerRevision, cdsClient);
 					if (localRevision == null) {
 						//cannot map this revision, move onto the next one
-						//continue
+						continue;
 					}
 				}
 				else {
