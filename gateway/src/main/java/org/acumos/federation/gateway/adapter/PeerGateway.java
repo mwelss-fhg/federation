@@ -191,6 +191,9 @@ public class PeerGateway {
 			//should the creted/modified reflect this information or the information we got from the peer ?
 																	.withUser(getUserId(this.sub))
 																	.withSource(this.peer.getPeerId())
+																	//clear the tags and web info for now.
+																	.withTags(null)
+																	.withWebStats(null)
 																	.build();
 			try {
 				cdsClient.createSolution(localSolution);
@@ -299,6 +302,8 @@ public class PeerGateway {
 																		return newSourceId;
 																	}
 																})
+															.withTags(null)
+															.withWebStats(null)
 															.build();
 
 			try {
@@ -456,13 +461,15 @@ public class PeerGateway {
 							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos artifact content", x);
 						}
 
-						try {
-							artifacts.putArtifactContent(localArtifact, artifactContent);
-							doUpdate = true;
-						}
-						catch (ServiceException sx) {
-							log.error(EELFLoggerDelegate.errorLogger,
-										"Failed to store artifact content to local repo", sx);
+						if (artifactContent != null) {
+							try {
+								artifacts.putArtifactContent(localArtifact, artifactContent);
+								doUpdate = true;
+							}
+							catch (ServiceException sx) {
+								log.error(EELFLoggerDelegate.errorLogger,
+											"Failed to store artifact content to local repo", sx);
+							}
 						}
 					}
 

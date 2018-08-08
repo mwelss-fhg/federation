@@ -36,9 +36,11 @@ import org.apache.http.client.HttpClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -274,14 +276,18 @@ public class FederationClient extends AbstractClient {
 		}
 		catch (Throwable t) {
 			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+			//not very clean
+			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, uri + " unexpected failure: " + t);
 		}
 		finally {
 			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
 
 		if (response == null) {
+			//should never get here		
 			return null;
-		} else {
+		}
+		else {
 			return response.getBody();
 		}
 	}

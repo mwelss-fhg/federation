@@ -19,7 +19,11 @@
  */
 package org.acumos.federation.gateway.cds;
 
+import java.util.Set;
 import java.util.Date;
+
+import org.acumos.cds.domain.MLPTag;
+import org.acumos.cds.domain.MLPSolutionWeb;
 
 /**
  * Supplements the CDS representation of a solution with related information: revisions.
@@ -111,6 +115,15 @@ public class SolutionBuilder {
 		return this;
 	}
 
+	public SolutionBuilder withTags(Set<MLPTag> theTags) {
+		this.solution.setTags(theTags);
+		return this;
+	}
+
+	public SolutionBuilder withWebStats(MLPSolutionWeb theStats) {
+		this.solution.setWebStats(theStats);
+		return this;
+	}
 }
 
 

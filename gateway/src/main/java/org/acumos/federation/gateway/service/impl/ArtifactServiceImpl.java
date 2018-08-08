@@ -94,7 +94,7 @@ public class ArtifactServiceImpl extends AbstractServiceImpl
 		}
 		catch (Exception x) {
 			log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve artifact content for artifact " + theArtifact, x);
-			throw new ServiceException("Failed to retrieve artifsact content for artifact " + theArtifact, x);
+			throw new ServiceException("Failed to retrieve artifact content for artifact " + theArtifact, x);
 		}
 		return streamResource;
 	}

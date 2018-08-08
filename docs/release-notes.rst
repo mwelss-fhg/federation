@@ -22,6 +22,11 @@ Federated Gateway Release Notes
 
 The Federated Gateway server is available as a Docker image in a Docker registry.
 
+Version 1.16.1, 2018-08-08
+-------------------------
+
+* Temporary patch for tag handling during federation procedures
+
 Version 1.16.0, 2018-08-01
 -------------------------
 
