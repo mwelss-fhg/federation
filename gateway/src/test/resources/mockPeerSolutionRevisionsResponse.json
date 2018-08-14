@@ -8,6 +8,8 @@
   "version":"1.0",
   "metadata":"acumosa",
   "userId":"admin",
+  "accessTypeCode": "PB",
+  "validationStatusCode": "PS",
   "created":"2017-08-10",
   "modified":"2017-08-11"
  }]

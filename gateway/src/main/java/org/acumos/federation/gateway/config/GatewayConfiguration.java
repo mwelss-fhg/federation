@@ -23,12 +23,12 @@ package org.acumos.federation.gateway.config;
 import org.acumos.federation.gateway.adapter.PeerGateway;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.security.AuthenticationConfiguration;
-import org.acumos.federation.gateway.service.ArtifactService;
+import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
-import org.acumos.federation.gateway.service.impl.ArtifactServiceImpl;
-import org.acumos.federation.gateway.service.impl.ArtifactServiceLocalImpl;
+import org.acumos.federation.gateway.service.impl.ContentServiceImpl;
+import org.acumos.federation.gateway.service.impl.ContentServiceLocalImpl;
 import org.acumos.federation.gateway.service.impl.CatalogServiceImpl;
 import org.acumos.federation.gateway.service.impl.PeerServiceImpl;
 import org.acumos.federation.gateway.service.impl.PeerSubscriptionServiceImpl;
@@ -52,7 +52,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 				 AuthenticationConfiguration.class})
 @EnableConfigurationProperties({FederationInterfaceConfiguration.class,
 																LocalInterfaceConfiguration.class,
-																DockerConfiguration.class})
+																DockerConfiguration.class,
+																NexusConfiguration.class})
 @Conditional({GatewayCondition.class})
 @EnableScheduling
 public class GatewayConfiguration {
@@ -83,14 +84,14 @@ public class GatewayConfiguration {
 	 */
 	@Bean
 	@Profile({"!local"})
-	public ArtifactService artifactService() {
-		return new ArtifactServiceImpl();
+	public ContentService contentService() {
+		return new ContentServiceImpl();
 	}
 
 	@Bean
 	@Profile({"local"})
-	public ArtifactService localArtifactService() {
-		return new ArtifactServiceLocalImpl();
+	public ContentService localContentService() {
+		return new ContentServiceLocalImpl();
 	}
 
 

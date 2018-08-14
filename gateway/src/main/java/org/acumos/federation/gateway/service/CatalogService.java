@@ -26,9 +26,11 @@ package org.acumos.federation.gateway.service;
 import java.util.List;
 import java.util.Map;
 
+import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
@@ -191,7 +193,7 @@ public interface CatalogService {
 																																													throws ServiceException;
 
 	/**
-	 * Retrieve artifact content.
+	 * Retrieve artifact details.
 	 *
 	 * @param theArtifactId
 	 *            identifier of the acumos artifact whose content needs to be
@@ -203,6 +205,63 @@ public interface CatalogService {
 		return getSolutionRevisionArtifact(theArtifactId, selfService());
 	}
 
+	/**
+	 * Access the list of solution revision documents.
+	 * 
+	 * @param theSolutionId
+	 *            solution identifier (UUID).
+	 * @param theRevisionId
+	 *            revision identifier (UUID).
+	 * @param theContext
+	 *            the execution context
+	 * @return list of the related documents. Null is returned if the solution id or the revision id do not indicate existing items.
+	 * @throws ServiceException if an error is encoutered during processing
+	 */
+	public List<MLPDocument> getSolutionRevisionDocuments(String theSolutionId, String theRevisionId,
+			ServiceContext theContext) throws ServiceException;
+
+	/**
+	 * Default solution revision access interface for calls in behalf of the local
+	 * Acumos service.
+	 *
+	 * @param theSolutionId
+	 *            solution identifier (UUID).
+	 * @param theRevisionId
+	 *            revision identifier (UUID).
+	 * @return list of the related artifacts
+	 * @throws ServiceException if an error is encoutered during processing
+	 */
+	public default List<MLPDocument> getSolutionRevisionDocuments(String theSolutionId, String theRevisionId) throws ServiceException {
+		return getSolutionRevisionDocuments(theSolutionId, theRevisionId, selfService());
+	}
+
+	/**
+	 * Retrieve document details.
+	 *
+	 * @param theDocumentId
+	 *            identifier of the acumos document whose details needs to be
+	 *            retrieved
+	 * @param theContext
+	 *            the execution context
+	 * @return Extended document information
+	 * @throws ServiceException if an error is encoutered during processing
+	 */
+	public Document getSolutionRevisionDocument(String theDocumentId, ServiceContext theContext)
+																																													throws ServiceException;
+
+	/**
+	 * Retrieve document details.
+	 *
+	 * @param theDocumentId
+	 *            identifier of the acumos document whose details needs to be
+	 *            retrieved
+	 * @return Extended document information
+	 * @throws ServiceException if an error is encoutered during processing
+	 */
+	public default Document getSolutionRevisionDocument(String theDocumentId) throws ServiceException {
+		return getSolutionRevisionDocument(theDocumentId, selfService());
+	}
+	
 	/**
 	 * This would belong as a static method of ServiceContext but ServicrCOntext are not beans so I cannot wire them to access the
 	 * self bean; in here it exposes an implementation detail which is ugly ..

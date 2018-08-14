@@ -31,9 +31,11 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.Mapper;
 import org.acumos.federation.gateway.cds.Solution;
@@ -155,6 +157,31 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 				for (MLPArtifact artifact : ((SolutionRevision)revision).getArtifacts()) {
 					if (artifact.getArtifactId().equals(theArtifactId)) {
 						return (Artifact)artifact;
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+	
+	@Override
+	public List<MLPDocument> getSolutionRevisionDocuments(String theSolutionId, String theRevisionId, ServiceContext theContext) throws ServiceException {
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionDocuments");
+
+		SolutionRevision revision = getSolutionRevision(theSolutionId, theRevisionId, theContext);
+		return (revision == null) ? Collections.EMPTY_LIST : (List)revision.getDocuments();
+	}
+
+	@Override
+	public Document getSolutionRevisionDocument(String theDocumentId, ServiceContext theContext) throws ServiceException {
+		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionDocument");
+		// cumbersome
+		for (Solution solution : this.solutions) {
+			for (MLPSolutionRevision revision : solution.getRevisions()) {
+				for (MLPDocument document : ((SolutionRevision)revision).getDocuments()) {
+					if (document.getDocumentId().equals(theDocumentId)) {
+						return (Document)document;
 					}
 				}
 			}

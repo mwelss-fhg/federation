@@ -40,6 +40,7 @@ import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.transport.RestPageRequest;
 import org.acumos.cds.transport.RestPageResponse;
 import org.acumos.federation.gateway.cds.PeerStatus;
+import org.acumos.federation.gateway.cds.Mapper;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.nexus.client.NexusArtifactClient;
@@ -156,6 +157,22 @@ public class PeerGatewayTest {
 			mockSolutionRevisionsResponse
 				.addHeader("Content-Length", String.valueOf(mockSolutionRevisions.contentLength()));
 
+			BasicHttpResponse mockSolutionRevisionResponse = 
+				new BasicHttpResponse(
+					new BasicStatusLine(
+						new ProtocolVersion("HTTP",1,1), 200, "Success"));
+
+			ClassPathResource mockSolutionRevision =
+				new ClassPathResource("mockPeerSolutionRevisionResponse.json");
+
+			mockSolutionRevisionResponse.setEntity(
+				new InputStreamEntity(mockSolutionRevision.getInputStream()));
+			mockSolutionRevisionResponse
+				.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
+			mockSolutionRevisionResponse
+				.addHeader("Content-Length", String.valueOf(mockSolutionRevision.contentLength()));
+
+
 			BasicHttpResponse mockSolutionRevisionArtifactsResponse = 
 				new BasicHttpResponse(
 					new BasicStatusLine(
@@ -170,6 +187,21 @@ public class PeerGatewayTest {
 				.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
 			mockSolutionRevisionArtifactsResponse
 				.addHeader("Content-Length", String.valueOf(mockSolutionRevisionArtifacts.contentLength()));
+
+			BasicHttpResponse mockSolutionRevisionDocumentsResponse = 
+				new BasicHttpResponse(
+					new BasicStatusLine(
+						new ProtocolVersion("HTTP",1,1), 200, "Success"));
+
+			ClassPathResource mockSolutionRevisionDocuments =
+				new ClassPathResource("mockPeerSolutionRevisionDocumentsResponse.json");
+
+			mockSolutionRevisionDocumentsResponse.setEntity(
+				new InputStreamEntity(mockSolutionRevisionDocuments.getInputStream()));
+			mockSolutionRevisionDocumentsResponse
+				.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
+			mockSolutionRevisionDocumentsResponse
+				.addHeader("Content-Length", String.valueOf(mockSolutionRevisionDocuments.contentLength()));
 
 			BasicHttpResponse mockDownloadResponse = 
 				new BasicHttpResponse(
@@ -205,7 +237,8 @@ public class PeerGatewayTest {
 						//client
 					  return new FederationClient(
                   (String)theInvocation.getArguments()[0]/*the URI*/,
-                  federationClient);
+                  federationClient,
+									Mapper.build());
 					/* not working as real method relies on the application context
 						 which is not set because we work on a  mock
 						try {
@@ -420,8 +453,12 @@ public class PeerGatewayTest {
 							return mockSolutionRevisionsResponse;
 						if (path.endsWith("/artifacts"))
 							return mockSolutionRevisionArtifactsResponse;
+						if (path.endsWith("/documents"))
+							return mockSolutionRevisionDocumentsResponse;
 						if (path.endsWith("/download"))
 							return mockDownloadResponse;
+						if (path.contains("/solutions/") && path.contains("/revisions/"))
+							return mockSolutionRevisionResponse;
 
 	System.out.println(" *** Mock unhandled path " + path);
 						return null;

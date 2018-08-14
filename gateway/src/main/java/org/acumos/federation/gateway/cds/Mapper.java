@@ -21,6 +21,7 @@ package org.acumos.federation.gateway.cds;
 
 import java.io.IOException;
 
+import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
@@ -46,12 +47,12 @@ public class Mapper {
 
 		SimpleModule fedModule =
       new SimpleModule("CDSModule",
-          new Version(1, 0, 0, null));
+          new Version(1, 17, 0, null));
     fedModule.addDeserializer(MLPSolution.class, new SolutionDeserializer());
     fedModule.addDeserializer(MLPSolutionRevision.class, new SolutionRevisionDeserializer());
     fedModule.addDeserializer(MLPArtifact.class, new ArtifactDeserializer());
+    fedModule.addDeserializer(MLPDocument.class, new DocumentDeserializer());
 		mapper.registerModule(fedModule);
-
 
 		return mapper;
 	}
@@ -95,6 +96,20 @@ public class Mapper {
       																								throws IOException, JsonProcessingException {
   	  ObjectMapper mapper = (ObjectMapper) theParser.getCodec();
     	return mapper.readValue(theParser, Artifact.class);
+  	}
+	}
+
+	private static class DocumentDeserializer extends StdDeserializer<MLPDocument> {
+ 
+		public DocumentDeserializer() {
+			super(MLPDocument.class);
+		}
+ 
+		@Override
+  	public MLPDocument deserialize(JsonParser theParser, DeserializationContext theCtx) 
+      																								throws IOException, JsonProcessingException {
+  	  ObjectMapper mapper = (ObjectMapper) theParser.getCodec();
+    	return mapper.readValue(theParser, Document.class);
   	}
 	}
 

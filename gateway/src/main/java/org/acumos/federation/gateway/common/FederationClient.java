@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
@@ -224,6 +225,39 @@ public class FederationClient extends AbstractClient {
 	}
 
 	/**
+	 * @param theSolutionId
+	 *            Solution ID
+	 * @param theRevisionId
+	 *            Revision ID
+	 * @return Detailed artifact information from Remote Acumos. The returned value can be safely cast to ..gateway.cds.SolutionRevision.
+	 * @throws HttpStatusCodeException
+	 *             Throws HttpStatusCodeException is remote acumos is not available
+	 */
+	public JsonResponse<MLPSolutionRevision> getSolutionRevision(String theSolutionId, String theRevisionId)
+			throws HttpStatusCodeException {
+
+		URI uri = API.SOLUTION_REVISION_DETAILS.buildUri(this.baseUrl, theSolutionId, theRevisionId);
+		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
+		ResponseEntity<JsonResponse<MLPSolutionRevision>> response = null;
+		try {
+			response = restTemplate.exchange(uri, HttpMethod.GET, null,
+					new ParameterizedTypeReference<JsonResponse<MLPSolutionRevision>>() {
+					});
+		}
+		catch (HttpStatusCodeException x) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
+			throw x;
+		}
+		catch (Throwable t) {
+			log.info(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+		}
+		finally {
+			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		return response == null ? null : response.getBody();
+	}
+
+	/**
 	 * 
 	 * @param theSolutionId
 	 *            Solution ID
@@ -257,18 +291,40 @@ public class FederationClient extends AbstractClient {
 	}
 
 	/**
+	 * @param theSolutionId
+	 *            Solution ID
+	 * @param theRevisionId
+	 *            Revision ID
 	 * @param theArtifactId
 	 *            Artifact ID
 	 * @return Resource
 	 * @throws HttpStatusCodeException
 	 *             On failure
 	 */
-	public Resource downloadArtifact(String theArtifactId) throws HttpStatusCodeException {
-		URI uri = API.ARTIFACT_DOWNLOAD.buildUri(this.baseUrl, theArtifactId);
+	public Resource getArtifactContent(String theSolutionId, String theRevisionId, String theArtifactId)
+																																											throws HttpStatusCodeException {
+		return download(API.ARTIFACT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theArtifactId));
+	}
+
+	/**
+	 * 
+	 * @param theSolutionId
+	 *            Solution ID
+	 * @param theRevisionId
+	 *            Revision ID
+	 * @return List of MLPDocuments from Remote Acumos
+	 * @throws HttpStatusCodeException
+	 *             Throws HttpStatusCodeException is remote acumos is not available
+	 */
+	public JsonResponse<List<MLPDocument>> getDocuments(String theSolutionId, String theRevisionId)
+			throws HttpStatusCodeException {
+		URI uri = API.SOLUTION_REVISION_DOCUMENTS.buildUri(this.baseUrl, theSolutionId, theRevisionId);
 		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
-		ResponseEntity<Resource> response = null;
+		ResponseEntity<JsonResponse<List<MLPDocument>>> response = null;
 		try {
-			response = restTemplate.exchange(uri, HttpMethod.GET, null, Resource.class);
+			response = restTemplate.exchange(uri, HttpMethod.GET, null,
+					new ParameterizedTypeReference<JsonResponse<List<MLPDocument>>>() {
+					});
 		}
 		catch (HttpStatusCodeException x) {
 			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
@@ -276,11 +332,46 @@ public class FederationClient extends AbstractClient {
 		}
 		catch (Throwable t) {
 			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
-			//not very clean
-			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, uri + " unexpected failure: " + t);
 		}
 		finally {
 			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
+		}
+		return response == null ? null : response.getBody();
+	}
+
+	/**
+	 * @param theSolutionId
+	 *            Solution ID
+	 * @param theRevisionId
+	 *            Revision ID
+	 * @param theDocumentId
+	 *            Document ID
+	 * @return Resource
+	 * @throws HttpStatusCodeException
+	 *             On failure
+	 */
+	public Resource getDocumentContent(String theSolutionId, String theRevisionId, String theDocumentId)
+																																										throws HttpStatusCodeException {
+		return download(API.DOCUMENT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theDocumentId));
+	}
+
+	protected Resource download(URI theUri) throws HttpStatusCodeException {
+		log.info(EELFLoggerDelegate.debugLogger, "Query for {}", theUri);
+		ResponseEntity<Resource> response = null;
+		try {
+			response = restTemplate.exchange(theUri, HttpMethod.GET, null, Resource.class);
+		}
+		catch (HttpStatusCodeException x) {
+			log.error(EELFLoggerDelegate.errorLogger, theUri + " failed", x);
+			throw x;
+		}
+		catch (Throwable t) {
+			log.error(EELFLoggerDelegate.errorLogger, theUri + " unexpected failure.", t);
+			//not very clean
+			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, theUri + " unexpected failure: " + t);
+		}
+		finally {
+			log.info(EELFLoggerDelegate.debugLogger, theUri + " response " + response);
 		}
 
 		if (response == null) {

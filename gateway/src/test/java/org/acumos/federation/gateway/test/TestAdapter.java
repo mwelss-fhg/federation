@@ -131,40 +131,46 @@ public class TestAdapter {
 					FederationClient fedClient = clients.getFederationClient(this.peer.getApiUrl());
 
 					List<MLPSolutionRevision> revisions = null;
+					Solution sol = null;
 					try {
-						Solution sol = (Solution)fedClient.getSolution(solution.getSolutionId()).getContent();
+						sol = (Solution)fedClient.getSolution(solution.getSolutionId()).getContent();
 						log.info(EELFLoggerDelegate.debugLogger, "retrieved solution {}", solution);
 						revisions = (List)sol.getRevisions();
 					}
 					catch (Exception x) {
-						log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve revisions", x);
+						log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve solution", x);
 						continue;
 					}
+					
 					log.info(EELFLoggerDelegate.debugLogger,
-							"Received {} revisions {}", revisions.size(), revisions);
+						"Received {} revisions {}", revisions.size(), revisions);
 
-					List<MLPArtifact> artifacts = null;
-					try {
-						artifacts = (List<MLPArtifact>) fedClient.getArtifacts(solution.getSolutionId(),
-								revisions.get(revisions.size() - 1).getRevisionId()).getContent();
-					}
-					catch (Exception x) {
-						log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve artifacts", x);
-						continue;
-					}
-					log.info(EELFLoggerDelegate.debugLogger,
-							"Received {} artifacts {}", artifacts.size(), artifacts);
-
-					for (MLPArtifact artifact : artifacts) {
-						Resource artifactContent = null;
+					for (MLPSolutionRevision revision: revisions) {
+						List<MLPArtifact> artifacts = null;
 						try {
-							artifactContent = fedClient.downloadArtifact(artifact.getArtifactId());
-							log.warn(EELFLoggerDelegate.debugLogger, "Received artifact content: "
-									+ new BufferedReader(new InputStreamReader(artifactContent.getInputStream()))
-											.lines().collect(Collectors.joining("\n")));
+							artifacts = (List<MLPArtifact>) fedClient.getArtifacts(
+																								solution.getSolutionId(),	revision.getRevisionId()).getContent();
 						}
 						catch (Exception x) {
-							log.error(EELFLoggerDelegate.errorLogger, "Failed to download artifact", x);
+							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve artifacts", x);
+							continue;
+						}
+						log.info(EELFLoggerDelegate.debugLogger,
+								"Received {} artifacts {}", artifacts.size(), artifacts);
+
+						for (MLPArtifact artifact : artifacts) {
+							Resource artifactContent = null;
+							try {
+								artifactContent = fedClient.getArtifactContent(
+																		solution.getSolutionId(), revision.getRevisionId(), artifact.getArtifactId());
+								log.warn(EELFLoggerDelegate.debugLogger, "Received artifact content: "
+										+ new BufferedReader(new InputStreamReader(artifactContent.getInputStream()))
+												.lines().collect(Collectors.joining("\n")));
+							}
+							catch (Exception x) {
+								log.error(EELFLoggerDelegate.errorLogger, "Failed to download artifact", x);
+								continue;
+							}
 						}
 					}
 				}

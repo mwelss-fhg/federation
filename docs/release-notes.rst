@@ -22,6 +22,17 @@ Federated Gateway Release Notes
 
 The Federated Gateway server is available as a Docker image in a Docker registry.
 
+Version 1.17.0, 2018-08-14
+-------------------------
+
+* Align with data model changes from CDS 1.17.x
+* Add revision document federation (ACUMS-1606)
+* Add tag federation (ACUMOS-1544)
+* Fix authorship federation (ACUMOS-626)
+* The federation API for access to artifact and document content access have changed 
+  to /solutions/{solutionId}/revisions/{revisionId}/artifacts/{artifactId}/content 
+  and /solutions/{solutionId}/revisions/{revisionId}/documents/{documentId}/content
+
 Version 1.16.1, 2018-08-08
 -------------------------
 

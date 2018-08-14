@@ -24,9 +24,10 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 
+import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-import org.acumos.federation.gateway.service.ArtifactService;
+import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.apache.commons.io.FileUtils;
@@ -35,12 +36,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 /**
- * File based implementation of the ArtifactService.
+ * File based implementation of the ContentService.
  *
  */
 @Service
-public class ArtifactServiceLocalImpl extends AbstractServiceImpl
-																	implements ArtifactService {
+public class ContentServiceLocalImpl extends AbstractServiceImpl
+																	implements ContentService {
 
 	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -49,7 +50,8 @@ public class ArtifactServiceLocalImpl extends AbstractServiceImpl
 	 * @throws ServiceException if failing to retrieve artifact information or retrieve content 
 	 */
 	@Override
-	public InputStreamResource getArtifactContent(MLPArtifact theArtifact, ServiceContext theContext)
+	public InputStreamResource getArtifactContent(
+		String theSolutionId, String theRevisionId, MLPArtifact theArtifact, ServiceContext theContext)
 																																															throws ServiceException {
 		if (theArtifact.getUri() == null) {
 			throw new ServiceException("No artifact uri available for " + theArtifact);
@@ -67,8 +69,10 @@ public class ArtifactServiceLocalImpl extends AbstractServiceImpl
 	/**
 	 * Should add a configuration parameter for the location of the file.
 	 */
-	public void putArtifactContent(MLPArtifact theArtifact, Resource theResource) throws ServiceException {
-
+	@Override
+	public void putArtifactContent(
+		String theSolutionId, String theRevisionId, MLPArtifact theArtifact, Resource theResource, ServiceContext theContext)
+																																										throws ServiceException {
 		File target = null;
 		try {
 			target = File.createTempFile(theArtifact.getName() + "-" + theArtifact.getVersion(), null /*""*//*,File directory*/);
@@ -81,4 +85,39 @@ public class ArtifactServiceLocalImpl extends AbstractServiceImpl
 
 		theArtifact.setUri(target.toURI().toString());
 	}	
+
+	@Override
+	public InputStreamResource getDocumentContent(
+		String theSolutionId, String theRevisionId, MLPDocument theDocument, ServiceContext theContext)
+																																										throws ServiceException {
+		if (theDocument.getUri() == null) {
+			throw new ServiceException("No document uri available for " + theDocument);
+		}
+
+		try {
+			return new InputStreamResource(new URI(theDocument.getUri()).toURL().openStream());
+		}
+		catch (Exception x) {
+			log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve document content for document " + theDocument, x);
+			throw new ServiceException("Failed to retrieve document content for document " + theDocument, x);
+		}
+	}
+
+	@Override
+	public void putDocumentContent(
+		String theSolutionId, String theRevisionId, MLPDocument theDocument, Resource theResource, ServiceContext theContext)
+																																										throws ServiceException {
+		File target = null;
+		try {
+			target = File.createTempFile(theDocument.getName() + "-" + theDocument.getVersion(), null /*""*//*,File directory*/);
+			FileUtils.copyInputStreamToFile(theResource.getInputStream(), target);
+		}
+		catch (IOException iox) {
+			log.error(EELFLoggerDelegate.errorLogger, "Failed to write document content for document " + theDocument, iox);
+			throw new ServiceException("Failed to write document content for document " + theDocument, iox);
+		}
+
+		theDocument.setUri(target.toURI().toString());
+	}
+
 }

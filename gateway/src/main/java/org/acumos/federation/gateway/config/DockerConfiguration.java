@@ -37,49 +37,57 @@ public class DockerConfiguration {
 
 	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 	private DefaultDockerClientConfig.Builder builder;
-
+	// need to repeat as the builder does not expose it and it avoids building a config object every time ..
+	private String registryUrl;
+ 
 	public DockerConfiguration() {
 		reset();
 	}
 
 	private void reset() {
 		this.builder = DefaultDockerClientConfig.createDefaultConfigBuilder();
+		this.registryUrl = null;
 	}
 
 	public void setHost(String theHost) {
-		builder.withDockerHost(theHost);
+		this.builder.withDockerHost(theHost);
 	}
 
 	public void setApiVersion(String theVersion) {
-		builder.withApiVersion(theVersion);
+		this.builder.withApiVersion(theVersion);
   }
 
 	public void setRegistryUsername(String theUsername) {
-		builder.withRegistryUsername(theUsername);
+		this.builder.withRegistryUsername(theUsername);
 	}
 
 	public void setRegistryPassword(String thePassword) {
-		builder.withRegistryPassword(thePassword);
+		this.builder.withRegistryPassword(thePassword);
 	}
 
 	public void setRegistryEmail(String theEmail) {
-		builder.withRegistryEmail(theEmail);
+		this.builder.withRegistryEmail(theEmail);
 	}
 
 	public void setRegistryUrl(String theUrl) {
-		builder.withRegistryUrl(theUrl);
+		this.registryUrl = theUrl;
+		this.builder.withRegistryUrl(theUrl);
+	}
+	
+	public String getRegistryUrl() {
+		return this.registryUrl;
 	}
 
 	public void setDockerCertPath(String thePath) {
-		builder.withDockerCertPath(thePath);
+		this.builder.withDockerCertPath(thePath);
 	}
 
 	public void setDockerConfig(String theConfig) {
-		builder.withDockerConfig(theConfig);
+		this.builder.withDockerConfig(theConfig);
 	}
 
 	public void setDockerTlsVerify(Boolean doVerify) {
-		builder.withDockerTlsVerify(doVerify);
+		this.builder.withDockerTlsVerify(doVerify);
   }
 
 	/*
