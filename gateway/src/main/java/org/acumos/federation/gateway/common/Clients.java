@@ -25,6 +25,7 @@ import java.lang.invoke.MethodHandles;
 import org.acumos.cds.client.CommonDataServiceRestClientImpl;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.federation.gateway.cds.Mapper;
+import org.acumos.federation.gateway.config.NexusConfiguration;
 import org.acumos.federation.gateway.config.DockerConfiguration;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.config.FederationInterfaceConfiguration;
@@ -60,6 +61,8 @@ public class Clients {
 	private FederationInterfaceConfiguration federationConfig = null;
 	@Autowired
 	private DockerConfiguration dockerConfig = null;
+	@Autowired
+	private NexusConfiguration nexusConfig = null;
 
 	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -97,21 +100,7 @@ public class Clients {
 
 	/** */
 	public NexusArtifactClient getNexusClient() {
-		RepositoryLocation repositoryLocation = new RepositoryLocation();
-
-		log.info(EELFLoggerDelegate.debugLogger, "Building Nexus client with {}, {}", env.getProperty("nexus.url"), env.getProperty("nexus.username")); 
-
-		repositoryLocation.setId("1");
-		repositoryLocation.setUrl(env.getProperty("nexus.url"));
-		repositoryLocation.setUsername(env.getProperty("nexus.username"));
-		repositoryLocation.setPassword(env.getProperty("nexus.password"));
-		repositoryLocation.setProxy(env.getProperty("nexus.proxy"));
-		return new NexusArtifactClient(repositoryLocation);
-	}
-
-	/** */
-	public Object getNexusProperty(String theName) {
-		return env.getProperty("nexus." + theName);
+		return new NexusArtifactClient(nexusConfig.getRepositoryLocation());
 	}
 
 	/** */
@@ -121,8 +110,4 @@ public class Clients {
         		.build();
 	}
 
-	/** */
-	public Object getDockerProperty(String theName) {
-		return env.getProperty("docker." + theName);
-	}
 }

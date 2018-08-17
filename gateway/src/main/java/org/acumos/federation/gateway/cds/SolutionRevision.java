@@ -22,10 +22,12 @@ package org.acumos.federation.gateway.cds;
 import java.util.List;
 
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPDocument;
+import org.acumos.cds.domain.MLPRevisionDescription;
 import org.acumos.cds.domain.MLPSolutionRevision;
 
 /**
- * Supplements the CDS representation of a solution with related information: revisions.
+ * Supplements the CDS representation of a solution revision with related information: artifacts and (public) documents.
  * Allows federation to pack information passed between peers.
  */
 public class SolutionRevision extends MLPSolutionRevision {
@@ -36,6 +38,8 @@ public class SolutionRevision extends MLPSolutionRevision {
 	};
 
 	private List<? extends MLPArtifact>		artifacts;
+	private List<? extends MLPDocument>		documents;
+	private	MLPRevisionDescription				description;
 
 	public SolutionRevision() {
 	}
@@ -50,6 +54,22 @@ public class SolutionRevision extends MLPSolutionRevision {
 
 	public List<? extends MLPArtifact>	getArtifacts() {
 		return this.artifacts;
+	}
+
+	public void setDocuments(List<? extends MLPDocument> theDocuments) {
+		this.documents = theDocuments;
+	}
+
+	public List<? extends MLPDocument>	getDocuments() {
+		return this.documents;
+	}
+
+	public void setRevisionDescription(MLPRevisionDescription theDescription) {
+		this.description = theDescription;	
+	}
+
+	public MLPRevisionDescription getRevisionDescription() {
+		return this.description;
 	}
 
 	public static SolutionRevisionBuilder build() {

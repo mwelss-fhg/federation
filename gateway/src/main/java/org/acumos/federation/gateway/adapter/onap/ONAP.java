@@ -275,7 +275,7 @@ public class ONAP {
 
 			//we could have a new model, a new model revision or updates to the currently mapped revision's artifacts.
 			//currently we always fast-forward to the latest revision available in acumos
-			MLPSolutionRevision mappedAcumosRevision = mappedAcumosRevision = theRevisions.get(theRevisions.size() - 1);
+			MLPSolutionRevision mappedAcumosRevision = theRevisions.get(theRevisions.size() - 1);
 
 			List<MLPArtifact> acumosArtifacts = null;
 			try {
@@ -341,7 +341,9 @@ public class ONAP {
 			log.info(EELFLoggerDelegate.debugLogger, "New artifacts: " + newArtifacts);
 			for (MLPArtifact acumosArtifact : newArtifacts) {
 				try {
-					for (ASDC.ArtifactUploadAction uploadAction:  mapNewArtifact(theAssetInfo, acumosArtifact)) {
+					for (ASDC.ArtifactUploadAction uploadAction:
+								mapNewArtifact(theAssetInfo, theSolution.getSolutionId(), mappedAcumosRevision.getRevisionId(),
+															 acumosArtifact)) {
 						uploadAction.execute().waitForResult();
 					}
 				}
@@ -354,7 +356,9 @@ public class ONAP {
 			for (Map.Entry<MLPArtifact, JSONArray> updateEntry : updatedArtifacts.entrySet()) {
 				MLPArtifact acumosArtifact = updateEntry.getKey();
 				try {
-					for (ASDC.ArtifactUpdateAction updateAction:  mapArtifact(theAssetInfo, updateEntry.getKey(), updateEntry.getValue())) {
+					for (ASDC.ArtifactUpdateAction updateAction: 
+								mapArtifact(theAssetInfo, theSolution.getSolutionId(), mappedAcumosRevision.getRevisionId(),
+														updateEntry.getKey(), updateEntry.getValue())) {
 						updateAction.execute().waitForResult();
 					}
 				}
@@ -395,13 +399,15 @@ public class ONAP {
 
 		/**
 		 */
-		private List<ASDC.ArtifactUploadAction> mapNewArtifact(JSONObject theSDCAsset, MLPArtifact theAcumosArtifact) {
+		private List<ASDC.ArtifactUploadAction> mapNewArtifact(
+			JSONObject theSDCAsset,
+			String theAcumosSolutionId, String theAcumosRevisionId, MLPArtifact theAcumosArtifact) {
 
 			if (isDCAEComponentSpecification(theAcumosArtifact)) {
 
 				byte[] content = null;
 				try {
-					content = retrieveContent(theAcumosArtifact);
+					content = retrieveContent(theAcumosSolutionId, theAcumosRevisionId, theAcumosArtifact);
 				}
 				catch (Exception x) {
 					log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve Acumoms artifact content from " + theAcumosArtifact.getUri(), x);
@@ -456,12 +462,14 @@ public class ONAP {
 			}
 		}
 		
-		private List<ASDC.ArtifactUpdateAction> mapArtifact(JSONObject theSDCAsset, MLPArtifact theAcumosArtifact, JSONArray theSDCArtifacts) {
+		private List<ASDC.ArtifactUpdateAction> mapArtifact(
+			JSONObject theSDCAsset, String theAcumosSolutionId, String theAcumosRevisionId,
+			MLPArtifact theAcumosArtifact, JSONArray theSDCArtifacts) {
 			
 			if (isDCAEComponentSpecification(theAcumosArtifact)) {
 				byte[] content = null;
 				try {
-					content = retrieveContent(theAcumosArtifact);
+					content = retrieveContent(theAcumosSolutionId, theAcumosRevisionId, theAcumosArtifact);
 				}
 				catch (Exception x) {
 					log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve Acumoms artifact content from " + theAcumosArtifact.getUri(), x);
@@ -550,15 +558,18 @@ public class ONAP {
 			return isAcumos;
 		}
 
-		private byte[] retrieveContent(MLPArtifact theAcumosArtifact) throws Exception {
-
+		private byte[] retrieveContent(
+			String theAcumosSolutionId, String theAcumosRevisionId, MLPArtifact theAcumosArtifact)
+																																											throws Exception {
 			if (this.peer.isLocal()) {
 				return clients.getNexusClient().getArtifact(theAcumosArtifact.getUri()).toByteArray();
 			}
 			else { //non-local peer
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();
 				StreamUtils.copy(
-					clients.getFederationClient(this.peer.getApiUrl()).downloadArtifact(theAcumosArtifact.getArtifactId()).getInputStream(),
+					clients.getFederationClient(this.peer.getApiUrl())
+						.getArtifactContent(theAcumosSolutionId, theAcumosRevisionId, theAcumosArtifact.getArtifactId())
+							.getInputStream(),
 					bos);
 				return bos.toByteArray();
 			}

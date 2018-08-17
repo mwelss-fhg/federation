@@ -37,7 +37,10 @@ public enum API {
 	SOLUTION_REVISION_DETAILS(Paths.SOLUTION_REVISION_DETAILS),
 	SOLUTION_REVISION_ARTIFACTS(Paths.SOLUTION_REVISION_ARTIFACTS),
 	ARTIFACT_DETAILS(Paths.ARTIFACT_DETAILS),
-	ARTIFACT_DOWNLOAD(Paths.ARTIFACT_DOWNLOAD),
+	ARTIFACT_CONTENT(Paths.ARTIFACT_CONTENT),
+	SOLUTION_REVISION_DOCUMENTS(Paths.SOLUTION_REVISION_DOCUMENTS),
+	DOCUMENT_DETAILS(Paths.DOCUMENT_DETAILS),
+	DOCUMENT_CONTENT(Paths.DOCUMENT_CONTENT),
 	PEERS(Paths.PEERS),
 	SUBSCRIPTION(Paths.SUBSCRIPTION),
 	PING(Paths.PING),
@@ -155,8 +158,12 @@ public enum API {
 		public static final String SOLUTION_REVISION_DETAILS = "/solutions/{solutionId}/revisions/{revisionId}";
 
 		public static final String SOLUTION_REVISION_ARTIFACTS = "/solutions/{solutionId}/revisions/{revisionId}/artifacts";
-		public static final String ARTIFACT_DETAILS = "/artifacts/{artifactId}";
-		public static final String ARTIFACT_DOWNLOAD = "/artifacts/{artifactId}/download";
+		public static final String ARTIFACT_DETAILS = "/solutions/{solutionId}/revisions/{revisionId}/artifacts/{artifactId}";
+		public static final String ARTIFACT_CONTENT = "/solutions/{solutionId}/revisions/{revisionId}/artifacts/{artifactId}/content";
+
+		public static final String SOLUTION_REVISION_DOCUMENTS = "/solutions/{solutionId}/revisions/{revisionId}/documents";
+		public static final String DOCUMENT_DETAILS = "/solutions/{solutionId}/revisions/{revisionId}/documents/{documentId}";
+		public static final String DOCUMENT_CONTENT = "/solutions/{solutionId}/revisions/{revisionId}/documents/{documentId}/content";
 
 		public static final String SUBSCRIPTION = "/subscription/{subscriptionId}";
 
