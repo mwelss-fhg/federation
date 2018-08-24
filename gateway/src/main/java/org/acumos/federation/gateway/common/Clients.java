@@ -22,7 +22,6 @@ package org.acumos.federation.gateway.common;
 
 import java.lang.invoke.MethodHandles;
 
-import org.acumos.cds.client.CommonDataServiceRestClientImpl;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.federation.gateway.cds.Mapper;
 import org.acumos.federation.gateway.config.NexusConfiguration;
@@ -30,19 +29,15 @@ import org.acumos.federation.gateway.config.DockerConfiguration;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.config.FederationInterfaceConfiguration;
 import org.acumos.federation.gateway.config.LocalInterfaceConfiguration;
-import org.acumos.nexus.client.NexusArtifactClient;
-import org.acumos.nexus.client.RepositoryLocation;
+import org.acumos.federation.gateway.config.CDMSClientConfiguration;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.Environment;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Component;
 
+import org.acumos.nexus.client.NexusArtifactClient;
+
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.core.DockerClientBuilder;
 
 /**
  * Unique entry point for building clients: peer access clients, cds clients
@@ -52,10 +47,6 @@ import com.github.dockerjava.core.DockerClientBuilder;
 public class Clients {
 
 	@Autowired
-	private Environment env;
-	@Autowired
-	private ApplicationContext appCtx = null;
-	@Autowired
 	private LocalInterfaceConfiguration localConfig = null;
 	@Autowired
 	private FederationInterfaceConfiguration federationConfig = null;
@@ -63,6 +54,8 @@ public class Clients {
 	private DockerConfiguration dockerConfig = null;
 	@Autowired
 	private NexusConfiguration nexusConfig = null;
+	@Autowired
+	private CDMSClientConfiguration cdmsConfig = null;
 
 	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -73,22 +66,7 @@ public class Clients {
 	 * @return The standard CDS client
 	 */
 	public ICommonDataServiceRestClient getCDSClient() {
-
-		MappingJackson2HttpMessageConverter cdsMessageConverter = new MappingJackson2HttpMessageConverter();
-    cdsMessageConverter.setObjectMapper(Mapper.build()); //try to avoid building one every time
-
-		RestTemplateBuilder builder =
-			new RestTemplateBuilder()
-				.requestFactory(new HttpComponentsClientHttpRequestFactory( 
-													localConfig.buildClient()))
-				//.rootUri(env.getProperty("cdms.client.url"))
-				.basicAuthorization(env.getProperty("cdms.client.username"),
-														env.getProperty("cdms.client.password"))
-				.messageConverters(cdsMessageConverter)
-				;
-
-			return new CommonDataServiceRestClientImpl(
-				env.getProperty("cdms.client.url"), builder.build());
+		return cdmsConfig.getCDSClient();
 	}
 
 	/**
@@ -100,14 +78,12 @@ public class Clients {
 
 	/** */
 	public NexusArtifactClient getNexusClient() {
-		return new NexusArtifactClient(nexusConfig.getRepositoryLocation());
+		return nexusConfig.getNexusClient();
 	}
 
 	/** */
 	public DockerClient	getDockerClient() {
-    return DockerClientBuilder.getInstance(dockerConfig.buildConfig())
-        		.withDockerCmdExecFactory(DockerClientBuilder.getDefaultDockerCmdExecFactory())
-        		.build();
+    return dockerConfig.getDockerClient();
 	}
 
 }

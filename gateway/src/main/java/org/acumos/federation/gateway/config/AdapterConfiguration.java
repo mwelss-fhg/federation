@@ -48,6 +48,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 				 AuthenticationConfiguration.class})
 @EnableConfigurationProperties({FederationInterfaceConfiguration.class,
 																LocalInterfaceConfiguration.class,
+																CDMSClientConfiguration.class,
 																DockerConfiguration.class,
 																NexusConfiguration.class})
 @Conditional({AdapterCondition.class})

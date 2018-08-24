@@ -82,22 +82,19 @@ public class CatalogServiceTest extends ServiceTest {
 
 	protected void initMockResponses() {
 
-		registerMockResponse("GET /ccds/solution/search/portal?atc=PB&vsc=PS&active=true&page=0&size=50", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
-		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&vsc=PS&active=true&page=0&size=50", MockResponse.success("mockCDSDateSolutionsResponsePage0.json"));
-		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&vsc=PS&active=true&page=1&size=50", MockResponse.success("mockCDSDateSolutionsResponsePage1.json"));
+		registerMockResponse("GET /ccds/solution/search/portal?atc=PB&active=true&page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
+		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&vsc=PS&active=true&page=0&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage0.json"));
+		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&vsc=PS&active=true&page=1&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage1.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010", MockResponse.success("mockCDSSolutionResponse.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/revision", MockResponse.success("mockCDSSolutionRevisionsResponse.json"));
-		//registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/revision/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
 		registerMockResponse("GET /ccds/revision/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
 		registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
 		registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/revision", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
-		//registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/revision/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/artifact", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
 		registerMockResponse("GET /ccds/revision/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/artifact", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
 		registerMockResponse("GET /ccds/solution/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
 		registerMockResponse("GET /ccds/solution/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/revision", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
-		//registerMockResponse("GET /ccds/solution/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/revision/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/artifact", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
 		registerMockResponse("GET /ccds/revision/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/artifact", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
-		registerMockResponse("GET /ccds/peer/search?isSelf=true&_j=a", MockResponse.success("mockCDSPeerSearchSelfResponse.json"));
+		registerMockResponse("GET /ccds/peer/search?isSelf=true&_j=a&page=0&size=100", MockResponse.success("mockCDSPeerSearchSelfResponse.json"));
 	}
 
 	/**
@@ -109,11 +106,11 @@ public class CatalogServiceTest extends ServiceTest {
 
 		try {
 			ServiceContext selfService = 
-				ServiceContext.forPeer(new Peer(new MLPPeer("acumosb", "gateway.acumosb.org", "https://gateway.acumosb.org:9084", false, false, "admin@acumosab.org", "AC", "PS"), Role.SELF));
+				ServiceContext.forPeer(new Peer(new MLPPeer("acumosa", "gateway.acumosa.org", "https://gateway.acumosa.org:9084", false, false, "admin@acumosa.org", "AC", "PS"), Role.SELF));
 
 			List<MLPSolution> solutions = catalog.getSolutions(Collections.EMPTY_MAP, selfService);
 			assertTrue("Unexpected solutions count: " + solutions.size(), solutions.size() == 5);
-			
+		
 			Solution solution = catalog.getSolution("10101010-1010-1010-1010-101010101010", selfService);
 			assertTrue("Unexpected solution info", solution.getName().equals("test"));
 
@@ -161,7 +158,7 @@ public class CatalogServiceTest extends ServiceTest {
 			}
 		}
 		catch (Exception x) {
-			fail("Unexpected catalog test outcome: " + x);
+			fail("Unexpected catalog test outcome: " + org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(x));
 		}
 	}
 

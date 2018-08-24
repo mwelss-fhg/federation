@@ -25,6 +25,7 @@ import java.lang.invoke.MethodHandles;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import org.acumos.nexus.client.NexusArtifactClient;
 import org.acumos.nexus.client.RepositoryLocation;
 
 /**
@@ -91,4 +92,8 @@ public class NexusConfiguration {
 		return this.nameSeparator;
 	}
 
+	/** */
+	public NexusArtifactClient getNexusClient() {
+		return new NexusArtifactClient(getRepositoryLocation());
+	}
 }

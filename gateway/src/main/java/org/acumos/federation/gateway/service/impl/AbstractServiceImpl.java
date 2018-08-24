@@ -21,7 +21,7 @@
 package org.acumos.federation.gateway.service.impl;
 
 import org.acumos.cds.client.ICommonDataServiceRestClient;
-import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.config.CDMSClientConfiguration;
 import org.acumos.federation.gateway.security.Peer;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +31,13 @@ import org.springframework.context.ApplicationContext;
 public abstract class AbstractServiceImpl {
 
 	@Autowired
-	protected Clients clients;
+	protected CDMSClientConfiguration			cdsConfig;
+
 	@Autowired
 	protected ApplicationContext appCtx;
 
 	public ICommonDataServiceRestClient getClient() {
-		return clients.getCDSClient();
+		return cdsConfig.getCDSClient();
 	}
 
 	public ICommonDataServiceRestClient getClient(ServiceContext theContext) {

@@ -78,7 +78,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		if (ArtifactType.DockerImage == ArtifactType.forCode(theArtifact.getArtifactTypeCode())) {
 			try {
 				//pull followed by save
-				DockerClient docker = this.clients.getDockerClient();
+				DockerClient docker = this.dockerConfig.getDockerClient();
 
 				try (PullImageResultCallback pullResult = new PullImageResultCallback()) {
 					docker.pullImageCmd(theArtifact.getUri())
@@ -106,7 +106,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		if (ArtifactType.DockerImage == ArtifactType.forCode(theArtifact.getArtifactTypeCode())) {
 			try {
 				//load followed by push
-				DockerClient docker = this.clients.getDockerClient();
+				DockerClient docker = this.dockerConfig.getDockerClient();
 
 				docker.loadImageCmd(theResource.getInputStream())
 							.exec(); //sync xecution
@@ -165,7 +165,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 
 	protected InputStreamResource getNexusContent(String theUri) throws ServiceException {
 		try {
-			NexusArtifactClient artifactClient = this.clients.getNexusClient();
+			NexusArtifactClient artifactClient = this.nexusConfig.getNexusClient();
 			ByteArrayOutputStream artifactContent = artifactClient.getArtifact(theUri);
 			log.info(EELFLoggerDelegate.debugLogger, "Retrieved {} bytes of content from {}", artifactContent.size(), theUri);
 			return new InputStreamResource(
@@ -183,7 +183,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		String theGroupId, String theContentId, String theVersion, String thePackaging, Resource theResource) throws ServiceException {
 
 		try {
-			UploadArtifactInfo info = this.clients.getNexusClient()
+			UploadArtifactInfo info = this.nexusConfig.getNexusClient()
 																	.uploadArtifact(theGroupId, theContentId, theVersion, thePackaging,
 																									theResource.contentLength(), theResource.getInputStream());
 

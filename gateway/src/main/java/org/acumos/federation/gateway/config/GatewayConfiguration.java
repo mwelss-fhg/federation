@@ -25,6 +25,7 @@ import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.security.AuthenticationConfiguration;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.CatalogService;
+import org.acumos.federation.gateway.service.CatalogServiceConfiguration;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.impl.ContentServiceImpl;
@@ -52,8 +53,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 				 AuthenticationConfiguration.class})
 @EnableConfigurationProperties({FederationInterfaceConfiguration.class,
 																LocalInterfaceConfiguration.class,
+																CDMSClientConfiguration.class,
 																DockerConfiguration.class,
-																NexusConfiguration.class})
+																NexusConfiguration.class,
+																CatalogServiceConfiguration.class})
 @Conditional({GatewayCondition.class})
 @EnableScheduling
 public class GatewayConfiguration {

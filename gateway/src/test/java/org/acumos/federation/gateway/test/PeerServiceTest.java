@@ -51,19 +51,19 @@ import org.springframework.test.context.junit4.SpringRunner;
 									"federation.instance=gateway",
 									"federation.instance.name=test",
 									"federation.operator=admin",
-									"federation.ssl.key-store=classpath:acumosb.pkcs12",
-									"federation.ssl.key-store-password=acumosb",
+									"federation.ssl.key-store=classpath:acumosa.pkcs12",
+									"federation.ssl.key-store-password=acumosa",
 									"federation.ssl.key-store-type=PKCS12",
-									"federation.ssl.key-password = acumosb",
+									"federation.ssl.key-password=acumosa",
 									"federation.ssl.trust-store=classpath:acumosTrustStore.jks",
 									"federation.ssl.trust-store-password=acumos",
 									"federation.ssl.client-auth=need",
 									"local.addr=127.0.0.1",
 									"local.server.port=9011",
-									"local.ssl.key-store=classpath:acumosb.pkcs12",
-									"local.ssl.key-store-password=acumosb",
+									"local.ssl.key-store=classpath:acumosa.pkcs12",
+									"local.ssl.key-store-password=acumosa",
 									"local.ssl.key-store-type=PKCS12",
-									"local.ssl.key-password=acumosb",
+									"local.ssl.key-password=acumosa",
 									"cdms.client.url=http://localhost:8000/ccds",
 									"cdms.client.username=username",
 									"cdms.client.password=password"
@@ -75,12 +75,11 @@ public class PeerServiceTest extends ServiceTest {
 	private PeerService peerService;
 
 	protected void initMockResponses() {
-		registerMockResponse("GET /ccds/peer/search?isSelf=true&_j=a", MockResponse.success("mockCDSPeerSearchSelfResponse.json"));
+		registerMockResponse("GET /ccds/peer/search?isSelf=true&_j=a&page=0&size=100", MockResponse.success("mockCDSPeerSearchSelfResponse.json"));
 		registerMockResponse("GET /ccds/peer?page=0&size=100", MockResponse.success("mockCDSPeerSearchAllResponse.json"));
-		//registerMockResponse("/ccds/peer", MockResponse.success("mockCDSPeerSearchAllResponse.json"));
-		registerMockResponse("GET /ccds/peer/search?subjectName=gateway.acumosa.org&_j=a", MockResponse.success("mockCDSPeerSearchResponse.json"));
+		registerMockResponse("GET /ccds/peer/search?subjectName=gateway.acumosb.org&_j=a", MockResponse.success("mockCDSPeerSearchResponse.json"));
 		registerMockResponse("GET /ccds/peer/search?subjectName=gateway.acumosc.org&_j=a", MockResponse.success("mockCDSSearchEmptyResponse.json"));
-		registerMockResponse("PUT /ccds/peer/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0", MockResponse.success("mockCDSPeerUpdateResponse.json"));
+		registerMockResponse("PUT /ccds/peer/b0b0b0b0-b0b0-b0b0-b0b0-b0b0b0b0b0b0", MockResponse.success("mockCDSPeerUpdateResponse.json"));
 		registerMockResponse("POST /ccds/peer", MockResponse.success("mockCDSPeerCreateResponse.json"));
 	}
 
@@ -99,7 +98,7 @@ public class PeerServiceTest extends ServiceTest {
 			List<MLPPeer> peers = peerService.getPeers(selfService);
 			assertTrue("Unexpected all peers response", peers.size() == 2);
 
-			List<MLPPeer> peersn = peerService.getPeerBySubjectName("gateway.acumosa.org");
+			List<MLPPeer> peersn = peerService.getPeerBySubjectName("gateway.acumosb.org");
 			assertTrue("Expected one peer to be found", peersn.size() == 1);
 
 			try {

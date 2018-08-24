@@ -49,12 +49,12 @@ import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.CatalogService;
+import org.acumos.federation.gateway.service.CatalogServiceConfiguration;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.acumos.federation.gateway.util.Errors;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -69,31 +69,13 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
-	private Environment env;
-
-	private Map<String, Object> baseSolutionSelector,
-	/*private List<Predicate<MLPSolutionRevision>>*/	baseSolutionRevisionSelector;
+	private CatalogServiceConfiguration config;
 
 	@PostConstruct
 	public void initService() {
-		baseSolutionSelector = new HashMap<String, Object>();
-		// Fetch all active solutions
-		baseSolutionSelector.put(Solution.Fields.active, true);
-		// Fetch allowed only for Public models
-		baseSolutionSelector.put(Solution.Fields.accessTypeCode, AccessTypeCode.PB.toString());
-		// Validation status should be passed locally
-		baseSolutionSelector.put(Solution.Fields.validationStatusCode, ValidationStatusCode.PS.toString());
-
-		baseSolutionRevisionSelector = new HashMap<String, Object>();
-		// Fetch allowed only for Public revisions
-		baseSolutionRevisionSelector.put(SolutionRevision.Fields.accessTypeCode, AccessTypeCode.PB.toString());
-		// Validation status should be passed locally
-		baseSolutionRevisionSelector.put(SolutionRevision.Fields.validationStatusCode, ValidationStatusCode.PS.toString());
 	}
 
 	@Override
-	/*
-	 */
 	public List<MLPSolution> getSolutions(Map<String, ?> theSelector, ServiceContext theContext) throws ServiceException {
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions with selector {}", theSelector);
 
@@ -102,10 +84,10 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 			selector.putAll(theSelector);
 		//it is essential that this gets done at the end as to force all baseSelector criteria (otherwise a submitted accessTypeCode
 		//could overwrite the basic one end expose non public solutions ..).
-		selector.putAll(this.baseSolutionSelector);
+		selector.putAll(this.config.getSolutionsSelector());
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions with full selector {}", selector);
 
-		RestPageRequest pageRequest = new RestPageRequest(0, 50);
+		RestPageRequest pageRequest = new RestPageRequest(0, this.cdsConfig.getPageSize());
 		RestPageResponse<MLPSolution> pageResponse = null;
 		List<MLPSolution> solutions = new ArrayList<MLPSolution>(),
 											pageSolutions = null;
@@ -118,9 +100,13 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 					//and artifacts for related information modified since.
 					pageResponse =
 						cdsClient.findSolutionsByDate(
-							(Boolean)selector.get(Solution.Fields.active),
-							new String[] {selector.get(Solution.Fields.accessTypeCode).toString()},
-							new String[] {selector.get(Solution.Fields.validationStatusCode).toString()},
+							(Boolean)selector.getOrDefault(Solution.Fields.active, Boolean.TRUE),
+							selector.containsKey(Solution.Fields.accessTypeCode) ?
+								new String[] {selector.get(Solution.Fields.accessTypeCode).toString()} :
+								null,
+							selector.containsKey(Solution.Fields.validationStatusCode) ?
+								new String[] {selector.get(Solution.Fields.validationStatusCode).toString()} :
+								null,
 							new Date((Long)selector.get(Solution.Fields.modified)),
 							pageRequest);
 			
@@ -137,13 +123,17 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 																					selector.containsKey(Solution.Fields.description) ?
 																						new String[] {selector.get(Solution.Fields.description).toString()} :
 																						null,
-																					(Boolean)selector.get(Solution.Fields.active),
+																					(Boolean)selector.getOrDefault(Solution.Fields.active, Boolean.TRUE),
 																					null, //user ids
-																					new String[] {selector.get(Solution.Fields.accessTypeCode).toString()},
+																					selector.containsKey(Solution.Fields.accessTypeCode) ?
+																						new String[] {selector.get(Solution.Fields.accessTypeCode).toString()} :
+																						null,
 																					selector.containsKey(Solution.Fields.modelTypeCode) ?
 																						new String[] {selector.get(Solution.Fields.modelTypeCode).toString()} :
 																						null,
-																					new String[] {selector.get(Solution.Fields.validationStatusCode).toString()},
+																					selector.containsKey(Solution.Fields.validationStatusCode) ?
+																						new String[] {selector.get(Solution.Fields.validationStatusCode).toString()} :
+																						null,
 																					selector.containsKey(Solution.Fields.tags) ?
 																						new String[] {selector.get(Solution.Fields.tags).toString()} :
 																						null,
@@ -199,18 +189,25 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	@Override
 	public List<MLPSolutionRevision> getSolutionRevisions(String theSolutionId, ServiceContext theContext) throws ServiceException {
 
-		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisions");
+		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisions {}", theSolutionId);
 		try {
 			List<MLPSolutionRevision> revisions = getClient(theContext).getSolutionRevisions(theSolutionId);
 			//make sure we only expose revisions according to the filter
 			if (revisions != null) {
+				log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisions {}: got {} revisions", theSolutionId, revisions.size());
 				revisions = 
 					revisions.stream()
-									 .filter(revision -> baseSolutionRevisionSelector.entrySet().stream()
-																				.allMatch(s -> { try {
-																													return PropertyUtils.getProperty(revision, s.getKey()).equals(s.getValue());
-																												 } catch (Exception x) { return false; }
-																											 })
+									 .filter(revision -> this.config.getSolutionRevisionsSelector().entrySet().stream()
+																				.allMatch(s -> {
+																					try {
+																						log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisions verifying filter: revision property value {} vs filter value {}", PropertyUtils.getProperty(revision, s.getKey()), s.getValue());
+																						return PropertyUtils.getProperty(revision, s.getKey()).equals(s.getValue());
+																					} 
+																					catch (Exception x) { 
+																						log.trace(EELFLoggerDelegate.errorLogger, "getSolutionRevisions failed to verify filter", x);
+																						return false;
+																					}
+																				})
 													)
 									 .collect(Collectors.toList());
 			}

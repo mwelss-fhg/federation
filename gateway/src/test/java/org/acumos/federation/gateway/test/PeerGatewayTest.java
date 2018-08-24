@@ -41,6 +41,8 @@ import org.acumos.cds.transport.RestPageRequest;
 import org.acumos.cds.transport.RestPageResponse;
 import org.acumos.federation.gateway.cds.PeerStatus;
 import org.acumos.federation.gateway.cds.Mapper;
+import org.acumos.federation.gateway.config.CDMSClientConfiguration;
+import org.acumos.federation.gateway.config.NexusConfiguration;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.nexus.client.NexusArtifactClient;
@@ -107,6 +109,12 @@ public class PeerGatewayTest {
 
 	@MockBean(name = "clients")
 	private Clients	clients;
+
+	@MockBean
+	private CDMSClientConfiguration	cdsConfig;
+
+	@MockBean
+	private NexusConfiguration nexusConfig;
 
 	@Autowired
 	private ApplicationContext context;
@@ -217,6 +225,18 @@ public class PeerGatewayTest {
 
 			//prepare the clients
 			when(
+				this.cdsConfig.getCDSClient()
+			)
+			.thenAnswer(new Answer<ICommonDataServiceRestClient>() {
+					public ICommonDataServiceRestClient answer(InvocationOnMock theInvocation) {
+						return cdsClient;
+					}
+				});
+
+			//clients delegates the cds cleint buils to CDMSconfiguration so normally this would not 
+			//be required but .. we need to mock the federation client build so clients bean must be
+			//mocked hence it needs to be done entierly (same for nexus client).
+			when(
 				this.clients.getCDSClient()
 			)
 			//.thenReturn(cdsClient);
@@ -258,6 +278,11 @@ public class PeerGatewayTest {
 			.thenReturn(nexusClient);
 
 			when(
+				this.nexusConfig.getNexusClient()
+			)
+			.thenReturn(nexusClient);
+
+			when(
 				this.nexusClient.uploadArtifact(
 					any(String.class),any(String.class),any(String.class),any(String.class),any(Long.class),any(InputStream.class)
 				)
@@ -275,8 +300,8 @@ public class PeerGatewayTest {
 						MLPPeer peer = new MLPPeer();
 						if (selector != null && selector.containsKey("isSelf") && selector.get("isSelf").equals(Boolean.TRUE)) {
 							peer.setPeerId("0");
-							peer.setName("testSelf");
-							peer.setSubjectName("test.org");
+							peer.setName("acumosa");
+							peer.setSubjectName("gateway.acumosa.org");
 							peer.setStatusCode(PeerStatus.Active.code());
 							peer.setSelf(true);
 							peer.setApiUrl("https://localhost:1110");

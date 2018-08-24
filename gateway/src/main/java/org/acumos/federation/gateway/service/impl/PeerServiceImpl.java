@@ -17,15 +17,12 @@
  * limitations under the License.
  * ===============LICENSE_END=========================================================
  */
-
-/**
- * 
- */
 package org.acumos.federation.gateway.service.impl;
 
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.cds.domain.MLPPeer;
@@ -33,37 +30,70 @@ import org.acumos.cds.transport.RestPageRequest;
 import org.acumos.cds.transport.RestPageResponse;
 import org.acumos.federation.gateway.cds.PeerStatus;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.config.FederationInterfaceConfiguration;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
+import org.acumos.federation.gateway.security.Tools;
 import org.acumos.federation.gateway.util.MapBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * 
- *
+ *  CDS based implementation of the hpeer service interface.
  */
 @Service
 public class PeerServiceImpl extends AbstractServiceImpl implements PeerService {
 
 	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
-	/**
-	 * 
-	 */
+	@Autowired
+	private FederationInterfaceConfiguration fedIfConfig;
+
 	public PeerServiceImpl() {
 	}
 
+	/**
+	 * Retrieves from CDS the peer record representing this Acumos gateway.
+	 * It can tolerate multiple CDS entries marked as 'self', requires a match between the locally configured identity as
+	 * it appears in the federation interface configuration and the subjectName attribute of the CDS entry.
+	 */
 	@Override
 	public MLPPeer getSelf() {
-		RestPageResponse<MLPPeer> response = 
-			getClient().searchPeers(new MapBuilder().put("isSelf", Boolean.TRUE).build(), false, null);
-		log.debug(EELFLoggerDelegate.errorLogger, "Peers representing 'self': " + response.getContent());
-		if (response.getNumberOfElements() != 1) {
-			log.warn(EELFLoggerDelegate.errorLogger, "Number of peers representing 'self' not 1. First page contains " + response.getNumberOfElements() + ".");
+
+		String selfName = null;
+		try {
+			selfName = Tools.getNameParts(fedIfConfig.getSubjectName(), "CN").get("CN").toString();
+		}
+		catch(Exception x) {
+			log.warn(EELFLoggerDelegate.errorLogger, "Cannot obtain 'self' name from interface config " + x);
 			return null;
 		}
-		return response.getContent().get(0);
+		final String subjectName = selfName;
+		log.debug(EELFLoggerDelegate.debugLogger, "Expecting 'self' name '{}'", subjectName);
+
+		List<MLPPeer> selfPeers = new ArrayList<MLPPeer>();
+		RestPageRequest pageRequest = new RestPageRequest(0, 100);
+		RestPageResponse<MLPPeer> pageResponse = null;
+		do {
+			pageResponse =
+				getClient().searchPeers(new MapBuilder().put("isSelf", Boolean.TRUE).build(), false, pageRequest);
+			log.debug(EELFLoggerDelegate.errorLogger, "Peers representing 'self': " + pageResponse.getContent());
+
+			selfPeers.addAll(
+				pageResponse.getContent().stream()
+										.filter(peer -> subjectName.equals(peer.getSubjectName()))
+										.collect(Collectors.toList()));
+
+			pageRequest.setPage(pageResponse.getNumber() + 1);
+		}
+		while (!pageResponse.isLast());
+
+		if (selfPeers.size() != 1) {
+			log.warn(EELFLoggerDelegate.errorLogger, "Number of peers representing 'self', i.e. '{}', not 1. Found {}.", subjectName, selfPeers);
+			return null;
+		}
+		return selfPeers.get(0);
 	}
 
 	/**

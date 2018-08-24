@@ -27,6 +27,10 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.cert.X509Certificate;
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
 
 import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
@@ -68,9 +72,7 @@ public class InterfaceConfiguration {
 	@Autowired
 	private ResourceLoader resourceLoader;
 
-	protected final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
-
-	//private int poolSize = 10;
+	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
 	private String 			address;
 	private InetAddress	inetAddress;
@@ -147,6 +149,94 @@ public class InterfaceConfiguration {
 		return this.address != null;
 	}
 
+	/** 
+	 * Provide the subject name specified in the SSL config
+	 */
+	public String getSubjectName() throws KeyStoreException {
+		if (!hasSSL())
+			return null;
+	
+		KeyStore keyStore = loadKeyStore();
+		X509Certificate certEntry = null;
+		
+		String alias = null;
+		if (this.ssl.keyAlias == null) {
+			//we expect only one entry
+			Enumeration<String> aliases = keyStore.aliases();
+			try {
+				alias = aliases.nextElement();
+			}
+			catch(NoSuchElementException nsex) {
+				throw new KeyStoreException("Key store contains no entries");
+			}
+
+			assert(!aliases.hasMoreElements());
+		}
+		else {
+			alias = this.ssl.keyAlias;
+		}
+
+		certEntry =  (X509Certificate)keyStore.getCertificate(alias);
+		if (certEntry == null)
+			return null;
+
+		return certEntry.getSubjectX500Principal().getName();
+	}
+
+	/**
+	 * Loads the specified key store
+	 * @return the key store
+	 */
+	public KeyStore loadKeyStore() {
+		return loadStore(this.ssl.keyStore, this.ssl.keyStoreType, this.ssl.keyStorePasswd);
+	}
+
+	/**
+	 * Loads the specified trust store
+	 * @return the key store
+	 */
+	public KeyStore loadTrustStore() {
+		return loadStore(this.ssl.trustStore, this.ssl.trustStoreType, this.ssl.trustStorePasswd);
+	}
+
+	/** */
+	private KeyStore loadStore(String theLocation, String theType, String thePasswd) {
+		KeyStore store = null;
+		InputStream storeSource = null;
+		try {
+			storeSource = this.resourceLoader.getResource(theLocation).getURL().openStream();
+		}
+		catch (FileNotFoundException rnfx) {
+			try {
+				storeSource = new FileInputStream(theLocation);
+			}
+			catch (FileNotFoundException fnfx) {
+				throw new IllegalStateException("Failed to find key store " + theLocation);
+			}
+		}
+		catch (IOException iox) {
+			throw new IllegalStateException("Error loading key material: " + iox, iox);
+		}
+
+		try {
+			store = KeyStore.getInstance(theType);
+			store.load(storeSource,	thePasswd.toCharArray());
+			log.info(EELFLoggerDelegate.debugLogger, "Loaded key store: " + theLocation);
+		}
+		catch (Exception x) {
+			throw new IllegalStateException("Error loading key material: " + x, x);
+		}
+		finally {
+			try {
+				storeSource.close();
+			}
+			catch (IOException iox) {
+				log.debug(EELFLoggerDelegate.debugLogger, "Error closing key store source", iox);
+			}
+		}
+		return store;
+	}
+	
 	/**
 	 */
 	public static class Client {
@@ -372,77 +462,8 @@ public class InterfaceConfiguration {
 			log.info(EELFLoggerDelegate.debugLogger, "No ssl config was provided");
 		}
 		else {
-			KeyStore keyStore = null;
-			if (this.ssl.hasKeyStoreInfo()) {
-				InputStream keyStoreSource = null;
-				try {
-					keyStoreSource = this.resourceLoader.getResource(this.ssl.keyStore).getURL().openStream();
-				}
-				catch (FileNotFoundException rnfx) {
-					try {
-						keyStoreSource = new FileInputStream(this.ssl.keyStore);
-					}
-					catch (FileNotFoundException fnfx) {
-						throw new IllegalStateException("Failed to find key store " + this.ssl.keyStore);
-					}
-				}
-				catch (IOException iox) {
-					throw new IllegalStateException("Error loading key material: " + iox, iox);
-				}
-
-				try {
-					keyStore = KeyStore.getInstance(this.ssl.keyStoreType);
-					keyStore.load(keyStoreSource,	this.ssl.keyStorePasswd.toCharArray());
-					log.info(EELFLoggerDelegate.debugLogger, "Loaded key store: " + this.ssl.keyStore);
-				}
-				catch (Exception x) {
-					throw new IllegalStateException("Error loading key material: " + x, x);
-				}
-				finally {
-					try {
-						keyStoreSource.close();
-					}
-					catch (IOException iox) {
-						log.debug(EELFLoggerDelegate.debugLogger, "Error closing key store source", iox);
-					}
-				}
-			}
-
-			KeyStore trustStore = null;
-			if (this.ssl.hasTrustStoreInfo()) {
-				InputStream trustStoreSource = null;
-				try {
-					trustStoreSource = this.resourceLoader.getResource(this.ssl.trustStore).getURL().openStream();
-				}
-				catch (FileNotFoundException rnfx) {
-					try {
-						trustStoreSource = new FileInputStream(this.ssl.trustStore);
-					}
-					catch (FileNotFoundException fnfx) {
-						throw new IllegalStateException("Failed to find trust store " + this.ssl.keyStore);
-					}
-				}
-				catch (IOException iox) {
-					throw new IllegalStateException("Error loading trust material: " + iox, iox);
-				}
-
-				try {
-					trustStore = KeyStore.getInstance(this.ssl.trustStoreType);
-					trustStore.load(trustStoreSource,	this.ssl.trustStorePasswd.toCharArray());
-					log.info(EELFLoggerDelegate.debugLogger, "Loaded trust store: " + this.ssl.trustStore);
-				}
-				catch (Exception x) {
-					throw new IllegalStateException("Error loading trust material: " + x, x);
-				}
-				finally {
-					try {
-						trustStoreSource.close();
-					}
-					catch (IOException iox) {
-						log.debug(EELFLoggerDelegate.debugLogger, "Error closing trust store source", iox);
-					}
-				}
-			}
+			KeyStore keyStore = loadKeyStore(),
+							 trustStore = loadTrustStore();
 
 			SSLContextBuilder contextBuilder = SSLContexts.custom();
 			try {
@@ -460,7 +481,8 @@ public class InterfaceConfiguration {
 				}
 
 				sslContext = contextBuilder.build();
-			} catch (Exception x) {
+			}
+			catch (Exception x) {
 				throw new IllegalStateException("Error building ssl context", x);
 			}
 		}

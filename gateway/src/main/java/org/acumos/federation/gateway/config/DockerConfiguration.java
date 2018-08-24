@@ -27,6 +27,8 @@ import org.springframework.stereotype.Component;
 
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.core.DockerClientBuilder;
+import com.github.dockerjava.api.DockerClient;
 
 /**
  * 
@@ -99,4 +101,10 @@ public class DockerConfiguration {
 		return this.builder.build();
 	}
 
+	/** */
+	public DockerClient	getDockerClient() {
+    return DockerClientBuilder.getInstance(buildConfig())
+        		.withDockerCmdExecFactory(DockerClientBuilder.getDefaultDockerCmdExecFactory())
+        		.build();
+	}
 }
