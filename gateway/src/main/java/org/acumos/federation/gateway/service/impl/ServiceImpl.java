@@ -20,16 +20,27 @@
 
 package org.acumos.federation.gateway.service.impl;
 
+import java.lang.invoke.MethodHandles;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.acumos.cds.domain.MLPSolution;
+import org.acumos.cds.domain.MLPTag;
+
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 /**
  * Some basic tooling for service implementation.
  * Common functionality to be re-used across service implementations.
  */
-public interface ServiceImpl {
+public abstract class ServiceImpl {
+
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+
+	private ServiceImpl() {
+	}
 
 	/**
 	 * Bit of a primitive implementation
@@ -48,8 +59,9 @@ public interface ServiceImpl {
 			else if (modelTypeCode instanceof List) {
 				res &= ((List)modelTypeCode).contains(theSolution.getModelTypeCode());
 			}
-			else
-				res = false;
+			else {
+				log.debug(EELFLoggerDelegate.debugLogger, "unknown modelTypeCode criteria representation {}", modelTypeCode.getClass().getName());
+			}
 		}
 
 		Object toolkitTypeCode = theSelector.get("toolkitTypeCode");
@@ -60,8 +72,39 @@ public interface ServiceImpl {
 			else if (toolkitTypeCode instanceof List) {
 				res &= ((List)toolkitTypeCode).contains(theSolution.getToolkitTypeCode());
 			}
-			else
+			else {
+				log.debug(EELFLoggerDelegate.debugLogger, "unknown toolkitTypeCode criteria representation {}", toolkitTypeCode.getClass().getName());
+			}
+		}
+
+		Object tags = theSelector.get("tags");
+		if (tags != null) {
+			Set<MLPTag> solutionTags = theSolution.getTags();
+			if (tags instanceof String) {
+				res &= solutionTags.stream().filter(solutionTag -> tags.equals(solutionTag.getTag())).findAny().isPresent();
+			}
+			else if (tags instanceof List) {
+				res &= solutionTags.stream().filter(solutionTag -> ((List)tags).contains(solutionTag.getTag())).findAny().isPresent();
+			}
+			else {
+				log.debug(EELFLoggerDelegate.debugLogger, "unknown tags criteria representation {}", tags.getClass().getName());
+			}
+		}
+
+		Object name = theSelector.get("name");
+		if (name != null) {
+			res &= theSolution.getName().contains(name.toString());
+		}
+
+		Object desc = theSelector.get("description");
+		if (desc != null) {
+			String solutionDesc = theSolution.getDescription();
+			if (solutionDesc == null) {
 				res = false;
+			}
+			else {
+				res &= solutionDesc.contains(desc.toString());
+			}
 		}
 
 		return res;

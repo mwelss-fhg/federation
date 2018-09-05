@@ -82,7 +82,7 @@ public class CatalogServiceTest extends ServiceTest {
 
 	protected void initMockResponses() {
 
-		registerMockResponse("GET /ccds/solution/search/portal?atc=PB&active=true&page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
+		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1&vsc=PS&vsc=NV&active=true&page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
 		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&vsc=PS&active=true&page=0&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage0.json"));
 		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&vsc=PS&active=true&page=1&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage1.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010", MockResponse.success("mockCDSSolutionResponse.json"));

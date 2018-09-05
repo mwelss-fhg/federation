@@ -69,6 +69,8 @@ public class CatalogServiceConfiguration {
 		this.solutionsSelector.put(Solution.Fields.active, true);
 		// Fetch only Public models
 		this.solutionsSelector.put(Solution.Fields.accessTypeCode, AccessTypeCode.PB.toString());
+		// Fetch solutions last updated since the beggining of times
+		this.solutionsSelector.put(Solution.Fields.modified, new Long(1));
 
 		this.solutionRevisionsSelector = new HashMap<String, Object>();
 		// Fetch only for Public revisions

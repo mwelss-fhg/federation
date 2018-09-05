@@ -24,6 +24,7 @@
 package org.acumos.federation.gateway.service.impl;
 
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -47,6 +48,8 @@ import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
+import org.acumos.federation.gateway.cds.AccessType;
+import org.acumos.federation.gateway.cds.ValidationStatus;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.CatalogServiceConfiguration;
@@ -95,54 +98,24 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 		try {
 			do {
 				log.debug(EELFLoggerDelegate.debugLogger, "getSolutions page {}", pageResponse);
-				if (selector.containsKey(Solution.Fields.modified)) {
-					//Use the dedicated api: this is a 'deep' application of the 'modified' criteria as it will look into revisions
-					//and artifacts for related information modified since.
-					pageResponse =
-						cdsClient.findSolutionsByDate(
-							(Boolean)selector.getOrDefault(Solution.Fields.active, Boolean.TRUE),
-							selector.containsKey(Solution.Fields.accessTypeCode) ?
-								new String[] {selector.get(Solution.Fields.accessTypeCode).toString()} :
-								null,
-							selector.containsKey(Solution.Fields.validationStatusCode) ?
-								new String[] {selector.get(Solution.Fields.validationStatusCode).toString()} :
-								null,
-							new Date((Long)selector.get(Solution.Fields.modified)),
-							pageRequest);
+				pageResponse =
+					cdsClient.findSolutionsByDate(
+						(Boolean)selector.getOrDefault(Solution.Fields.active, Boolean.TRUE),
+						selector.containsKey(Solution.Fields.accessTypeCode) ?
+							new String[] {selector.get(Solution.Fields.accessTypeCode).toString()} :
+							Arrays.stream(AccessType.values()).map(at -> at.code()).toArray(String[]::new),
+						selector.containsKey(Solution.Fields.validationStatusCode) ?
+							new String[] {selector.get(Solution.Fields.validationStatusCode).toString()} :
+							Arrays.stream(ValidationStatus.values()).map(vs -> vs.code()).toArray(String[]::new),
+						new Date((Long)selector.get(Solution.Fields.modified)),
+						pageRequest);
 			
-					//we need to post-process all other selection criteria
-					pageSolutions = pageResponse.getContent().stream()
-														.filter(solution -> ServiceImpl.isSelectable(solution, theSelector))
-														.collect(Collectors.toList());
-				}
-				else {
-					pageResponse =
-						cdsClient.findPortalSolutions(selector.containsKey(Solution.Fields.name) ?
-																						new String[] {selector.get(Solution.Fields.name).toString()} :
-																						null,
-																					selector.containsKey(Solution.Fields.description) ?
-																						new String[] {selector.get(Solution.Fields.description).toString()} :
-																						null,
-																					(Boolean)selector.getOrDefault(Solution.Fields.active, Boolean.TRUE),
-																					null, //user ids
-																					selector.containsKey(Solution.Fields.accessTypeCode) ?
-																						new String[] {selector.get(Solution.Fields.accessTypeCode).toString()} :
-																						null,
-																					selector.containsKey(Solution.Fields.modelTypeCode) ?
-																						new String[] {selector.get(Solution.Fields.modelTypeCode).toString()} :
-																						null,
-																					selector.containsKey(Solution.Fields.validationStatusCode) ?
-																						new String[] {selector.get(Solution.Fields.validationStatusCode).toString()} :
-																						null,
-																					selector.containsKey(Solution.Fields.tags) ?
-																						new String[] {selector.get(Solution.Fields.tags).toString()} :
-																						null,
-																					null,	//authorKeywords
-																					null, //publisherKeywords
-																					pageRequest);
-					pageSolutions = pageResponse.getContent();
-				}
 				log.debug(EELFLoggerDelegate.debugLogger, "getSolutions page response {}", pageResponse);
+				//we need to post-process all other selection criteria
+				pageSolutions = pageResponse.getContent().stream()
+													.filter(solution -> ServiceImpl.isSelectable(solution, selector))
+													.collect(Collectors.toList());
+				log.debug(EELFLoggerDelegate.debugLogger, "getSolutions page selection {}", pageSolutions);
 		
 				pageRequest.setPage(pageResponse.getNumber() + 1);
 				solutions.addAll(pageSolutions);

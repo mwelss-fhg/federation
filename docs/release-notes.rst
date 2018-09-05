@@ -22,6 +22,12 @@ Federated Gateway Release Notes
 
 The Federated Gateway server is available as a Docker image in a Docker registry.
 
+Version 1.18.1, 2018-09-05
+-------------------------
+
+* Simplified catalog solutions lookup
+* Fix 'self' peer not found (ACUMS-1694)
+
 Version 1.18.0, 2018-09-05
 -------------------------
 

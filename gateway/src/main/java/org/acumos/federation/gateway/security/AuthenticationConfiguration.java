@@ -33,6 +33,7 @@ import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -114,7 +115,10 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 	@Bean
 	@Lazy
 	public Peer self() {
-		return new Peer(peerService.getSelf(), Role.SELF.priviledges());
+		MLPPeer self = peerService.getSelf();
+		if (self == null)
+			throw new BeanCreationException("Unable to find 'self' peer");
+		return new Peer(self, Role.SELF.priviledges());
 	}
 
 	/** */
