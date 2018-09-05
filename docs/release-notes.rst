@@ -27,6 +27,8 @@ Version 1.18.1, 2018-09-05
 
 * Simplified catalog solutions lookup
 * Fix 'self' peer not found (ACUMS-1694)
+* Fix solution tag handling
+* Move solution and revision updates to service interface
 
 Version 1.18.0, 2018-09-05
 -------------------------

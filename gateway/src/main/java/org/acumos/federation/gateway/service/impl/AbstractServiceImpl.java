@@ -41,15 +41,23 @@ public abstract class AbstractServiceImpl {
 	}
 
 	public ICommonDataServiceRestClient getClient(ServiceContext theContext) {
-		ICommonDataServiceRestClient client = (ICommonDataServiceRestClient)theContext.getAttribute(Attributes.cdsClient);
-		if (client == null)
-			client = getClient();
+		return getClient(theContext, false);
+	}
 
+	public ICommonDataServiceRestClient getClient(ServiceContext theContext, boolean doSetClient) {
+		ICommonDataServiceRestClient client = (ICommonDataServiceRestClient)theContext.getAttribute(Attributes.cdsClient);
+		if (client == null) {
+			client = getClient();
+			if (doSetClient) {
+				theContext.setAttribute(Attributes.cdsClient, client);
+			}
+		}
 		return client;
 	}
 
 	public ServiceContext selfService() {
-		return ServiceContext.forPeer((Peer)appCtx.getBean("self"));		
+		return ServiceContext.forPeer((Peer)appCtx.getBean("self"))
+												 .withAttribute(Attributes.cdsClient, getClient());		
 	}
 
 	/**

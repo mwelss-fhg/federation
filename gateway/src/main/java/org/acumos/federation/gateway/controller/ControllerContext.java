@@ -44,13 +44,18 @@ public class ControllerContext implements ServiceContext {
 		return (Peer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
 	
-	public ServiceContext withAttribute(String theName, Object theValue) {
-		attributes.get().put(theName, theValue);
-		return this;
-	}
-
 	public Object getAttribute(String theName) {
 		return attributes.get().get(theName);
 	}
+
+	public void setAttribute(String theName, Object theValue) {
+		attributes.get().put(theName, theValue);
+	}
+
+	public ServiceContext withAttribute(String theName, Object theValue) {
+		setAttribute(theName, theValue);
+		return this;
+	}
+
 	
 }

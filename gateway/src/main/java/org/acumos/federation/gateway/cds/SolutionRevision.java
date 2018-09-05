@@ -20,6 +20,7 @@
 package org.acumos.federation.gateway.cds;
 
 import java.util.List;
+import java.util.Collections;
 
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPDocument;
@@ -37,8 +38,8 @@ public class SolutionRevision extends MLPSolutionRevision {
 		public static final String validationStatusCode = "validationStatusCode";
 	};
 
-	private List<? extends MLPArtifact>		artifacts;
-	private List<? extends MLPDocument>		documents;
+	private List<? extends MLPArtifact>		artifacts = Collections.EMPTY_LIST;
+	private List<? extends MLPDocument>		documents = Collections.EMPTY_LIST;
 	private	MLPRevisionDescription				description;
 
 	public SolutionRevision() {

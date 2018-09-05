@@ -30,13 +30,17 @@ import org.acumos.federation.gateway.security.Peer;
  */
 public interface ServiceContext {
 
-	/*
-	 */
-	public ServiceContext withAttribute(String theName, Object theValue);
-
-	/*
+	/* Retrieve a context attribute.
 	 */
 	public Object getAttribute(String theName);
+
+	/* Attach a context attribute
+	 */
+	public void setAttribute(String theName, Object theValue);
+
+	/* Fluent version of setAttribute
+	 */
+	public ServiceContext withAttribute(String theName, Object theValue);
 
 	/*
 	 * In who's behalf are we providing the service.
@@ -68,16 +72,25 @@ public interface ServiceContext {
 				peer = thePeer;
 			}
 
+			@Override
 			public Peer getPeer() { return peer; }
 
-			public ServiceContext withAttribute(String theName, Object theValue) {
-				attributes.put(theName, theValue);
-				return this;
-			}
-
+			@Override
 			public Object getAttribute(String theName) {
 				return attributes.get(theName);
 			}
+
+			@Override
+			public void setAttribute(String theName, Object theValue) {
+				attributes.put(theName, theValue);
+			}
+
+			@Override
+			public ServiceContext withAttribute(String theName, Object theValue) {
+				setAttribute(theName, theValue);
+				return this;
+			}
+
 		};
 	}
 }

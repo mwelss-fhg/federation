@@ -25,17 +25,26 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 /**
  * Provides the beans used to setup the peer subscription tasks.
  */
 @Configuration
+@EnableScheduling
 @EnableAutoConfiguration
 //@ConfigurationProperties(prefix = "task", ignoreInvalidFields = true)
 public class TaskConfiguration {
 
 	public TaskConfiguration() {
+	}
+
+	@Bean
+	public TaskScheduler taskScheduler() {
+    return new ConcurrentTaskScheduler();
 	}
 
 	/**

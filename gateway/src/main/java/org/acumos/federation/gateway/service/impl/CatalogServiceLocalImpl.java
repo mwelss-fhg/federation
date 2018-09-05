@@ -120,6 +120,13 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 		}).findFirst().orElse(null);
 	}
 
+	@Override	
+	public Solution putSolution(Solution theSolution, ServiceContext theContext) throws ServiceException {
+		
+		log.trace(EELFLoggerDelegate.debugLogger, "putSolution {}", theSolution);
+		return theSolution;
+	}
+
 	@Override
 	public List<MLPSolutionRevision> getSolutionRevisions(final String theSolutionId, ServiceContext theContext) throws ServiceException {
 
@@ -136,6 +143,13 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 		log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
 		return (SolutionRevision)getSolutionRevisions(theSolutionId, theContext).stream()
 						.filter(rev -> rev.getRevisionId().equals(theRevisionId)).findFirst().orElse(null);
+	}
+
+	@Override
+  public SolutionRevision putSolutionRevision(SolutionRevision theRevision, ServiceContext theContext)
+																																																				throws ServiceException {
+		log.trace(EELFLoggerDelegate.debugLogger, "putSolutionRevision {}", theRevision);
+		return theRevision;	
 	}
 
 	@Override

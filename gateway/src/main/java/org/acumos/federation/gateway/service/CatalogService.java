@@ -101,6 +101,17 @@ public interface CatalogService {
 	}
 
 	/**
+	 * Create or update the given solution information set and directly associated information such as tags.
+	 * @param theSolution
+	 *						extended solution information set
+	 * @param theContext
+	 *            the execution context
+	 * @return the solution information in its new service representation
+	 * @throws ServiceException if an error is encoutered during processing
+	 */
+	public Solution putSolution(Solution theSolution, ServiceContext theContext) throws ServiceException; 
+
+	/**
 	 * Provides revision information given a solution identifier.
 	 * 
 	 * @param theSolutionId
@@ -147,6 +158,18 @@ public interface CatalogService {
 	public default SolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId) throws ServiceException {
 		return getSolutionRevision(theSolutionId, theRevisionId, selfService());
 	}
+
+	/**
+	 * Create or update the given solution revision information set.
+	 * Should this handle associated information such as artifacts and documents ?
+	 * @param theRevision
+	 *						Extended revision information set including potential artifacts/documents/..
+	 * @param theContext
+	 *            the execution context
+	 * @return the SolutionRevision as it will now be provided by the service.
+	 * @throws ServiceException if an error is encoutered during processing
+	 */
+	public SolutionRevision putSolutionRevision(SolutionRevision theRevision,	ServiceContext theContext) throws ServiceException; 
 
 	/**
 	 * Access the list of solution revision artifacts.

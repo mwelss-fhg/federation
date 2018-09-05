@@ -73,6 +73,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 
 
 /**
@@ -408,6 +410,15 @@ public class PeerGatewayTest {
 						return Collections.EMPTY_LIST;
 					}
 				});
+
+			//pretend the revision does not exist
+			when(
+				this.cdsClient.getSolutionRevision(
+					any(String.class), any(String.class)
+				)
+			) 
+			.thenThrow(new HttpClientErrorException(
+											HttpStatus.BAD_REQUEST, "No such revision", "{\"error\":\"No revision with ID whatever\"}".getBytes(), null));
 
 			when(
 				this.cdsClient.createSolutionRevision(
