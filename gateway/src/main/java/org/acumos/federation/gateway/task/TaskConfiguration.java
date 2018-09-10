@@ -20,13 +20,14 @@
 
 package org.acumos.federation.gateway.task;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 
@@ -36,15 +37,25 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Configuration
 @EnableScheduling
 @EnableAutoConfiguration
-//@ConfigurationProperties(prefix = "task", ignoreInvalidFields = true)
+@ConfigurationProperties(prefix = "task")
 public class TaskConfiguration {
+
+	private int poolSize = 20;
 
 	public TaskConfiguration() {
 	}
 
+	public void setPoolSize(int thePoolSize) {
+		this.poolSize = thePoolSize;
+	}
+
 	@Bean
 	public TaskScheduler taskScheduler() {
-    return new ConcurrentTaskScheduler();
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.setPoolSize(this.poolSize);
+		taskScheduler.setBeanName("gatewayPeerTaskScheduler");
+		taskScheduler.initialize();
+		return taskScheduler;
 	}
 
 	/**

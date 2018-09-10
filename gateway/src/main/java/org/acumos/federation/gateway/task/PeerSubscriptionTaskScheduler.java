@@ -41,7 +41,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.HashBasedTable;
@@ -59,41 +59,23 @@ public class PeerSubscriptionTaskScheduler {
 
 	@Autowired
 	private Environment env;
-
 	@Autowired
 	private PeerService peerService;
-
 	@Autowired
 	private PeerSubscriptionService peerSubscriptionService;
-
 	@Autowired
 	private ApplicationContext appCtx;
+	@Autowired
+	private TaskScheduler taskScheduler = null;
 
 	private Table<String, Long, PeerTaskHandler> peersSubsTask = HashBasedTable.create();
-	private ThreadPoolTaskScheduler threadPoolTaskScheduler = null;
-
-
-	@PostConstruct
-	public void initScheduler() {
-
-		String name = env.getProperty("federation.instance.name") + "-" + env.getProperty("federation.instance")
-				+ "-taskscheduler";
-
-		if (this.threadPoolTaskScheduler == null) {
-			log.debug(EELFLoggerDelegate.debugLogger, "creating task scheduler");
-			this.threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-			this.threadPoolTaskScheduler.setPoolSize(20);// Make it configurable later
-			this.threadPoolTaskScheduler.setBeanName(name);
-			this.threadPoolTaskScheduler.initialize();
-		}
-	}
 
 	@PreDestroy
 	public void cleanUpTasks() {
 		log.debug(EELFLoggerDelegate.debugLogger, "cleanUpTasks");
 		try {
 			log.debug(EELFLoggerDelegate.debugLogger, "cleanUpTasks: " + this.peersSubsTask.size() + " tasks");
-			this.threadPoolTaskScheduler.shutdown();
+			//this.taskScheduler.shutdown();
 
 		}
 		catch (Exception e) {
@@ -238,11 +220,11 @@ public class PeerSubscriptionTaskScheduler {
 	
 			this.task = (PeerSubscriptionTask) PeerSubscriptionTaskScheduler.this.appCtx.getBean("peerSubscriptionTask");
 			if (refreshInterval.longValue() == 0) {
-				this.future = PeerSubscriptionTaskScheduler.this.threadPoolTaskScheduler
+				this.future = PeerSubscriptionTaskScheduler.this.taskScheduler
 												.schedule(this.task.handle(thePeer, theSub), new Date(System.currentTimeMillis() + 5000));
 			}
 			else {
-				this.future = PeerSubscriptionTaskScheduler.this.threadPoolTaskScheduler
+				this.future = PeerSubscriptionTaskScheduler.this.taskScheduler
 												.scheduleAtFixedRate(this.task.handle(thePeer, theSub), 1000 * refreshInterval.longValue() );
 			}
 			return this;
@@ -250,7 +232,7 @@ public class PeerSubscriptionTaskScheduler {
 		
 		public synchronized PeerTaskHandler runTask(MLPPeer thePeer, MLPPeerSubscription theSub) {
 			this.task = (PeerSubscriptionTask) PeerSubscriptionTaskScheduler.this.appCtx.getBean("peerSubscriptionTask");
-			this.future = PeerSubscriptionTaskScheduler.this.threadPoolTaskScheduler
+			this.future = PeerSubscriptionTaskScheduler.this.taskScheduler
 												.schedule(this.task.handle(thePeer, theSub), new Date(System.currentTimeMillis() + 5000));
 			return this;
 		}
