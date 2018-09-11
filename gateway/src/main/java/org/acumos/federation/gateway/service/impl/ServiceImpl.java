@@ -51,56 +51,93 @@ public abstract class ServiceImpl {
 		if (theSelector == null || theSelector.isEmpty())
 			return true;
 
-		Object modelTypeCode = theSelector.get("modelTypeCode");
-		if (modelTypeCode != null) {
-			if (modelTypeCode instanceof String) {
-				res &= theSolution.getModelTypeCode().equals(modelTypeCode);
-			}
-			else if (modelTypeCode instanceof List) {
-				res &= ((List)modelTypeCode).contains(theSolution.getModelTypeCode());
+		Object solutionId = theSelector.get("solutionId");
+		if (solutionId != null) {
+			if (solutionId instanceof String) {
+				res &= theSolution.getSolutionId().equals(solutionId);
 			}
 			else {
-				log.debug(EELFLoggerDelegate.debugLogger, "unknown modelTypeCode criteria representation {}", modelTypeCode.getClass().getName());
+				log.debug(EELFLoggerDelegate.debugLogger, "unknown solutionId criteria representation {}", solutionId.getClass().getName());
+				return false;
+			}
+		}
+
+		Object modelTypeCode = theSelector.get("modelTypeCode");
+		if (modelTypeCode != null) {
+			String solutionModelTypeCode = theSolution.getModelTypeCode();
+			if (solutionModelTypeCode == null) {
+				return false;
+			}
+			else {
+				if (modelTypeCode instanceof String) {
+					res &= solutionModelTypeCode.equals(modelTypeCode);
+				}
+				else if (modelTypeCode instanceof List) {
+					res &= ((List)modelTypeCode).contains(solutionModelTypeCode);
+				}
+				else {
+					log.debug(EELFLoggerDelegate.debugLogger, "unknown modelTypeCode criteria representation {}", modelTypeCode.getClass().getName());
+					return false;
+				}
 			}
 		}
 
 		Object toolkitTypeCode = theSelector.get("toolkitTypeCode");
 		if (toolkitTypeCode != null) {
-			if (toolkitTypeCode instanceof String) {
-				res &= theSolution.getToolkitTypeCode().equals(toolkitTypeCode);
-			}
-			else if (toolkitTypeCode instanceof List) {
-				res &= ((List)toolkitTypeCode).contains(theSolution.getToolkitTypeCode());
+			String solutionToolkitTypeCode = theSolution.getToolkitTypeCode();
+			if (solutionToolkitTypeCode == null) {
+				return false;
 			}
 			else {
-				log.debug(EELFLoggerDelegate.debugLogger, "unknown toolkitTypeCode criteria representation {}", toolkitTypeCode.getClass().getName());
+				if (toolkitTypeCode instanceof String) {
+					res &= solutionToolkitTypeCode.equals(toolkitTypeCode);
+				}
+				else if (toolkitTypeCode instanceof List) {
+					res &= ((List)toolkitTypeCode).contains(solutionToolkitTypeCode);
+				}
+				else {
+					log.debug(EELFLoggerDelegate.debugLogger, "unknown toolkitTypeCode criteria representation {}", toolkitTypeCode.getClass().getName());
+					return false;
+				}
 			}
 		}
 
 		Object tags = theSelector.get("tags");
 		if (tags != null) {
 			Set<MLPTag> solutionTags = theSolution.getTags();
-			if (tags instanceof String) {
-				res &= solutionTags.stream().filter(solutionTag -> tags.equals(solutionTag.getTag())).findAny().isPresent();
-			}
-			else if (tags instanceof List) {
-				res &= solutionTags.stream().filter(solutionTag -> ((List)tags).contains(solutionTag.getTag())).findAny().isPresent();
+			if (solutionTags == null) {
+				return false;
 			}
 			else {
-				log.debug(EELFLoggerDelegate.debugLogger, "unknown tags criteria representation {}", tags.getClass().getName());
+				if (tags instanceof String) {
+					res &= solutionTags.stream().filter(solutionTag -> tags.equals(solutionTag.getTag())).findAny().isPresent();
+				}
+				else if (tags instanceof List) {
+					res &= solutionTags.stream().filter(solutionTag -> ((List)tags).contains(solutionTag.getTag())).findAny().isPresent();
+				}
+				else {
+					log.debug(EELFLoggerDelegate.debugLogger, "unknown tags criteria representation {}", tags.getClass().getName());
+					return false; 
+				}
 			}
 		}
 
 		Object name = theSelector.get("name");
 		if (name != null) {
-			res &= theSolution.getName().contains(name.toString());
+			String solutionName = theSolution.getName();
+			if (solutionName == null) {
+				return false;
+			}
+			else {
+				res &= solutionName.contains(name.toString());
+			}
 		}
 
 		Object desc = theSelector.get("description");
 		if (desc != null) {
 			String solutionDesc = theSolution.getDescription();
 			if (solutionDesc == null) {
-				res = false;
+				return false;
 			}
 			else {
 				res &= solutionDesc.contains(desc.toString());
