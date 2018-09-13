@@ -200,6 +200,8 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 				if (catalogSolution.getSourceId() == null) {
 					//this is a local solution that made its way back
 					log.info(EELFLoggerDelegate.debugLogger, "Solution {} was originally provisioned locally", catalogSolution.getSolutionId());
+					//make sure not to update the user if the solution is local
+					theSolution.setUserId(catalogSolution.getUserId());
 				}
 				else {
 					if (!theSolution.getSourceId().equals(catalogSolution.getSourceId())) {

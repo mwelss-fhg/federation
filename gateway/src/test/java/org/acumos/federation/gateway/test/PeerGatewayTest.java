@@ -152,6 +152,21 @@ public class PeerGatewayTest {
 			mockSolutionsResponse
 				.addHeader("Content-Length", String.valueOf(mockSolutions.contentLength()));
 
+			BasicHttpResponse mockSolutionResponse = 
+				new BasicHttpResponse(
+					new BasicStatusLine(
+						new ProtocolVersion("HTTP",1,1), 200, "Success"));
+
+			ClassPathResource mockSolution =
+				new ClassPathResource("mockPeerSolutionResponse.json");
+
+			mockSolutionResponse.setEntity(
+				new InputStreamEntity(mockSolution.getInputStream()));
+			mockSolutionResponse
+				.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
+			mockSolutionResponse
+				.addHeader("Content-Length", String.valueOf(mockSolution.contentLength()));
+
 			BasicHttpResponse mockSolutionRevisionsResponse = 
 				new BasicHttpResponse(
 					new BasicStatusLine(
@@ -485,6 +500,8 @@ public class PeerGatewayTest {
 						String path = req.getURI().getPath();
 						if (path.equals("/solutions"))
 							return mockSolutionsResponse;
+						if (path.startsWith("/solutions/") && !path.contains("/revisions")) //solution details
+							return mockSolutionResponse;
 						if (path.endsWith("/revisions"))
 							return mockSolutionRevisionsResponse;
 						if (path.endsWith("/artifacts"))

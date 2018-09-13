@@ -20,6 +20,8 @@
 
 package org.acumos.federation.gateway.task;
 
+import java.util.concurrent.Executor;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -27,46 +29,77 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 
 /**
  * Provides the beans used to setup the peer subscription tasks.
  */
 @Configuration
+@EnableAsync
 @EnableScheduling
 @EnableAutoConfiguration
 @ConfigurationProperties(prefix = "task")
-public class TaskConfiguration {
+public class TaskConfiguration implements AsyncConfigurer {
 
-	private int poolSize = 20;
+	private int schedulerPoolSize = 100;
+	private int executorCorePoolSize = 20;
+	private int executorMaxPoolSize = 100;
+	private int executorQueueCapacity = 50;
 
 	public TaskConfiguration() {
 	}
 
-	public void setPoolSize(int thePoolSize) {
-		this.poolSize = thePoolSize;
+	public void setSchedulerPoolSize(int theSize) {
+		this.schedulerPoolSize = theSize;
+	}
+
+	public void setExecutorCorePoolSize(int theSize) {
+		this.executorCorePoolSize = theSize;
+	}
+
+	public void setExecutorMaxPoolSize(int theSize) {
+		this.executorMaxPoolSize = theSize;
+	}
+
+	public void setExecutorQueueCapacity(int theCapacity) {
+		this.executorQueueCapacity = theCapacity;
+	}
+
+	@Override
+	public Executor getAsyncExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(this.executorCorePoolSize);
+		executor.setMaxPoolSize(this.executorMaxPoolSize);
+		executor.setQueueCapacity(this.executorQueueCapacity);
+		executor.setThreadNamePrefix("GatewayExecutor-");
+		executor.initialize();
+		return executor;
+	}
+
+	@Override
+	public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+		return null;
 	}
 
 	@Bean
-	public TaskScheduler taskScheduler() {
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.setPoolSize(this.poolSize);
-		taskScheduler.setBeanName("gatewayPeerTaskScheduler");
-		taskScheduler.initialize();
-		return taskScheduler;
+	public TaskScheduler getTaskScheduler() {
+		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+		scheduler.setPoolSize(this.schedulerPoolSize);
+		scheduler.setThreadNamePrefix("GatewayScheduler-");
+		scheduler.initialize();
+		return scheduler;
 	}
 
-	/**
-	 */
 	@Bean
 	public PeerSubscriptionTaskScheduler peerSubscriptionTaskScheduler() {
 		return new PeerSubscriptionTaskScheduler();
 	}
 
-	/**
-	 */
 	@Bean
 	@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public PeerSubscriptionTask peerSubscriptionTask() {

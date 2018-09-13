@@ -74,6 +74,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 public class PeerGateway {
 
 	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(PeerGateway.class);
+	@Autowired
 	private TaskExecutor taskExecutor;
 	@Autowired
 	private Environment env;
@@ -109,19 +110,13 @@ public class PeerGateway {
 			}
 		}
 
-		this.taskExecutor = new ThreadPoolTaskExecutor();
-		((ThreadPoolTaskExecutor) this.taskExecutor).setCorePoolSize(1);
-		((ThreadPoolTaskExecutor) this.taskExecutor).setMaxPoolSize(1);
-		((ThreadPoolTaskExecutor) this.taskExecutor).setQueueCapacity(25);
-		((ThreadPoolTaskExecutor) this.taskExecutor).initialize();
-
 		// Done
-		log.trace(EELFLoggerDelegate.debugLogger, "PeerGateway available");
+		log.debug(EELFLoggerDelegate.debugLogger, "PeerGateway available");
 	}
 
 	@PreDestroy
 	public void cleanupGateway() {
-		log.trace(EELFLoggerDelegate.debugLogger, "PeerGateway destroyed");
+		log.debug(EELFLoggerDelegate.debugLogger, "PeerGateway destroyed");
 	}
 
 	protected String getUserId(MLPPeerSubscription theSubscription/*
@@ -161,25 +156,10 @@ public class PeerGateway {
 			ServiceContext ctx = catalog.selfService();
 
 			for (MLPSolution peerSolution : this.solutions) {
-				// Check if the Model already exists in the Local Acumos
-				MLPSolution localSolution = null;
 				log.info(EELFLoggerDelegate.debugLogger, "Processing peer solution {}", peerSolution);
 
 				try {
-					localSolution = catalog.putSolution(
-																Solution.buildFrom(peerSolution)
-																	.withUser(getUserId(this.sub))
-																	.withSource(this.peer.getPeerId())
-																	.build(), ctx);
-				}
-				catch (ServiceException sx) {
-					log.error(EELFLoggerDelegate.errorLogger,
-							"Failed to put solution {} into local catalog", peerSolution, sx);
-					continue;
-				}
-
-				try {
-					mapSolution(localSolution, ctx);
+					mapSolution(peerSolution, ctx);
 				}
 				catch (Throwable t) {
 					log.error(EELFLoggerDelegate.errorLogger,
@@ -272,17 +252,18 @@ public class PeerGateway {
 
 			FederationClient fedClient = clients.getFederationClient(this.peer.getApiUrl());
 
-			// get revisions
-			List<MLPSolutionRevision> peerRevisions = null;
-			try {
-				peerRevisions = (List<MLPSolutionRevision>) fedClient.getSolutionRevisions(theSolution.getSolutionId())
-						.getContent();
-			}
-			catch (Exception x) {
-				log.warn(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos revisions for solution "
-						+ theSolution.getSolutionId() + " from peer " + this.peer, x);
-				throw x;
-			}
+			Solution localSolution,
+							 peerSolution;
+
+			//retrieve the full representation from the peer
+			peerSolution = (Solution)fedClient.getSolution(theSolution.getSolutionId()).getContent();
+			localSolution = catalog.putSolution(
+																	Solution.buildFrom(peerSolution)
+																		.withUser(getUserId(this.sub))
+																		.withSource(this.peer.getPeerId())
+																		.build(), theContext);
+
+			List<MLPSolutionRevision> peerRevisions = (List)peerSolution.getRevisions();
 
 			// this should not happen as any solution should have at least one
 			// revision (but that's an assumption on how on-boarding works)
@@ -294,7 +275,7 @@ public class PeerGateway {
 			// check if we have locally the latest revision available on the peer
 			List<MLPSolutionRevision> catalogRevisions = Collections.EMPTY_LIST;
 			try {
-				catalogRevisions = catalog.getSolutionRevisions(theSolution.getSolutionId(), theContext);
+				catalogRevisions = catalog.getSolutionRevisions(localSolution.getSolutionId(), theContext);
 			}
 			catch (ServiceException sx) {
 				log.error(EELFLoggerDelegate.errorLogger,
@@ -321,7 +302,7 @@ public class PeerGateway {
 				//revision related information (artifacts/documents/description/..) is now embedded in the revision details
 				//federation api call so one call is all is needed	
 				try {
-					peerRevision = fedClient.getSolutionRevision(theSolution.getSolutionId(), peerRevision.getRevisionId())
+					peerRevision = fedClient.getSolutionRevision(peerSolution.getSolutionId(), peerRevision.getRevisionId())
 																		.getContent();
 				}
 				catch (Exception x) {
@@ -363,7 +344,7 @@ public class PeerGateway {
 					boolean doUpdate = false;
 
 					if (localArtifact == null) {
-						localArtifact = createMLPArtifact(theSolution.getSolutionId(), localRevision.getRevisionId(),
+						localArtifact = createMLPArtifact(localSolution.getSolutionId(), localRevision.getRevisionId(),
 								peerArtifact, theContext);
 					}
 					else {
@@ -384,7 +365,7 @@ public class PeerGateway {
 						Resource artifactContent = null;
 						try {
 							artifactContent = fedClient.getArtifactContent(
-								theSolution.getSolutionId(), localRevision.getRevisionId(), peerArtifact.getArtifactId());
+								peerSolution.getSolutionId(), peerRevision.getRevisionId(), peerArtifact.getArtifactId());
 							log.info(EELFLoggerDelegate.debugLogger, "Received {} bytes of artifact content", artifactContent.contentLength()); 
 						}
 						catch (Exception x) {
@@ -394,7 +375,7 @@ public class PeerGateway {
 						if (artifactContent != null) {
 							try {
 								content.putArtifactContent(
-									theSolution.getSolutionId(), localRevision.getRevisionId(), localArtifact, artifactContent);
+									localSolution.getSolutionId(), localRevision.getRevisionId(), localArtifact, artifactContent);
 								doUpdate = true;
 							}
 							catch (ServiceException sx) {
@@ -432,12 +413,13 @@ public class PeerGateway {
 					boolean doUpdate = false;
 
 					if (localDocument == null) {
-						localDocument = createMLPDocument(theSolution.getSolutionId(), localRevision.getRevisionId(),
+						localDocument = createMLPDocument(localSolution.getSolutionId(), localRevision.getRevisionId(),
 								peerDocument, theContext);
 					}
 					else {
-						//what if the local document has been modified past the last fetch ??
-						if (!peerDocument.getVersion().equals(localDocument.getVersion())) {
+						//version strings are not standard so comparing them is not necessarly safe
+						if (peerDocument.getVersion() != null && localDocument.getVersion() != null &&
+								!peerDocument.getVersion().equals(localDocument.getVersion())) {
 							// update local doc
 							localDocument = copyMLPDocument(peerDocument, localDocument);
 							doUpdate = true;
@@ -454,7 +436,7 @@ public class PeerGateway {
 						Resource documentContent = null;
 						try {
 							documentContent = fedClient.getDocumentContent(
-								theSolution.getSolutionId(), localRevision.getRevisionId(), peerDocument.getDocumentId());
+								peerSolution.getSolutionId(), localRevision.getRevisionId(), peerDocument.getDocumentId());
 							log.info(EELFLoggerDelegate.debugLogger, "Received {} bytes of document content", documentContent.contentLength()); 
 						}
 						catch (Exception x) {
@@ -464,7 +446,7 @@ public class PeerGateway {
 						if (documentContent != null) {
 							try {
 								content.putDocumentContent(
-									theSolution.getSolutionId(), localRevision.getRevisionId(), localDocument, documentContent);
+									localSolution.getSolutionId(), localRevision.getRevisionId(), localDocument, documentContent);
 								doUpdate = true;
 							}
 							catch (ServiceException sx) {

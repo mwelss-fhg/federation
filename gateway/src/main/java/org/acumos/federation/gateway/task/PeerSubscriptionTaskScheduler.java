@@ -24,6 +24,8 @@ import java.lang.invoke.MethodHandles;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.concurrent.ScheduledFuture;
 
 import javax.annotation.PostConstruct;
@@ -121,13 +123,21 @@ public class PeerSubscriptionTaskScheduler {
 	private void terminatePeerSubsTask(String thePeerId) {
 
 		Map<Long, PeerTaskHandler> subsTask = this.peersSubsTask.row(thePeerId);
+		Set<Long> subsToTerminate = null;
+
 		if (subsTask != null) {
+			subsToTerminate = new HashSet<Long>();
+
 			for (Map.Entry<Long, PeerTaskHandler> subTaskEntry : subsTask.entrySet()) {
 				subTaskEntry.getValue().stopTask();
-				this.peersSubsTask.remove(thePeerId, subTaskEntry.getKey());
+				subsToTerminate.add(subTaskEntry.getKey());
 				log.debug(EELFLoggerDelegate.debugLogger,	"Terminated task for peer {} subscription {}",
 									thePeerId, subTaskEntry.getKey());
 			}
+		}
+
+		for (Long subId: subsToTerminate) {	
+			this.peersSubsTask.remove(thePeerId, subId);
 		}
 	}
 
@@ -142,6 +152,21 @@ public class PeerSubscriptionTaskScheduler {
 			return;
 		}
 
+		//terminate peer tasks for deleted peers
+		Set<String> activePeerIds = this.peersSubsTask.rowKeySet();
+		Set<String> peersToTerminate = new HashSet<String>();
+		for (String activePeerId: activePeerIds) {
+			MLPPeer activePeer = peers.stream().filter(peer -> peer.getPeerId().equals(activePeerId)).findFirst().orElse(null);
+			if (activePeer == null) {
+				peersToTerminate.add(activePeerId);
+			}
+		}
+
+		for (String peerId: peersToTerminate) {
+			terminatePeerSubsTask(peerId);
+		}
+
+		//for each existing peer
 		for (MLPPeer peer : peers) {
 			log.info(EELFLoggerDelegate.debugLogger, "check peer {}", peer);
 
@@ -149,11 +174,11 @@ public class PeerSubscriptionTaskScheduler {
 				continue;
 
 			log.debug(EELFLoggerDelegate.debugLogger,	"processing peer {}", peer.getPeerId());
-			// cancel peer tasks for non-active peers
+			// terminate peer tasks for non-active peers
 			if (PeerStatus.Active != PeerStatus.forCode(peer.getStatusCode())) {
 				// cancel all peer sub tasks for this peer
 				log.debug(EELFLoggerDelegate.debugLogger,
-						"peer {} no longer active, stopping active tasks", peer);
+						"peer {} no longer active, terminating active tasks", peer);
 				terminatePeerSubsTask(peer.getPeerId());
 				continue;
 			}
@@ -163,17 +188,22 @@ public class PeerSubscriptionTaskScheduler {
 			//currently active peer subs
 			Map<Long, PeerTaskHandler> peerSubsTask = this.peersSubsTask.row(peer.getPeerId());
 
-			//stop all active peer sub tasks that have no provisioned equivalent
+			//terminate all active peer sub tasks that have no provisioned equivalent
 			if (peerSubsTask != null) {
+				Set<Long> subsToTerminate = new HashSet<Long>();
 				for (Map.Entry<Long, PeerTaskHandler> peerSubTaskEntry : peerSubsTask.entrySet()) {
 					//fugly
 					if (!peerSubs.stream()
 								.filter(peerSub -> peerSub.getSubId().equals(peerSubTaskEntry.getKey())).findAny().isPresent()) {
 						peerSubTaskEntry.getValue().stopTask();
-						this.peersSubsTask.remove(peer.getPeerId(), peerSubTaskEntry.getKey());
+						subsToTerminate.add(peerSubTaskEntry.getKey());
 						log.debug(EELFLoggerDelegate.debugLogger,	"Terminated task for peer {} subscription {}",
 											peer.getPeerId(), peerSubTaskEntry.getKey());
 					}
+				}
+
+				for (Long subId: subsToTerminate) {
+					this.peersSubsTask.remove(peer.getPeerId(), subId);
 				}
 			}
 
@@ -189,8 +219,9 @@ public class PeerSubscriptionTaskScheduler {
 							  (peerSub.getModified() != null && taskSub.getModified() != null &&
 								 peerSub.getModified().equals(taskSub.getModified())))) {
 						log.debug(EELFLoggerDelegate.debugLogger,
-								"peer {} subscription {} was updated, stopping current task", peer.getPeerId(), peerSub.getSubId());
+								"peer {} subscription {} was updated, terminating current task", peer.getPeerId(), peerSub.getSubId());
 						peerSubTask.stopTask();
+						//this remove can be inlines as we are iterating over peersSubsTasks at this time
 						this.peersSubsTask.remove(peer.getPeerId(), peerSub.getSubId());
 					}
 				}
