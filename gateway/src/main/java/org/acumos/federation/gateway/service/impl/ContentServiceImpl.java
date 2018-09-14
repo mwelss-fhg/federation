@@ -136,7 +136,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		else {
 			String[] nameParts = splitName(theArtifact.getName());
 			UploadArtifactInfo info = putNexusContent(
-				nexusConfig.getGroupId(), nameParts[0], theArtifact.getVersion(), nameParts[1], theResource);
+				nexusPrefix(theSolutionId, theRevisionId), nameParts[0], theArtifact.getVersion(), nameParts[1], theResource);
 			// update artifact with local repo reference
 			theArtifact.setUri(info.getArtifactMvnPath());
 		}
@@ -159,7 +159,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 																																										throws ServiceException {
 		String[] nameParts = splitName(theDocument.getName());
 		UploadArtifactInfo info = putNexusContent(
-				String.join(nexusConfig.getNameSeparator(), nexusConfig.getGroupId(), theSolutionId, theRevisionId), nameParts[0], AccessTypeCode.PB.name(), nameParts[1], theResource);
+			nexusPrefix(theSolutionId, theRevisionId), nameParts[0], AccessTypeCode.PB.name(), nameParts[1], theResource);
 		theDocument.setUri(info.getArtifactMvnPath());
 	}
 
@@ -194,6 +194,10 @@ public class ContentServiceImpl extends AbstractServiceImpl
 			log.error(EELFLoggerDelegate.errorLogger,	"Failed to push content to Nexus repo", x);
 			throw new ServiceException("Failed to push content to Nexus repo", x);
 		}
+	}
+
+	private String nexusPrefix(String theSolutionId, String theRevisionId) {
+		return String.join(nexusConfig.getNameSeparator(), nexusConfig.getGroupId(), theSolutionId, theRevisionId);
 	}
 
 	/**

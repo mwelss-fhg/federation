@@ -362,7 +362,7 @@ public class FederationClient extends AbstractClient {
 		ResponseEntity<Resource> response = null;
 		RequestEntity<Void> request = RequestEntity
 																	.get(theUri)
-																	.accept(MediaType.APPLICATION_OCTET_STREAM)
+																	.accept(MediaType.ALL)
 																	.build();
 		try {
 			response = restTemplate.exchange(request, Resource.class);

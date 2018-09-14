@@ -25,12 +25,15 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Date;
 import java.util.Map;
+import java.util.Collections;
 
 import org.acumos.cds.transport.RestPageRequest;
 import org.apache.http.client.HttpClient;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -56,6 +59,7 @@ public abstract class AbstractClient {
 	 */
 	public AbstractClient(String theTarget, HttpClient theClient) {
 		setTarget(theTarget);
+		
 		this.restTemplate = new RestTemplateBuilder()
 													.requestFactory(new HttpComponentsClientHttpRequestFactory(theClient))
 													.rootUri(this.baseUrl)
@@ -68,9 +72,12 @@ public abstract class AbstractClient {
 		MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
     messageConverter.setObjectMapper(theMapper); //try to avoid building one every time
 
+		ResourceHttpMessageConverter contentConverter = new ResourceHttpMessageConverter();
+		contentConverter.setSupportedMediaTypes(Collections.singletonList(MediaType.APPLICATION_OCTET_STREAM));
+
 		this.restTemplate = new RestTemplateBuilder()
 													.requestFactory(new HttpComponentsClientHttpRequestFactory(theClient))
-													.messageConverters(messageConverter)
+													.messageConverters(messageConverter, contentConverter)
 													.rootUri(this.baseUrl)
 													.build();
 	
