@@ -20,6 +20,8 @@
 
 package org.acumos.federation.gateway.config;
 
+import java.util.ArrayList;
+
 import org.acumos.federation.gateway.Application;
 import org.acumos.federation.gateway.controller.AbstractController;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +31,7 @@ import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
+import springfox.documentation.service.VendorExtension;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -48,6 +51,7 @@ public class SwaggerConfiguration {
 				.apiInfo(apiInfo());
 	}
 
+	@SuppressWarnings("rawtypes")
 	private ApiInfo apiInfo() {
 		final String version = Application.class.getPackage().getImplementationVersion();
 		ApiInfo apiInfo = new ApiInfo("Acumos Federated Gateway REST API", // title
@@ -56,7 +60,8 @@ public class SwaggerConfiguration {
 				"Terms of service", // TOS
 				new Contact("Federated Acumos - E5 Team", "http://acumos.org", "acumosdev@acumos.org"), // Contact
 				"License of API", // License
-				"API license URL"); // License URL
+				"API license URL",
+				new ArrayList<VendorExtension>()); // vendor extensions
 		return apiInfo;
 	}
 }

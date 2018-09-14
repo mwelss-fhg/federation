@@ -24,18 +24,16 @@ import java.lang.invoke.MethodHandles;
 
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.federation.gateway.cds.Mapper;
-import org.acumos.federation.gateway.config.NexusConfiguration;
+import org.acumos.federation.gateway.config.CDMSClientConfiguration;
 import org.acumos.federation.gateway.config.DockerConfiguration;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.config.FederationInterfaceConfiguration;
 import org.acumos.federation.gateway.config.LocalInterfaceConfiguration;
-import org.acumos.federation.gateway.config.CDMSClientConfiguration;
-
+import org.acumos.federation.gateway.config.NexusConfiguration;
+import org.acumos.nexus.client.NexusArtifactClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import org.acumos.nexus.client.NexusArtifactClient;
 
 import com.github.dockerjava.api.DockerClient;
 

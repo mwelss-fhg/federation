@@ -21,23 +21,17 @@
 package org.acumos.federation.gateway.service;
 
 import java.lang.invoke.MethodHandles;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.Collections;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.boot.json.JsonParser;
-import org.springframework.boot.json.JsonParserFactory;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.acumos.cds.AccessTypeCode;
-import org.acumos.cds.ValidationStatusCode;
-
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.json.JsonParserFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * Allows for the configuration of the base selector which determine the solutions exposed through federation.

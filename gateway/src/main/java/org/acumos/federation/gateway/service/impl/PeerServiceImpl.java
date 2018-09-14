@@ -31,13 +31,13 @@ import org.acumos.cds.transport.RestPageResponse;
 import org.acumos.federation.gateway.cds.PeerStatus;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.config.FederationInterfaceConfiguration;
+import org.acumos.federation.gateway.security.Tools;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
-import org.acumos.federation.gateway.security.Tools;
 import org.acumos.federation.gateway.util.MapBuilder;
-import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  *  CDS based implementation of the hpeer service interface.

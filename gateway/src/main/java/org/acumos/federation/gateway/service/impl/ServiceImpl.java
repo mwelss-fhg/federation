@@ -21,14 +21,12 @@
 package org.acumos.federation.gateway.service.impl;
 
 import java.lang.invoke.MethodHandles;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPTag;
-
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 /**

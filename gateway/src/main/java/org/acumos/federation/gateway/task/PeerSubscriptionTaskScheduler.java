@@ -22,13 +22,12 @@ package org.acumos.federation.gateway.task;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.concurrent.ScheduledFuture;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.acumos.cds.domain.MLPPeer;
@@ -41,9 +40,9 @@ import org.acumos.federation.gateway.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.HashBasedTable;

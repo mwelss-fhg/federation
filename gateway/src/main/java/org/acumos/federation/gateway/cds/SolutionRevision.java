@@ -19,8 +19,8 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPDocument;

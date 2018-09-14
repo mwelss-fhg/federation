@@ -23,8 +23,8 @@
  */
 package org.acumos.federation.gateway.service;
 
-import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPDocument;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 

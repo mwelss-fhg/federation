@@ -22,13 +22,13 @@ package org.acumos.federation.gateway.config;
 
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.security.AuthenticationConfiguration;
-import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.CatalogService;
+import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.LocalWatchService;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
-import org.acumos.federation.gateway.service.impl.ContentServiceLocalImpl;
 import org.acumos.federation.gateway.service.impl.CatalogServiceLocalImpl;
+import org.acumos.federation.gateway.service.impl.ContentServiceLocalImpl;
 import org.acumos.federation.gateway.service.impl.PeerServiceLocalImpl;
 import org.acumos.federation.gateway.task.TaskConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

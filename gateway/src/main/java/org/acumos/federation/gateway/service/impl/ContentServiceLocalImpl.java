@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 
-import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPDocument;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.ServiceContext;

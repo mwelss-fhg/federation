@@ -21,8 +21,8 @@ package org.acumos.federation.gateway.cds;
 
 import java.io.IOException;
 
-import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 

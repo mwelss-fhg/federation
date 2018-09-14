@@ -23,14 +23,14 @@ Federated Gateway Release Notes
 The Federated Gateway server is available as a Docker image in a Docker registry.
 
 Version 1.18.2, 2018-09-13
--------------------------
+--------------------------
 
 * Rely on solution detail API for mapping (ACUMS-1690)
 * Allow configuration of underlying executor and scheduler
 * Do not overwrite user during mapping for local solutions
 
 Version 1.18.1, 2018-09-05
--------------------------
+--------------------------
 
 * Simplified catalog solutions lookup
 * Fix 'self' peer not found (ACUMS-1694)
@@ -39,18 +39,18 @@ Version 1.18.1, 2018-09-05
 * Move solution and revision updates to service interface
 
 Version 1.18.0, 2018-09-05
--------------------------
+--------------------------
 
 * Align with data model changes from CDS 1.18.x
 * Fix subscription update processing (ACUMS-1693)
 
 Version 1.17.1, 2018-09-04
--------------------------
+--------------------------
 
 * Spread the use of configuration beans (ACUMS-1692)
 
 Version 1.17.0, 2018-08-14
--------------------------
+--------------------------
 
 * Align with data model changes from CDS 1.17.x
 * Add revision document federation (ACUMS-1606)
@@ -61,18 +61,18 @@ Version 1.17.0, 2018-08-14
   and /solutions/{solutionId}/revisions/{revisionId}/documents/{documentId}/content
 
 Version 1.16.1, 2018-08-08
--------------------------
+--------------------------
 
 * Temporary patch for tag handling during federation procedures
 
 Version 1.16.0, 2018-08-01
--------------------------
+--------------------------
 
 * Aligns with the data model changes from CDS 1.16.x
 * Minor fixes in order to adhere to project coding standards.
 
 Version 1.15.1, 2018-07-31
--------------------------
+--------------------------
 
 * Fixes catalog solution lookup strategy due to used criteria moving to other entities (solution -> revision)
 * Fixes some Sonar complaints
