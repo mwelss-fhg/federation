@@ -31,7 +31,7 @@ limitations under the License.
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.14.RELEASE</version>
+		<version>1.5.15.RELEASE</version>
 		<!-- silence warning about parent relative path -->
 		<relativePath />
 	</parent>
@@ -45,13 +45,8 @@ limitations under the License.
 		<build.number>0</build.number>
 		<skipTests>false</skipTests>
 		<!-- dependencies versions -->
-		<slf4j.version>1.7.25</slf4j.version>
 		<logback.version>1.2.3</logback.version>
-		<spring.boot.devtools.version>1.5.8.RELEASE</spring.boot.devtools.version>
-		<spring.boot.starter.web.version>1.5.8.RELEASE</spring.boot.starter.web.version>
-		<spring.boot.starter.security.version>1.5.8.RELEASE</spring.boot.starter.security.version>
-		<spring.boot.starter.test.version>1.5.8.RELEASE</spring.boot.starter.test.version>
-		<spring.boot.configuration.processor.version>1.5.8.RELEASE</spring.boot.configuration.processor.version>
+                <springfox.version>2.7.0</springfox.version>
 		<!-- Not supplied to all jobs; e.g., Javadoc -->
 		<docker.pull.registry>nexus3.acumos.org:10001</docker.pull.registry>
 		<!-- Supplied by Jenkins -->
@@ -74,7 +69,7 @@ limitations under the License.
 		<dependency>
 			<groupId>org.acumos.common-dataservice</groupId>
 			<artifactId>cmn-data-svc-client</artifactId>
-			<version>1.18.0</version>
+			<version>1.18.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.json</groupId>
@@ -130,12 +125,12 @@ limitations under the License.
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger2</artifactId>
-			<version>2.6.1</version>
+			<version>${springfox.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
-			<version>2.6.1</version>
+			<version>${springfox.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.att.eelf</groupId>

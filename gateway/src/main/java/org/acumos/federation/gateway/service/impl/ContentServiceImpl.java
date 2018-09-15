@@ -28,21 +28,21 @@ import java.io.ByteArrayOutputStream;
 import java.lang.invoke.MethodHandles;
 
 import org.acumos.cds.AccessTypeCode;
-import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPDocument;
 import org.acumos.federation.gateway.cds.ArtifactType;
+import org.acumos.federation.gateway.config.DockerConfiguration;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.config.NexusConfiguration;
-import org.acumos.federation.gateway.config.DockerConfiguration;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.acumos.nexus.client.NexusArtifactClient;
 import org.acumos.nexus.client.data.UploadArtifactInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Identifier;

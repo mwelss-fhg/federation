@@ -21,9 +21,8 @@
 package org.acumos.federation.gateway.security;
 
 import java.lang.invoke.MethodHandles;
-
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;

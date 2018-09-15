@@ -22,18 +22,15 @@ package org.acumos.federation.gateway.config;
 
 import java.lang.invoke.MethodHandles;
 
-import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.cds.client.CommonDataServiceRestClientImpl;
-
+import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.federation.gateway.cds.Mapper;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.stereotype.Component;
 
 /**
  * Gathers all CDS connectivity related parameters. Allows one to construct a cds client based on the

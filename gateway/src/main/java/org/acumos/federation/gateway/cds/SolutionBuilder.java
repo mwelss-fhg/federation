@@ -19,11 +19,11 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import java.util.Set;
 import java.util.Date;
+import java.util.Set;
 
-import org.acumos.cds.domain.MLPTag;
 import org.acumos.cds.domain.MLPSolutionWeb;
+import org.acumos.cds.domain.MLPTag;
 
 /**
  * Supplements the CDS representation of a solution with related information: revisions.
