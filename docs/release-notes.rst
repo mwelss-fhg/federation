@@ -22,10 +22,25 @@ Federated Gateway Release Notes
 
 The Federated Gateway server is available as a Docker image in a Docker registry.
 
+Version 1.18.3, 2018-09-14
+--------------------------
+
+* Increase max heap size
+* configuration changes:
+  new top level docker configuration block
+		"docker": {
+			"host": "tcp://your_host:port",
+			"registryUrl": "your_registry:port",
+			"registryUsername": "docker_username",
+			"registryPassword": "docker_password",
+			"registryEmail": ""
+		}
+
 Version 1.18.2, 2018-09-13
 --------------------------
 
 * Rely on solution detail API for mapping (ACUMS-1690)
+* Add binary stream to resource http content mapper (ACUMS-1690)
 * Allow configuration of underlying executor and scheduler
 * Do not overwrite user during mapping for local solutions
 

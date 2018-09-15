@@ -24,7 +24,7 @@ limitations under the License.
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.acumos.federation</groupId>
 	<artifactId>gateway</artifactId>
-	<version>1.18.2-SNAPSHOT</version>
+	<version>1.18.3-SNAPSHOT</version>
 	<name>Federation Gateway</name>
 	<description>Federated Acumos Interface for inter-acumos and ONAP communication</description>
 
@@ -309,7 +309,7 @@ limitations under the License.
 								<!-- This is the same CMD used in a Dockerfile -->
 								<cmd>
 									<!-- CDATA prevents Eclipse formatter from breaking line -->
-									<shell><![CDATA[cd /maven; java -Xms128m -Xmx512m -Djava.security.egd=file:/dev/./urandom -jar ${project.artifactId}-${project.version}.${project.packaging}]]></shell>
+									<shell><![CDATA[cd /maven; java -Xms256m -Xmx4gb -Djava.security.egd=file:/dev/./urandom -jar ${project.artifactId}-${project.version}.${project.packaging}]]></shell>
 								</cmd>
 							</build>
 						</image>
@@ -348,7 +348,7 @@ limitations under the License.
 								</assembly>
 								<cmd>
 									<!-- CDATA prevents Eclipse formatter from breaking line -->
-									<shell><![CDATA[cd /maven; java -Xms128m -Xmx512m -cp ${project.artifactId}-${project.version}.${project.packaging}.original:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher]]></shell>
+									<shell><![CDATA[cd /maven; java -Xms256m -Xmx4gb -cp ${project.artifactId}-${project.version}.${project.packaging}.original:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher]]></shell>
 								</cmd>
 							</build>
 						</image>
