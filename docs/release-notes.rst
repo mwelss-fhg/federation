@@ -22,25 +22,31 @@ Federated Gateway Release Notes
 
 The Federated Gateway server is available as a Docker image in a Docker registry.
 
+Version 1.18.4, 2018-09-19
+--------------------------
+
+* Upgrade Spring-Boot to 1.5.16.RELEASE (`ACUMOS-1754 <https://jira.acumos.org/browse/ACUMOS-1754>`_)
+
 Version 1.18.3, 2018-09-14
 --------------------------
 
 * Increase max heap size
 * configuration changes:
-  new top level docker configuration block
-		"docker": {
-			"host": "tcp://your_host:port",
-			"registryUrl": "your_registry:port",
-			"registryUsername": "docker_username",
-			"registryPassword": "docker_password",
-			"registryEmail": ""
-		}
+  new top level docker configuration block::
+
+    "docker": {
+        "host": "tcp://your_host:port",
+        "registryUrl": "your_registry:port",
+        "registryUsername": "docker_username",
+        "registryPassword": "docker_password",
+        "registryEmail": ""
+    }
 
 Version 1.18.2, 2018-09-13
 --------------------------
 
-* Rely on solution detail API for mapping (ACUMS-1690)
-* Add binary stream to resource http content mapper (ACUMS-1690)
+* Rely on solution detail API for mapping (`ACUMOS-1690 <https://jira.acumos.org/browse/ACUMOS-1690>`_)
+* Add binary stream to resource http content mapper (`ACUMOS-1690 <https://jira.acumos.org/browse/ACUMOS-1690>`_)
 * Allow configuration of underlying executor and scheduler
 * Do not overwrite user during mapping for local solutions
 
@@ -48,8 +54,8 @@ Version 1.18.1, 2018-09-05
 --------------------------
 
 * Simplified catalog solutions lookup
-* Fix 'self' peer not found (ACUMS-1694)
-* Fix task scheduler initialization (ACUMS-1690)
+* Fix 'self' peer not found (`ACUMOS-1694 <https://jira.acumos.org/browse/ACUMOS-1694>`_)
+* Fix task scheduler initialization (`ACUMOS-1690 <https://jira.acumos.org/browse/ACUMOS-1690>`_)
 * Fix solution tag handling
 * Move solution and revision updates to service interface
 
@@ -57,20 +63,20 @@ Version 1.18.0, 2018-09-05
 --------------------------
 
 * Align with data model changes from CDS 1.18.x
-* Fix subscription update processing (ACUMS-1693)
+* Fix subscription update processing (`ACUMOS-1693 <https://jira.acumos.org/browse/ACUMOS-1693>`_)
 
 Version 1.17.1, 2018-09-04
 --------------------------
 
-* Spread the use of configuration beans (ACUMS-1692)
+* Spread the use of configuration beans (`ACUMOS-1692 <https://jira.acumos.org/browse/ACUMOS-1692>`_)
 
 Version 1.17.0, 2018-08-14
 --------------------------
 
 * Align with data model changes from CDS 1.17.x
-* Add revision document federation (ACUMS-1606)
-* Add tag federation (ACUMOS-1544)
-* Fix authorship federation (ACUMOS-626)
+* Add revision document federation (`ACUMOS-1606 <https://jira.acumos.org/browse/ACUMOS-1606>`_)
+* Add tag federation (`ACUMOS-1544 <https://jira.acumos.org/browse/ACUMOS-1544>`_)
+* Fix authorship federation (`ACUMOS-626 <https://jira.acumos.org/browse/ACUMOS-626>`_)
 * The federation API for access to artifact and document content access have changed 
   to /solutions/{solutionId}/revisions/{revisionId}/artifacts/{artifactId}/content 
   and /solutions/{solutionId}/revisions/{revisionId}/documents/{documentId}/content
@@ -97,12 +103,12 @@ Version 1.15.1, 2018-07-31
 Version 1.1.5, 2018-07-12
 -------------------------
 
-* Aligns with the data model changes from CDS 1.15 (ACUMOS-1330)
+* Aligns with the data model changes from CDS 1.15 (`ACUMOS-1330 <https://jira.acumos.org/browse/ACUMOS-1330>`_)
 
 Version 1.1.4.1, 2018-07-11
 ---------------------------
 
-* Fix handling of docker images with no tags (ACUMOS-1015)
+* Fix handling of docker images with no tags (`ACUMOS-1015 <https://jira.acumos.org/browse/ACUMOS-1015>`_)
 
 Version 1.1.4, 2018-06-20
 -------------------------
@@ -118,13 +124,13 @@ Version 1.1.3, 2018-05-10
 Version 1.1.2, 2018-04-19
 -------------------------
 
-* Revise code for Sonar warnings (ACUMOS-672)
+* Revise code for Sonar warnings (`ACUMOS-672 <https://jira.acumos.org/browse/ACUMOS-672>`_)
 
 Version 1.1.1, 2018-04-13
 -------------------------
 
 * Unit tests for local interface
-* Separate federation and local service interfaces (ACUMOS-276)
+* Separate federation and local service interfaces (`ACUMOS-276 <https://jira.acumos.org/browse/ACUMOS-276>`_)
 
 Version 1.1.0, 2018-03-09
 -------------------------
