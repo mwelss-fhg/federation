@@ -50,7 +50,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 	 * @throws ServiceException if failing to retrieve artifact information or retrieve content 
 	 */
 	@Override
-	public InputStreamResource getArtifactContent(
+	public Resource getArtifactContent(
 		String theSolutionId, String theRevisionId, MLPArtifact theArtifact, ServiceContext theContext)
 																																															throws ServiceException {
 		if (theArtifact.getUri() == null) {
@@ -87,7 +87,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 	}	
 
 	@Override
-	public InputStreamResource getDocumentContent(
+	public Resource getDocumentContent(
 		String theSolutionId, String theRevisionId, MLPDocument theDocument, ServiceContext theContext)
 																																										throws ServiceException {
 		if (theDocument.getUri() == null) {

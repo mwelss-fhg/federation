@@ -20,11 +20,17 @@
 
 package org.acumos.federation.gateway.common;
 
+import java.io.Closeable;
+import java.io.InputStream;
+import java.io.IOException;
+
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
 
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPDocument;
@@ -36,14 +42,19 @@ import org.acumos.federation.gateway.util.Utils;
 import org.apache.http.client.HttpClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.util.Base64Utils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.Base64Utils;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -53,6 +64,8 @@ public class FederationClient extends AbstractClient {
 
 	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
+	private HttpClient client;
+
 	/**
 	 * @param theTarget
 	 *            Target
@@ -61,10 +74,12 @@ public class FederationClient extends AbstractClient {
 	 */
 	public FederationClient(String theTarget, HttpClient theClient) {
 		super(theTarget, theClient);
+		this.client = theClient;
 	}
 
 	public FederationClient(String theTarget, HttpClient theClient, ObjectMapper theMapper) {
 		super(theTarget, theClient, theMapper);
+		this.client = theClient;
 	}
 
 	/**
@@ -305,7 +320,7 @@ public class FederationClient extends AbstractClient {
 	 */
 	public Resource getArtifactContent(String theSolutionId, String theRevisionId, String theArtifactId)
 																																											throws HttpStatusCodeException {
-		return download(API.ARTIFACT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theArtifactId));
+		return download2(API.ARTIFACT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theArtifactId));
 	}
 
 	/**
@@ -354,11 +369,11 @@ public class FederationClient extends AbstractClient {
 	 */
 	public Resource getDocumentContent(String theSolutionId, String theRevisionId, String theDocumentId)
 																																										throws HttpStatusCodeException {
-		return download(API.DOCUMENT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theDocumentId));
+		return download2(API.DOCUMENT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theDocumentId));
 	}
 
 	protected Resource download(URI theUri) throws HttpStatusCodeException {
-		log.info(EELFLoggerDelegate.debugLogger, "Query for {}", theUri);
+		log.info(EELFLoggerDelegate.debugLogger, "Query for download {}", theUri);
 		ResponseEntity<Resource> response = null;
 		RequestEntity<Void> request = RequestEntity
 																	.get(theUri)
@@ -388,6 +403,61 @@ public class FederationClient extends AbstractClient {
 			return response.getBody();
 		}
 	}
+
+	/**
+	 * Important: the Resource returned by this method MUST BE CLOSED by whoever uses it.
+	 */
+	protected StreamingResource download2(URI theUri) throws HttpStatusCodeException {
+		log.info(EELFLoggerDelegate.debugLogger, "Query for download {}", theUri);
+		ClientHttpResponse response = null;
+		try {
+			ClientHttpRequest request =	new HttpComponentsClientHttpRequestFactory(this.client)
+																		.createRequest(theUri, HttpMethod.GET);
+			request.getHeaders().setAccept(Collections.singletonList(MediaType.ALL));
+			response = request.execute();
+			HttpStatus status = HttpStatus.valueOf(response.getRawStatusCode());
+			if (!status.is2xxSuccessful())
+				throw new HttpClientErrorException(status, response.getStatusText());
+		
+			log.info(EELFLoggerDelegate.debugLogger, "Query for download got response {}", response);
+	
+			return new StreamingResource(response);
+		}
+		catch (IOException ex) {
+			throw new ResourceAccessException("I/O error for " + theUri + ": " + ex.getMessage(), ex);
+		}
+	}
+
+	public static class StreamingResource extends InputStreamResource
+																				implements Closeable {
+
+		private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+		private ClientHttpResponse response;
+
+		StreamingResource(ClientHttpResponse theResponse) throws IOException {
+			super(theResponse.getBody());
+			this.response = theResponse;
+		}
+
+		@Override
+		public InputStream getInputStream() throws IOException, IllegalStateException {
+			log.info(EELFLoggerDelegate.debugLogger, "Download input stream access at {}",ExceptionUtils.getStackTrace(new RuntimeException("Input stream access")) );
+			return super.getInputStream();
+		}
+
+		@Override
+		public long contentLength() throws java.io.IOException {
+			return this.response.getHeaders().getContentLength();
+		}
+
+		@Override
+		public void close()  throws IOException {
+			log.info(EELFLoggerDelegate.debugLogger, "Streaming resource closed");
+			this.response.close();
+		}
+	}
+
+
 
 	/**
 	 * @return Register self with the peer this client points to.

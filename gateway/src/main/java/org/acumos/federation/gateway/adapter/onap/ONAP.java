@@ -562,7 +562,7 @@ public class ONAP {
 			String theAcumosSolutionId, String theAcumosRevisionId, MLPArtifact theAcumosArtifact)
 																																											throws Exception {
 			if (this.peer.isLocal()) {
-				return clients.getNexusClient().getArtifact(theAcumosArtifact.getUri()).toByteArray();
+				return clients.getNexusClient().getForObject(theAcumosArtifact.getUri(), byte[].class);
 			}
 			else { //non-local peer
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();

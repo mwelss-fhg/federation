@@ -25,11 +25,11 @@ package org.acumos.federation.gateway.service;
  */
 public class ServiceException extends Exception {
 
-	public ServiceException(String theMessage, Exception theCause) {
+	public ServiceException(String theMessage, Throwable theCause) {
 		super(theMessage, theCause);
 	}
 
-	public ServiceException(Exception theCause) {
+	public ServiceException(Throwable theCause) {
 		super("", theCause);
 	}
 

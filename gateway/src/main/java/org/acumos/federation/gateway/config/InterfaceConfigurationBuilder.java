@@ -20,6 +20,11 @@
 
 package org.acumos.federation.gateway.config;
 
+import java.net.UnknownHostException;
+
+/**
+ * Facilitate the construction of interface configurations.
+ */
 public class InterfaceConfigurationBuilder
 // <A extends HttpClientConfigurationBuilder<A,T>,
 // T extends HttpClientConfiguration>
@@ -39,8 +44,37 @@ public class InterfaceConfigurationBuilder
 		return this.config;
 	}
 
+	public static InterfaceConfigurationBuilder buildFrom(InterfaceConfiguration theConfig) {
+		try {
+			return
+				new InterfaceConfigurationBuilder()
+					.withAddress(theConfig.getAddress())
+					.withClient(theConfig.getClient())
+					.withServer(theConfig.getServer())
+					.withSSL(theConfig.getSSL());
+		}
+		catch (UnknownHostException uhx) {
+			throw new RuntimeException("Whaaat ?!", uhx);
+		}
+	}
+
 	public InterfaceConfigurationBuilder/* A */ withSSL(InterfaceConfiguration.SSL theSSL) {
 		this.config.setSSL(theSSL);
+		return builder();
+	}
+
+	public InterfaceConfigurationBuilder withClient(InterfaceConfiguration.Client theClient) {
+		this.config.setClient(theClient);
+		return builder();
+	}
+
+	public InterfaceConfigurationBuilder withServer(InterfaceConfiguration.Server theServer) {
+		this.config.setServer(theServer);
+		return builder();
+	}
+
+	public InterfaceConfigurationBuilder withAddress(String theAddress) throws UnknownHostException {
+		this.config.setAddress(theAddress);
 		return builder();
 	}
 

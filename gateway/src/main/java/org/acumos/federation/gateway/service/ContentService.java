@@ -25,7 +25,6 @@ package org.acumos.federation.gateway.service;
 
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPDocument;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 
 /**
@@ -44,7 +43,7 @@ public interface ContentService {
 	 *            the execution context
 	 * @return resource containing access to the actual artifact content
 	 */
-	public InputStreamResource getArtifactContent(
+	public Resource getArtifactContent(
 			String theSolutionId, String theRevisionId, MLPArtifact theArtifact, ServiceContext theContext)
 																																										throws ServiceException;
 
@@ -57,7 +56,7 @@ public interface ContentService {
 	 *            The CDS representation of artifact metadata
 	 * @return resource containing access to the actual artifact content
 	 */
-	public default InputStreamResource getArtifactContent(
+	public default Resource getArtifactContent(
 			String theSolutionId, String theRevisionId, MLPArtifact theArtifact)					throws ServiceException {
 		return getArtifactContent(theSolutionId, theRevisionId, theArtifact, selfService());
 	}
@@ -106,7 +105,7 @@ public interface ContentService {
 	 *            the execution context
 	 * @return resource containing access to the actual document content
 	 */
-	public InputStreamResource getDocumentContent(
+	public Resource getDocumentContent(
 		String theSolutionId, String theRevisionId, MLPDocument theDocument, ServiceContext theContext)
 																																										throws ServiceException;
 
@@ -119,7 +118,7 @@ public interface ContentService {
 	 *            The CDS representation of document metadata
 	 * @return resource containing access to the actual document content
 	 */
-	public default InputStreamResource getDocumentContent(
+	public default Resource getDocumentContent(
 		String theSolutionId, String theRevisionId, MLPDocument theDocument) throws ServiceException {
 
 		return getDocumentContent(theSolutionId, theRevisionId, theDocument, selfService());

@@ -23,8 +23,11 @@
  */
 package org.acumos.federation.gateway.service.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import java.lang.invoke.MethodHandles;
 
 import org.acumos.cds.AccessTypeCode;
@@ -37,11 +40,14 @@ import org.acumos.federation.gateway.config.NexusConfiguration;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
-import org.acumos.nexus.client.NexusArtifactClient;
-import org.acumos.nexus.client.data.UploadArtifactInfo;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 
 import com.github.dockerjava.api.DockerClient;
@@ -50,6 +56,7 @@ import com.github.dockerjava.api.model.Repository;
 import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.github.dockerjava.core.command.PushImageResultCallback;
 
+import org.apache.commons.io.input.ProxyInputStream;
 
 /**
  * Nexus based implementation of the ContentService.
@@ -67,7 +74,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
   private DockerConfiguration dockerConfig;
 
 	@Override
-	public InputStreamResource getArtifactContent(
+	public Resource getArtifactContent(
 		String theSolutionId, String theRevisionId, MLPArtifact theArtifact, ServiceContext theContext)
 																																															throws ServiceException {
 		if (theArtifact.getUri() == null) {
@@ -84,9 +91,13 @@ public class ContentServiceImpl extends AbstractServiceImpl
 					docker.pullImageCmd(theArtifact.getUri())
 								.exec(pullResult);
 					pullResult.awaitCompletion();
+					log.debug(EELFLoggerDelegate.debugLogger, "Completed docker image pull for {}", theArtifact);
 				}
 
-				return new InputStreamResource(docker.saveImageCmd(theArtifact.getUri()).exec());
+				InputStream imageSource = docker.saveImageCmd(theArtifact.getUri()).exec();
+				log.debug(EELFLoggerDelegate.debugLogger, "Completed docker image save for {}", theArtifact);
+
+				return new InputStreamResource(imageSource);
 			}
 			catch (Exception x) {
 				log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve artifact content for docker artifact " + theArtifact, x);
@@ -105,11 +116,14 @@ public class ContentServiceImpl extends AbstractServiceImpl
 
 		if (ArtifactType.DockerImage == ArtifactType.forCode(theArtifact.getArtifactTypeCode())) {
 			try {
+				TrackingInputStream imageSource = new TrackingInputStream(theResource.getInputStream());
 				//load followed by push
 				DockerClient docker = this.dockerConfig.getDockerClient();
 
-				docker.loadImageCmd(theResource.getInputStream())
+				docker.loadImageCmd(imageSource)
 							.exec(); //sync xecution
+				log.debug(EELFLoggerDelegate.debugLogger, "Completed docker image load for {}. Transfered {} bytes in {} seconds.",
+					theArtifact, imageSource.size(), imageSource.duration()/1000);
 
 				// there is an assumption here that the repo info was stripped from the artifact name by the originator
 				Identifier imageId =
@@ -120,9 +134,11 @@ public class ContentServiceImpl extends AbstractServiceImpl
 					docker.pushImageCmd(imageId)
 								.exec(pushResult);
 					pushResult.awaitCompletion();
+					log.debug(EELFLoggerDelegate.debugLogger, "Completed docker image push for {}", theArtifact);
 				}	
 				// update artifact with local repo reference. we also update the name and description in order to stay
 				// alligned with on-boarding's unwritten rules
+				theArtifact.setSize((int)imageSource.size()); //?? is this correct
 				theArtifact.setUri(imageId.toString());
 				theArtifact.setName(imageId.toString());
 				theArtifact.setDescription(imageId.toString());
@@ -135,15 +151,15 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		}
 		else {
 			String[] nameParts = splitName(theArtifact.getName());
-			UploadArtifactInfo info = putNexusContent(
+			String uri = putNexusContent(
 				nexusPrefix(theSolutionId, theRevisionId), nameParts[0], theArtifact.getVersion(), nameParts[1], theResource);
 			// update artifact with local repo reference
-			theArtifact.setUri(info.getArtifactMvnPath());
+			theArtifact.setUri(uri);
 		}
 	}
 
 	@Override
-	public InputStreamResource getDocumentContent(
+	public Resource getDocumentContent(
 		String theSolutionId, String theRevisionId, MLPDocument theDocument, ServiceContext theContext)
 																																										throws ServiceException {
 		if (theDocument.getUri() == null) {
@@ -158,37 +174,55 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		String theSolutionId, String theRevisionId, MLPDocument theDocument, Resource theResource, ServiceContext theContext)
 																																										throws ServiceException {
 		String[] nameParts = splitName(theDocument.getName());
-		UploadArtifactInfo info = putNexusContent(
+		String uri = putNexusContent(
 			nexusPrefix(theSolutionId, theRevisionId), nameParts[0], AccessTypeCode.PB.name(), nameParts[1], theResource);
-		theDocument.setUri(info.getArtifactMvnPath());
+		theDocument.setUri(uri);
 	}
 
-	protected InputStreamResource getNexusContent(String theUri) throws ServiceException {
+	protected Resource getNexusContent(String theUri) throws ServiceException {
+		URI contentUri = null;
 		try {
-			NexusArtifactClient artifactClient = this.nexusConfig.getNexusClient();
-			ByteArrayOutputStream artifactContent = artifactClient.getArtifact(theUri);
-			log.info(EELFLoggerDelegate.debugLogger, "Retrieved {} bytes of content from {}", artifactContent.size(), theUri);
-			return new InputStreamResource(
-										new ByteArrayInputStream(
-											artifactContent.toByteArray()
-									));
+			contentUri = new URI(this.nexusConfig.getUrl() + theUri); 
+			log.info(EELFLoggerDelegate.debugLogger, "Query for {}", contentUri);
+			ResponseEntity<Resource> response = null;
+			RequestEntity<Void> request = RequestEntity
+																		.get(contentUri)
+																		.accept(MediaType.ALL)
+																		.build();
+			response = this.nexusConfig.getNexusClient().exchange(request, Resource.class);
+			return response.getBody();	
 		}
-		catch (Exception x) {
-			log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve content from  " + theUri, x);
-			throw new ServiceException("Failed to retrieve content from " + theUri, x);
+		catch (HttpStatusCodeException x) {
+			log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve nexus content from  " + theUri + "(" + contentUri + ")", x);
+			throw new ServiceException("Failed to retrieve nexus content from " + contentUri, x);
 		}
+		catch (Throwable t) {
+			log.error(EELFLoggerDelegate.errorLogger, "Unexpected failure for " + contentUri + "(" + contentUri + ")", t);
+			throw new ServiceException("Unexpected failure for " + contentUri, t);
+		}
+
 	}
 
-	protected UploadArtifactInfo putNexusContent(
+	protected String putNexusContent(
 		String theGroupId, String theContentId, String theVersion, String thePackaging, Resource theResource) throws ServiceException {
 
 		try {
-			UploadArtifactInfo info = this.nexusConfig.getNexusClient()
-																	.uploadArtifact(theGroupId, theContentId, theVersion, thePackaging,
-																									theResource.contentLength(), theResource.getInputStream());
-
-			log.info(EELFLoggerDelegate.debugLogger, "Wrote artifact content to {}", info.getArtifactMvnPath());
-			return info;
+			String path = nexusPath(theGroupId, theContentId, theVersion, thePackaging);
+			URI uri = new URI(this.nexusConfig.getUrl() + path);
+			log.info(EELFLoggerDelegate.debugLogger, "Writing artifact content to nexus at {}", path);
+			RequestEntity<Resource> request = RequestEntity
+																					.put(uri)
+																					.contentType(MediaType.APPLICATION_OCTET_STREAM)
+																					//.contentLength()
+																					.body(theResource);
+			ResponseEntity<Void> response = this.nexusConfig.getNexusClient().exchange(request, Void.class);
+			log.debug(EELFLoggerDelegate.debugLogger, "Writing artifact content to {} resulted in {}", path, response.getStatusCode());
+			if (response.getStatusCode().is2xxSuccessful()) {
+				log.info(EELFLoggerDelegate.debugLogger, "Wrote artifact content to {}", path);
+				return path;
+			}
+			else
+				throw new ServiceException("Failed to write artifact content to nexus. Got " + response.getStatusCode());
 		}
 		catch (Exception x) {
 			log.error(EELFLoggerDelegate.errorLogger,	"Failed to push content to Nexus repo", x);
@@ -196,8 +230,30 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		}
 	}
 
+	/**
+	 * This builds the prefix passed to nexusPath
+	 */
 	private String nexusPrefix(String theSolutionId, String theRevisionId) {
 		return String.join(nexusConfig.getNameSeparator(), nexusConfig.getGroupId(), theSolutionId, theRevisionId);
+	}
+
+	/**
+	 * This mimics the procedure seen in the nexus client.
+	 */
+	private String nexusPath(String thePrefix, String theContentId, String theVersion, String thePackaging) {
+		return new StringBuilder()
+			.append(thePrefix.replace(".", "/"))
+			.append("/")
+			.append(theContentId)
+			.append("/")
+			.append(theVersion)
+			.append("/")
+			.append(theContentId)
+			.append("-")
+			.append(theVersion)
+			.append(".")
+			.append(thePackaging)
+			.toString();
 	}
 
 	/**
@@ -212,4 +268,35 @@ public class ContentServiceImpl extends AbstractServiceImpl
 			pos == theName.length() - 1 ? new String[] {theName.substring(0,pos), ""} :
 																		new String[] {theName.substring(0,pos), theName.substring(pos+1)};
 	}
+
+	private static class TrackingInputStream extends ProxyInputStream {
+		
+		private long size = 0;
+		private long duration = 0;
+
+		public TrackingInputStream(InputStream theSource) {
+			super(theSource);
+			duration = System.currentTimeMillis();
+		}
+
+		@Override
+		protected void beforeRead(int n) {
+		}
+
+		@Override
+		protected void afterRead(int n) {
+			this.size += n;
+			if (n == -1)
+				this.duration = System.currentTimeMillis() - this.duration;
+		}
+
+		public long size() {
+			return this.size;
+		}
+
+		public long duration() {
+			return this.duration;
+		}
+	}
+
 }

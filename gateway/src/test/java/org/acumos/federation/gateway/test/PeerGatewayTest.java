@@ -74,6 +74,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.RequestEntity;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 
 
@@ -104,7 +107,7 @@ public class PeerGatewayTest {
 	private ICommonDataServiceRestClient cdsClient;
 
 	@Mock
-	private NexusArtifactClient nexusClient;
+	private RestTemplate nexusClient;
 
 	@MockBean(name = "federationClient")
 	private HttpClient	federationClient;
@@ -300,11 +303,11 @@ public class PeerGatewayTest {
 			.thenReturn(nexusClient);
 
 			when(
-				this.nexusClient.uploadArtifact(
-					any(String.class),any(String.class),any(String.class),any(String.class),any(Long.class),any(InputStream.class)
+				this.nexusClient.exchange(
+					any(RequestEntity.class),any(Class.class)
 				)
 			)
-			.thenReturn(new UploadArtifactInfo("","","","","",0));
+			.thenReturn(new ResponseEntity<byte[]>(new byte[] {}, HttpStatus.OK));
 
 			when(
 				this.cdsClient.searchPeers(

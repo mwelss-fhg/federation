@@ -31,6 +31,7 @@ import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
@@ -183,6 +184,22 @@ public class InterfaceConfiguration {
 		return certEntry.getSubjectX500Principal().getName();
 	}
 
+	@Override
+	public String toString() {
+		return new StringBuilder()
+			.append(super.toString())
+			.append('(')
+			.append(this.address)
+			.append(',')
+			.append(this.server)
+			.append(',')
+			.append(this.client)
+			.append(',')
+			.append(this.ssl)
+			.append(')')
+			.toString();
+	}
+
 	/**
 	 * Loads the specified key store
 	 * @return the key store
@@ -244,6 +261,13 @@ public class InterfaceConfiguration {
 		private String username;
 		private String passwd;
 
+		public Client() {}
+
+		public Client(String theUsername, String thePassword) {
+			setUsername(theUsername);
+			setPassword(thePassword);
+		}
+
 		public String getUsername() {
 			return this.username;
 		}
@@ -253,13 +277,24 @@ public class InterfaceConfiguration {
 		}
 
 		public String getPassword() {
-			return this.username;
+			return this.passwd;
 		}
 
 		public void setPassword(String thePassword) {
 			this.passwd = thePassword;
 		}
 
+		@Override
+		public String toString() {
+			return new StringBuilder()
+				.append(super.toString())
+				.append('(')
+				.append(this.username)
+				.append(',')
+				.append(this.passwd)
+				.append(')')
+				.toString();
+		}
 	}
 
 	/**
@@ -276,6 +311,15 @@ public class InterfaceConfiguration {
 			this.port = thePort;
 		}
 
+		@Override
+		public String toString() {
+			return new StringBuilder()
+				.append(super.toString())
+				.append('(')
+				.append(this.port)
+				.append(')')
+				.toString();
+		}
 	}
 
 	/**
@@ -374,19 +418,6 @@ public class InterfaceConfiguration {
 		}
 	}
 
-	public String toString() {
-		return new StringBuilder("")
-			.append(super.toString())
-			.append("(")
-			.append(this.address)
-			.append(",")
-			.append(this.server)
-			.append(",")
-			.append(this.ssl)
-			.append(")")
-			.toString();
-	}
-
 	/**
 	 * Configure the existing/default/a servlet container with the configuration
 	 * information of this interface.
@@ -459,7 +490,7 @@ public class InterfaceConfiguration {
 			this.resourceLoader = new DefaultResourceLoader();
 
 		if (this.ssl == null) {
-			log.info(EELFLoggerDelegate.debugLogger, "No ssl config was provided");
+			log.trace(EELFLoggerDelegate.debugLogger, "No ssl config was provided");
 		}
 		else {
 			KeyStore keyStore = loadKeyStore(),
@@ -492,7 +523,7 @@ public class InterfaceConfiguration {
 		if (sslContext != null) {
 			sslSocketFactory = new SSLConnectionSocketFactory(sslContext, new String[] { "TLSv1.2" }, null,
 					SSLConnectionSocketFactory.getDefaultHostnameVerifier());
-			log.info(EELFLoggerDelegate.debugLogger, "SSL connection factory configured");
+			log.trace(EELFLoggerDelegate.debugLogger, "SSL connection factory configured");
 		}
 
 		RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create();
@@ -513,9 +544,10 @@ public class InterfaceConfiguration {
 		if (hasClient()) {
 			credsProvider = new BasicCredentialsProvider();
 			credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(this.client.getUsername(), this.client.getPassword()));
-			log.info(EELFLoggerDelegate.debugLogger, "Credentials configured");
-		} else {
-			log.info(EELFLoggerDelegate.debugLogger, "No credentials were provided");
+			log.trace(EELFLoggerDelegate.debugLogger, "Credentials configured");
+		}
+		else {
+			log.trace(EELFLoggerDelegate.debugLogger, "No credentials were provided");
 		}
 
 		HttpClientBuilder clientBuilder = HttpClients.custom();

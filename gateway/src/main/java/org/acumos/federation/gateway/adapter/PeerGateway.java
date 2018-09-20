@@ -20,6 +20,8 @@
 
 package org.acumos.federation.gateway.adapter;
 
+import java.io.Closeable;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -377,6 +379,11 @@ public class PeerGateway {
 							catch (ServiceException sx) {
 								log.error(EELFLoggerDelegate.errorLogger,
 											"Failed to store artifact content to local repo", sx);
+							}
+							finally {
+								if (artifactContent instanceof Closeable) {
+									((Closeable)artifactContent).close();
+								}
 							}
 						}
 					}

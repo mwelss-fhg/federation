@@ -22,8 +22,10 @@ package org.acumos.federation.gateway.config;
 
 import java.lang.invoke.MethodHandles;
 
-import org.acumos.nexus.client.NexusArtifactClient;
-import org.acumos.nexus.client.RepositoryLocation;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -35,44 +37,51 @@ import org.springframework.stereotype.Component;
 public class NexusConfiguration {
 
 	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
-	private	RepositoryLocation repositoryLocation;
-	private String						 groupId;
-	private String						 nameSeparator;
+
+	private String		proxy;
+	private String	  groupId;
+	private String	  id;
+	private String		url;
+	private String		username;
+	private String		password;
+	private String		nameSeparator;
+	@Autowired
+	private LocalInterfaceConfiguration localIfConfig = null;
 
 	public NexusConfiguration() {
 		reset();
 	}
 
 	private void reset() {
-		this.repositoryLocation = new RepositoryLocation();
 		//defaults
-		this.repositoryLocation.setId("1");
+		this.id = "1";
 		this.groupId = null;
 		this.nameSeparator = ".";
 	}
 
 	public void setId(String theId) {
-		this.repositoryLocation.setId(theId);
+		this.id = theId;
 	}
 
 	public void setUrl(String theUrl) {
-		this.repositoryLocation.setUrl(theUrl);
+		this.url = theUrl;
+  }
+	
+	public String getUrl() {
+		return this.url;
   }
 
 	public void setUsername(String theUsername) {
-		this.repositoryLocation.setUsername(theUsername);
+		this.username = theUsername;
 	}
 
 	public void setPassword(String thePassword) {
-		this.repositoryLocation.setPassword(thePassword);
+		this.password = thePassword;
 	}
 
+	@Deprecated
 	public void setProxy(String theProxy) {
-		this.repositoryLocation.setProxy(theProxy);
-	}
-
-	public RepositoryLocation getRepositoryLocation() {
-		return this.repositoryLocation;
+		this.proxy = theProxy;
 	}
 
 	public void setGroupId(String theGroupId) {
@@ -91,8 +100,28 @@ public class NexusConfiguration {
 		return this.nameSeparator;
 	}
 
-	/** */
-	public NexusArtifactClient getNexusClient() {
-		return new NexusArtifactClient(getRepositoryLocation());
+	public RestTemplate getNexusClient() {
+
+		//cannot use the localIfConfig straightup as it does not carry the Nexus specific client authentication info
+		//but this only need to be built once
+		InterfaceConfiguration nexusIfConfig = InterfaceConfigurationBuilder.buildFrom(this.localIfConfig)
+																							.withClient(new InterfaceConfiguration.Client(this.username, this.password))
+																							.buildConfig();
+
+		
+		log.info(EELFLoggerDelegate.debugLogger, "Nexus config: {}", nexusIfConfig);
+
+		RestTemplateBuilder builder =
+			new RestTemplateBuilder()
+				.requestFactory(new HttpComponentsClientHttpRequestFactory( 
+													nexusIfConfig.buildClient()));
+		if (this.url != null) {
+			builder.rootUri(this.url);
+		}
+		if (this.username != null) {
+			builder.basicAuthorization(this.username, this.password);
+		}
+
+		return builder.build();
 	}
 }

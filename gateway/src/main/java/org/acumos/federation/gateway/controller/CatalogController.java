@@ -42,7 +42,7 @@ import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -388,11 +388,11 @@ public class CatalogController extends AbstractController {
 	 */
 	@CrossOrigin
 	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
-	@ApiOperation(value = "API to download artifact content", response = InputStreamResource.class, code = 200)
+	@ApiOperation(value = "API to download artifact content", response = Resource.class, code = 200)
 	@RequestMapping(value = {
 			API.Paths.ARTIFACT_CONTENT }, method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
 	@ResponseBody
-	public Callable<InputStreamResource> getArtifactContent(HttpServletRequest theHttpRequest,
+	public Callable<Resource> getArtifactContent(HttpServletRequest theHttpRequest,
 			HttpServletResponse theHttpResponse, @PathVariable("solutionId") String theSolutionId,
 			@PathVariable("revisionId") String theRevisionId, @PathVariable("artifactId") String theArtifactId) {
 			
@@ -402,8 +402,8 @@ public class CatalogController extends AbstractController {
 		theHttpResponse.setStatus(HttpServletResponse.SC_OK);
 
 		final ControllerContext ctx = new ControllerContext();
-		return new Callable<InputStreamResource>() {
-			public InputStreamResource call() throws Exception {
+		return new Callable<Resource>() {
+			public Resource call() throws Exception {
 				try {	
 					return contentService.getArtifactContent(
 						theSolutionId, theRevisionId, catalogService.getSolutionRevisionArtifact(theArtifactId, ctx), ctx);
@@ -432,11 +432,11 @@ public class CatalogController extends AbstractController {
 	 */
 	@CrossOrigin
 	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
-	@ApiOperation(value = "API to download a documents' content", response = InputStreamResource.class, code = 200)
+	@ApiOperation(value = "API to download a documents' content", response = Resource.class, code = 200)
 	@RequestMapping(value = {
 			API.Paths.DOCUMENT_CONTENT }, method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
 	@ResponseBody
-	public Callable<InputStreamResource> getDocumentContent(HttpServletRequest theHttpRequest,
+	public Callable<Resource> getDocumentContent(HttpServletRequest theHttpRequest,
 			HttpServletResponse theHttpResponse, @PathVariable("solutionId") String theSolutionId,
 			@PathVariable("revisionId") String theRevisionId, @PathVariable("documentId") String theDocumentId) {
 			
@@ -446,8 +446,8 @@ public class CatalogController extends AbstractController {
 		theHttpResponse.setStatus(HttpServletResponse.SC_OK);
 
 		final ControllerContext ctx = new ControllerContext();
-		return new Callable<InputStreamResource>() {
-			public InputStreamResource call() throws Exception {
+		return new Callable<Resource>() {
+			public Resource call() throws Exception {
 				try {	
 					return contentService.getDocumentContent(
 									theSolutionId, theRevisionId, catalogService.getSolutionRevisionDocument(theDocumentId, ctx), ctx);
