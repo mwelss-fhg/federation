@@ -22,9 +22,10 @@ Federated Gateway Release Notes
 
 The Federated Gateway server is available as a Docker image in a Docker registry.
 
-Version 1.18.4, 2018-09-19
+Version 1.18.4, 2018-09-21
 --------------------------
 
+* Fix download of large artifacts
 * Upgrade Spring-Boot to 1.5.16.RELEASE (`ACUMOS-1754 <https://jira.acumos.org/browse/ACUMOS-1754>`_)
 
 Version 1.18.3, 2018-09-14
