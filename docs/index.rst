@@ -16,14 +16,15 @@
 .. limitations under the License.
 .. ===============LICENSE_END=========================================================
 
-=================
-Federated Gateway
-=================
+==================
+Federation Gateway
+==================
     
 .. toctree::
        :maxdepth: 2
-    
-       
+
+
+       overview.rst
+       design.rst
+       developer-guide.rst
        release-notes.rst
-       federated-gateway.rst
-       design-notes.rst

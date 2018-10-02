@@ -16,11 +16,11 @@
 .. limitations under the License.
 .. ===============LICENSE_END=========================================================
 
-===============================
-Federated Gateway Release Notes
-===============================
+================================
+Federation Gateway Release Notes
+================================
 
-The Federated Gateway server is available as a Docker image in a Docker registry.
+This server is available as a Docker image in a Docker registry at the Linux Foundation.
 
 --------------------------
 Version 1.18.5, 2018-10-02
