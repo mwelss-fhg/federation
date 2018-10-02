@@ -35,6 +35,7 @@ import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.federation.gateway.cds.ArtifactType;
+import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
@@ -82,7 +83,7 @@ public class CatalogController extends AbstractController {
 	 */
 	@CrossOrigin
 	// @PreAuthorize("hasAuthority('PEER')"
-	@PreAuthorize("hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).CATALOG_ACCESS)")
+	@PreAuthorize("isActive && hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).CATALOG_ACCESS)")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of Published Solutions from the Catalog of the local Acumos Instance .", response = MLPSolution.class, responseContainer = "List")
 	@RequestMapping(value = { API.Paths.SOLUTIONS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
@@ -124,7 +125,7 @@ public class CatalogController extends AbstractController {
 	}
 
 	@CrossOrigin
-	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
+	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list detailed solution information from the Catalog of the local Acumos Instance .", response = MLPSolution.class)
 	@RequestMapping(value = { API.Paths.SOLUTION_DETAILS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
@@ -170,7 +171,7 @@ public class CatalogController extends AbstractController {
 	 * @return List of Published ML Solutions in JSON format.
 	 */
 	@CrossOrigin
-	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
+	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of Solution Revision from the Catalog of the local Acumos Instance .", response = MLPSolutionRevision.class, responseContainer = "List")
 	@RequestMapping(value = { API.Paths.SOLUTION_REVISIONS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
@@ -218,20 +219,21 @@ public class CatalogController extends AbstractController {
 	 * @return List of Published ML Solutions in JSON format.
 	 */
 	@CrossOrigin
-	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
+	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by peer Acumos to get solution revision details from the local Acumos Instance .", response = MLPSolutionRevision.class)
 	@RequestMapping(value = {
 			API.Paths.SOLUTION_REVISION_DETAILS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
-	public JsonResponse<MLPSolutionRevision> getSolutionRevisionDetails(HttpServletResponse theHttpResponse,
+	public JsonResponse<MLPSolutionRevision> getSolutionRevisionDetails(
+			HttpServletRequest theHttpRequest, HttpServletResponse theHttpResponse,
 			@PathVariable("solutionId") String theSolutionId, @PathVariable("revisionId") String theRevisionId) {
+		ControllerContext context = new ControllerContext();
 		JsonResponse<MLPSolutionRevision> response = null;
-		MLPSolutionRevision solutionRevision = null;
+		SolutionRevision solutionRevision = null;
 		log.debug(EELFLoggerDelegate.debugLogger,
 				API.Paths.SOLUTION_REVISION_DETAILS + "(" + theSolutionId + "," + theRevisionId + ")");
 		try {
-			solutionRevision = catalogService.getSolutionRevision(theSolutionId, theRevisionId,
-					new ControllerContext());
+			solutionRevision = catalogService.getSolutionRevision(theSolutionId, theRevisionId, context);
 			if (null == solutionRevision) {
 				response = JsonResponse.<MLPSolutionRevision> buildResponse()
 																.withMessage("No solution revision " + theSolutionId + "/" + theRevisionId + " is available.")
@@ -239,6 +241,17 @@ public class CatalogController extends AbstractController {
 				theHttpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			}
 			else {
+				for (MLPArtifact artifact : solutionRevision.getArtifacts()) {
+					if (!context.getPeer().getPeerInfo().isLocal()) {
+						encodeArtifact(theSolutionId, theRevisionId, artifact, theHttpRequest);
+					}
+				}
+				for (MLPDocument document : solutionRevision.getDocuments()) {
+					if (!context.getPeer().getPeerInfo().isLocal()) {
+						encodeDocument(theSolutionId, theRevisionId, document, theHttpRequest);
+					}
+				}
+	
 				response = JsonResponse.<MLPSolutionRevision> buildResponse()
 																.withMessage("solution revision details")
 																.withContent(solutionRevision)
@@ -268,14 +281,14 @@ public class CatalogController extends AbstractController {
 	 * @return List of solution revision artifacts in JSON format.
 	 */
 	@CrossOrigin
-	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
+	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of solution revision artifacts from the local Acumos Instance .", response = MLPArtifact.class, responseContainer = "List")
 	@RequestMapping(value = {
 			API.Paths.SOLUTION_REVISION_ARTIFACTS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
-	public JsonResponse<List<MLPArtifact>> getSolutionRevisionArtifacts(HttpServletRequest theHttpRequest,
-			HttpServletResponse theHttpResponse, @PathVariable("solutionId") String theSolutionId,
-			@PathVariable("revisionId") String theRevisionId) {
+	public JsonResponse<List<MLPArtifact>> getSolutionRevisionArtifacts(
+			HttpServletRequest theHttpRequest, HttpServletResponse theHttpResponse,
+			@PathVariable("solutionId") String theSolutionId,	@PathVariable("revisionId") String theRevisionId) {
 		JsonResponse<List<MLPArtifact>> response = null;
 		List<MLPArtifact> solutionRevisionArtifacts = null;
 		ControllerContext context = new ControllerContext();
@@ -326,14 +339,14 @@ public class CatalogController extends AbstractController {
 	 * @return List of solution revision documents in JSON format.
 	 */
 	@CrossOrigin
-	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
+	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of solution revision public documents from the local Acumos Instance .", response = MLPArtifact.class, responseContainer = "List")
 	@RequestMapping(value = {
 			API.Paths.SOLUTION_REVISION_DOCUMENTS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
-	public JsonResponse<List<MLPDocument>> getSolutionRevisionDocuments(HttpServletRequest theHttpRequest,
-			HttpServletResponse theHttpResponse, @PathVariable("solutionId") String theSolutionId,
-			@PathVariable("revisionId") String theRevisionId) {
+	public JsonResponse<List<MLPDocument>> getSolutionRevisionDocuments(
+			HttpServletRequest theHttpRequest, HttpServletResponse theHttpResponse,
+			@PathVariable("solutionId") String theSolutionId,	@PathVariable("revisionId") String theRevisionId) {
 		JsonResponse<List<MLPDocument>> response = null;
 		List<MLPDocument> solutionRevisionDocuments = null;
 		ControllerContext context = new ControllerContext();
@@ -387,7 +400,7 @@ public class CatalogController extends AbstractController {
 	 * @return Archive file of the Artifact for the Solution.
 	 */
 	@CrossOrigin
-	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
+	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "API to download artifact content", response = Resource.class, code = 200)
 	@RequestMapping(value = {
 			API.Paths.ARTIFACT_CONTENT }, method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
@@ -431,7 +444,7 @@ public class CatalogController extends AbstractController {
 	 * @return Archive file of the Artifact for the Solution.
 	 */
 	@CrossOrigin
-	@PreAuthorize("hasAuthority('CATALOG_ACCESS')")
+	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "API to download a documents' content", response = Resource.class, code = 200)
 	@RequestMapping(value = {
 			API.Paths.DOCUMENT_CONTENT }, method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)

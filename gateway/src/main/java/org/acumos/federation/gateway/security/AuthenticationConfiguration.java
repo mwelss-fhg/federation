@@ -125,13 +125,13 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 	@Bean
 	public UserDetailsService userDetailsService() {
 		return (subject -> {
-			log.info(EELFLoggerDelegate.debugLogger, " X509 subject : " + subject);
+			log.info(EELFLoggerDelegate.debugLogger, " X509 subject {}", subject);
 			LdapName x500subject = null;
 			try {
 				x500subject = new LdapName(subject);
 			}
 			catch (InvalidNameException inx) {
-				log.warn(EELFLoggerDelegate.errorLogger, "Failed to parse subject information : " + subject);
+				log.warn(EELFLoggerDelegate.errorLogger, "Failed to parse subject information {}", subject);
 				return new Peer(new MLPPeer(), Role.ANY);
 			}
 
@@ -160,7 +160,7 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 			}
 
 			List<MLPPeer> mlpPeers = peerService.getPeerBySubjectName(cn);
-			log.info(EELFLoggerDelegate.debugLogger, " Peers matching X509 subject : " + mlpPeers);
+			log.info(EELFLoggerDelegate.debugLogger, "Peers matching X509 subject {}", mlpPeers);
 			if (!Utils.isEmptyList(mlpPeers)) {
 				MLPPeer mlpPeer = mlpPeers.get(0);
 				//!!here we create other instances of 'self'

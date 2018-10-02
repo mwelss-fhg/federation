@@ -25,6 +25,9 @@ package org.acumos.federation.gateway.service.impl;
 
 import java.io.InputStream;
 
+import java.util.List;
+import java.util.stream.Stream;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -51,12 +54,16 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.Identifier;
 import com.github.dockerjava.api.model.Repository;
+import com.github.dockerjava.api.model.PushResponseItem;
 import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.github.dockerjava.core.command.PushImageResultCallback;
 
 import org.apache.commons.io.input.ProxyInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
 
 /**
  * Nexus based implementation of the ContentService.
@@ -115,6 +122,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 																																														throws ServiceException {
 
 		if (ArtifactType.DockerImage == ArtifactType.forCode(theArtifact.getArtifactTypeCode())) {
+			TrackingPushImageResultCallback pushResult = null;
 			try {
 				TrackingInputStream imageSource = new TrackingInputStream(theResource.getInputStream());
 				//load followed by push
@@ -125,28 +133,58 @@ public class ContentServiceImpl extends AbstractServiceImpl
 				log.debug(EELFLoggerDelegate.debugLogger, "Completed docker image load for {}. Transfered {} bytes in {} seconds.",
 					theArtifact, imageSource.size(), imageSource.duration()/1000);
 
-				// there is an assumption here that the repo info was stripped from the artifact name by the originator
-				Identifier imageId =
-					new Identifier(
-						new Repository(dockerConfig.getRegistryUrl().toString()),
-													 theArtifact.getName() /*the tag*/);
-				try (PushImageResultCallback pushResult = new PushImageResultCallback()) {
-					docker.pushImageCmd(imageId)
-								.exec(pushResult);
-					pushResult.awaitCompletion();
-					log.debug(EELFLoggerDelegate.debugLogger, "Completed docker image push for {}", theArtifact);
-				}	
+				List<Image> images = docker.listImagesCmd().exec();
+				log.debug(EELFLoggerDelegate.debugLogger, "Available docker images: {}", images);
+
+				Image image = images.stream()
+												.filter(i -> i.getRepoTags() != null && Stream.of(i.getRepoTags()).anyMatch(t -> t.equals(theArtifact.getUri())))
+												.findFirst()
+												.orElse(null);
+				if (image == null) {
+					log.debug(EELFLoggerDelegate.debugLogger, "Could not find loaded docker image: {}", theArtifact.getUri());
+					throw new ServiceException("Could not find loaded docker image for " + theArtifact);
+				}
+	
+				//new image name for re-tagging
+				String imageName = theArtifact.getName() + "_" + theSolutionId; 
+				docker.tagImageCmd(image.getId(), imageName, theArtifact.getVersion()).exec();
+				log.debug(EELFLoggerDelegate.debugLogger, "Re-tagged docker image: {} to {}:{}", image, imageName, theArtifact.getVersion());
+			
+				log.debug(EELFLoggerDelegate.debugLogger, "Attempt docker push for image {}", image);
+				docker.pushImageCmd(image.getId())
+							.withName(imageName)
+							.withTag(theArtifact.getVersion())
+							.exec(pushResult = new TrackingPushImageResultCallback());
+
+				//pushResult.awaitSuccess(); //this will return with no warning even whan failed
+				pushResult.awaitCompletion();
+				PushResponseItem pushResponse = pushResult.getResponseItem();
+				if (pushResponse.isErrorIndicated()) {
+					log.debug(EELFLoggerDelegate.debugLogger, "Failed to push artifact {} image {} to docker registry: {}, {}", theArtifact, image, pushResponse.getError(), pushResponse.getErrorDetail());
+					throw new ServiceException("Failed to push image to docker registry: " + pushResponse.getError() + "\n" + pushResponse.getErrorDetail());
+				}
+				else {
+					log.debug(EELFLoggerDelegate.debugLogger, "Completed docker push for artifact {} image {}", theArtifact, image);
+				}
+				
+				String imageUri = dockerConfig.getRegistryUrl() + "/" + imageName + ":" + theArtifact.getVersion();
 				// update artifact with local repo reference. we also update the name and description in order to stay
 				// alligned with on-boarding's unwritten rules
-				theArtifact.setSize((int)imageSource.size()); //?? is this correct
-				theArtifact.setUri(imageId.toString());
-				theArtifact.setName(imageId.toString());
-				theArtifact.setDescription(imageId.toString());
+				theArtifact.setSize((int)imageSource.size()); //this is the decompressed size ..
+				theArtifact.setUri(imageUri);
+				theArtifact.setDescription(imageUri);
+
+				//we should now delete the image from the (local) docker host
 			}
 			catch (Exception x) {
 				log.error(EELFLoggerDelegate.errorLogger,
-									"Failed to push docker artifact content to Nexus repo", x);
-				throw new ServiceException("Failed to push docker artifact content to Nexus repo", x);
+									"Failed to put docker artifact content", x);
+				throw new ServiceException("Failed to put docker artifact content", x);
+			}
+			finally {
+				if (pushResult != null) {
+					try { pushResult.close(); } catch (Exception x) {}
+				}
 			}
 		}
 		else {
@@ -269,6 +307,10 @@ public class ContentServiceImpl extends AbstractServiceImpl
 																		new String[] {theName.substring(0,pos), theName.substring(pos+1)};
 	}
 
+	/**
+	 * Allows for accurate counting of the amount of data transferred. The docker image info resulting from
+	 * a 'docker image ls' is slightly different ..
+	 */
 	private static class TrackingInputStream extends ProxyInputStream {
 		
 		private long size = 0;
@@ -299,4 +341,21 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		}
 	}
 
+	/**
+	 * It only exists because the base does not expose the response item ..
+	 */
+	private static class TrackingPushImageResultCallback extends PushImageResultCallback {
+
+		private PushResponseItem	responseItem;
+
+		@Override
+		public void onNext(PushResponseItem theItem) {
+			this.responseItem = theItem;
+			super.onNext(theItem);
+    }
+
+		public PushResponseItem getResponseItem() {
+			return this.responseItem;
+		}
+	}
 }

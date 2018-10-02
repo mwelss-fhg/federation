@@ -169,7 +169,8 @@ public class PeerGateway {
 		//this should go away once the move to service interface based operations is complete
 		//as ugly as they come
 		private ICommonDataServiceRestClient getCDSClient(ServiceContext theContext) {
-			return (ICommonDataServiceRestClient)theContext.getAttribute(AbstractServiceImpl.Attributes.cdsClient);
+			return PeerGateway.this.clients.getCDSClient();
+			//return (ICommonDataServiceRestClient)theContext.getAttribute(AbstractServiceImpl.Attributes.cdsClient);
 		}
 
 		private MLPArtifact createMLPArtifact(String theSolutionId, String theRevisionId, MLPArtifact peerArtifact,
@@ -340,6 +341,8 @@ public class PeerGateway {
 				for (Map.Entry<MLPArtifact, MLPArtifact> artifactEntry : peerToLocalArtifacts.entrySet()) {
 					MLPArtifact peerArtifact = artifactEntry.getKey(), localArtifact = artifactEntry.getValue();
 					boolean doUpdate = false;
+					boolean doContent = (peerArtifact.getUri() != null) &&
+															(SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
 
 					if (localArtifact == null) {
 						localArtifact = createMLPArtifact(localSolution.getSolutionId(), localRevision.getRevisionId(),
@@ -351,15 +354,17 @@ public class PeerGateway {
 							localArtifact = copyMLPArtifact(peerArtifact, localArtifact);
 							doUpdate = true;
 						}
+						else {
+							//if no changes, do not go after the content
+							doContent = false;
+						}
 					}
 
-					boolean doContent = (peerArtifact.getUri() != null) &&
-															(SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
 					if (doContent) {
 						log.info(EELFLoggerDelegate.debugLogger, "Processing content for artifact {}", peerArtifact); 
 						// TODO: we are trying to access the artifact by its identifier which
 						// is fine in the common case but the uri specified in the artifact
-						// data is a more flexible approach.
+						// data is the right approach (as it does not rely on the E5 definition).
 						Resource artifactContent = null;
 						try {
 							artifactContent = fedClient.getArtifactContent(
@@ -414,6 +419,8 @@ public class PeerGateway {
 					MLPDocument peerDocument = documentEntry.getKey(),
 											localDocument = documentEntry.getValue();
 					boolean doUpdate = false;
+					boolean doContent = (peerDocument.getUri() != null) &&
+															(SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
 
 					if (localDocument == null) {
 						localDocument = createMLPDocument(localSolution.getSolutionId(), localRevision.getRevisionId(),
@@ -427,10 +434,12 @@ public class PeerGateway {
 							localDocument = copyMLPDocument(peerDocument, localDocument);
 							doUpdate = true;
 						}
+						else {
+							//if no changes, do not go after the content
+							doContent = false;
+						}
 					}
 
-					boolean doContent = (peerDocument.getUri() != null) &&
-															(SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
 					if (doContent) {
 						log.info(EELFLoggerDelegate.debugLogger, "Processing content for document {}", peerDocument); 
 						// TODO: we are trying to access the document by its identifier which

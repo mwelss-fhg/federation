@@ -1,4 +1,4 @@
-/* 
+/*-
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
@@ -8,45 +8,34 @@
  * under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ *  
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  * This file is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ===============LICENSE_END=========================================================
  */
+
 package org.acumos.federation.gateway.security;
 
-import java.util.Collection;
 
-import org.acumos.cds.domain.MLPPeer;
-import org.acumos.federation.gateway.cds.PeerStatus;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 
-/**
- * Peers constitute the users of the federation gateway.
- */
-public class Peer extends User {
 
-	private MLPPeer peerInfo;
+@Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class FederationMethodSecurityConfiguration extends GlobalMethodSecurityConfiguration {
 
-	public Peer(MLPPeer thePeerInfo, Role theRole) {
-		this(thePeerInfo, theRole.priviledges());
-	}
-
-	public Peer(MLPPeer thePeerInfo, Collection<? extends GrantedAuthority> theAuthorities) {
-		super(thePeerInfo.getName(), "", true, true, true, true, theAuthorities);
-		this.peerInfo = thePeerInfo;
-	}
-
-	public MLPPeer getPeerInfo() {
-		return this.peerInfo;
-	}
-
-	public boolean isActive() {
-		return PeerStatus.Active.equals(PeerStatus.forCode(this.peerInfo.getStatusCode()));
-	}
+    @Override
+    protected MethodSecurityExpressionHandler createExpressionHandler() {
+        FederationMethodSecurityExpressionHandler expressionHandler = 
+          new FederationMethodSecurityExpressionHandler();
+        //expressionHandler.setPermissionEvaluator(new FederationPermissionEvaluator());
+        return expressionHandler;
+    }
 }

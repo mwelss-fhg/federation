@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import io.swagger.annotations.ApiOperation;
 
@@ -54,7 +55,7 @@ public class PingController extends AbstractController {
 	 * @return List of Published ML Solutions in JSON format.
 	 */
 	@CrossOrigin
-	//@PreAuthorize("") : nothing in particular, any peer has access to this
+	@PreAuthorize("isActive")
 	@ApiOperation(value = "Invoked by Peer Acumos to get status and self information.", response = MLPPeer.class)
 	@RequestMapping(value = { API.Paths.PING }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody

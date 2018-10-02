@@ -23,6 +23,7 @@ package org.acumos.federation.gateway.config;
 import org.acumos.federation.gateway.adapter.PeerGateway;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.security.AuthenticationConfiguration;
+import org.acumos.federation.gateway.security.FederationMethodSecurityConfiguration;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.CatalogServiceConfiguration;
 import org.acumos.federation.gateway.service.ContentService;
@@ -50,7 +51,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @Configuration
 @Import({TaskConfiguration.class,
-				 AuthenticationConfiguration.class})
+				 AuthenticationConfiguration.class,
+				 FederationMethodSecurityConfiguration.class})
 @EnableConfigurationProperties({FederationInterfaceConfiguration.class,
 																LocalInterfaceConfiguration.class,
 																CDMSClientConfiguration.class,

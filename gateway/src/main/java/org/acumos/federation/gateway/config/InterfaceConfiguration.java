@@ -70,9 +70,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class InterfaceConfiguration {
 
-	@Autowired
-	private ResourceLoader resourceLoader;
-
 	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
 
 	private String 			address;
@@ -82,7 +79,7 @@ public class InterfaceConfiguration {
 	private	Server	server; 
 
 	public InterfaceConfiguration() {
-		log.info(EELFLoggerDelegate.debugLogger, this + "::new");
+		log.trace(EELFLoggerDelegate.debugLogger, this + "::new");
 	}
 
 /*
@@ -96,7 +93,7 @@ public class InterfaceConfiguration {
 */
 	@PostConstruct
 	public void initInterface() {
-		log.info(EELFLoggerDelegate.debugLogger, this + "::init");
+		log.trace(EELFLoggerDelegate.debugLogger, this + "::init");
 	}	
 
 	public String getAddress() {
@@ -157,7 +154,7 @@ public class InterfaceConfiguration {
 		if (!hasSSL())
 			return null;
 	
-		KeyStore keyStore = loadKeyStore();
+		KeyStore keyStore = this.ssl.loadKeyStore();
 		X509Certificate certEntry = null;
 		
 		String alias = null;
@@ -200,60 +197,7 @@ public class InterfaceConfiguration {
 			.toString();
 	}
 
-	/**
-	 * Loads the specified key store
-	 * @return the key store
-	 */
-	public KeyStore loadKeyStore() {
-		return loadStore(this.ssl.keyStore, this.ssl.keyStoreType, this.ssl.keyStorePasswd);
-	}
 
-	/**
-	 * Loads the specified trust store
-	 * @return the key store
-	 */
-	public KeyStore loadTrustStore() {
-		return loadStore(this.ssl.trustStore, this.ssl.trustStoreType, this.ssl.trustStorePasswd);
-	}
-
-	/** */
-	private KeyStore loadStore(String theLocation, String theType, String thePasswd) {
-		KeyStore store = null;
-		InputStream storeSource = null;
-		try {
-			storeSource = this.resourceLoader.getResource(theLocation).getURL().openStream();
-		}
-		catch (FileNotFoundException rnfx) {
-			try {
-				storeSource = new FileInputStream(theLocation);
-			}
-			catch (FileNotFoundException fnfx) {
-				throw new IllegalStateException("Failed to find key store " + theLocation);
-			}
-		}
-		catch (IOException iox) {
-			throw new IllegalStateException("Error loading key material: " + iox, iox);
-		}
-
-		try {
-			store = KeyStore.getInstance(theType);
-			store.load(storeSource,	thePasswd.toCharArray());
-			log.info(EELFLoggerDelegate.debugLogger, "Loaded key store: " + theLocation);
-		}
-		catch (Exception x) {
-			throw new IllegalStateException("Error loading key material: " + x, x);
-		}
-		finally {
-			try {
-				storeSource.close();
-			}
-			catch (IOException iox) {
-				log.debug(EELFLoggerDelegate.debugLogger, "Error closing key store source", iox);
-			}
-		}
-		return store;
-	}
-	
 	/**
 	 */
 	public static class Client {
@@ -328,21 +272,30 @@ public class InterfaceConfiguration {
 	 */
 	public static class SSL {
 
-		private String keyStore;
+		private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+
+		@Autowired
+		private ResourceLoader resourceLoader;
+
+		private KeyStore	keyStore,
+											trustStore;
+
+		private String keyStoreLocation;
 		private String keyStoreType = "JKS";
 		private String keyStorePasswd;
 		private String keyAlias;
-		private String trustStore;
+		private String trustStoreLocation;
 		private String trustStoreType = "JKS";
 		private String trustStorePasswd;
 		private String clientAuth = "need";
 
 		public String getKeyStore() {
-			return this.keyStore;
+			return this.keyStoreLocation;
 		}
 
-		public void setKeyStore(String theKeyStore) {
-			this.keyStore = theKeyStore;
+		public void setKeyStore(String theKeyStoreLocation) {
+			this.keyStoreLocation = theKeyStoreLocation;
+			this.keyStore = null;
 		}
 
 		public String getKeyStoreType() {
@@ -351,6 +304,7 @@ public class InterfaceConfiguration {
 
 		public void setKeyStoreType(String theKeyStoreType) {
 			this.keyStoreType = theKeyStoreType;
+			this.keyStore = null;
 		}
 
 		public String getKeyStorePassword() {
@@ -359,6 +313,7 @@ public class InterfaceConfiguration {
 
 		public void setKeyStorePassword(String theKeyStorePassword) {
 			this.keyStorePasswd = theKeyStorePassword;
+			this.keyStore = null;
 		}
 
 		public String getKeyAlias() {
@@ -370,11 +325,12 @@ public class InterfaceConfiguration {
 		}
 
 		public String getTrustStore() {
-			return this.trustStore;
+			return this.trustStoreLocation;
 		}
 
-		public void setTrustStore(String theTrustStore) {
-			this.trustStore = theTrustStore;
+		public void setTrustStore(String theTrustStoreLocation) {
+			this.trustStoreLocation = theTrustStoreLocation;
+			this.trustStore = null;
 		}
 
 		public String getTrustStoreType() {
@@ -383,6 +339,7 @@ public class InterfaceConfiguration {
 
 		public void setTrustStoreType(String theTrustStoreType) {
 			this.trustStoreType = theTrustStoreType;
+			this.trustStore = null;
 		}
 
 		public String getTrustStorePassword() {
@@ -391,14 +348,15 @@ public class InterfaceConfiguration {
 
 		public void setTrustStorePassword(String theTrustStorePassword) {
 			this.trustStorePasswd = theTrustStorePassword;
+			this.trustStore = null;
 		}
 
 		protected boolean hasKeyStoreInfo() {
-			return this.keyStore != null && this.keyStoreType != null && this.keyStorePasswd != null;
+			return this.keyStoreLocation != null && this.keyStoreType != null && this.keyStorePasswd != null;
 		}
 
 		protected boolean hasTrustStoreInfo() {
-			return this.trustStore != null && this.trustStoreType != null /*
+			return this.trustStoreLocation != null && this.trustStoreType != null /*
 																			 * && this.trustStorePasswd != null
 																			 */;
 		}
@@ -412,10 +370,73 @@ public class InterfaceConfiguration {
 		}
 
 		public String toString() {
-			return new StringBuilder("").append("SSL(").append(this.keyStore).append(",").append(this.keyStoreType)
-					.append(",").append(this.keyAlias).append("/").append(this.trustStore).append(",")
+			return new StringBuilder("").append("SSL(").append(this.keyStoreLocation).append(",").append(this.keyStoreType)
+					.append(",").append(this.keyAlias).append("/").append(this.trustStoreLocation).append(",")
 					.append(this.trustStoreType).append(")").toString();
 		}
+
+		/**
+		 * Loads the specified key store
+		 * @return the key store
+		 */
+		public KeyStore loadKeyStore() {
+			return this.keyStore == null ?
+							this.keyStore = loadStore(this.keyStoreLocation, this.keyStoreType, this.keyStorePasswd) :
+							this.keyStore;
+		}
+
+		/**
+		 * Loads the specified trust store
+		 * @return the key store
+		 */
+		public KeyStore loadTrustStore() {
+			return this.trustStore == null ? 
+							this.trustStore = loadStore(this.trustStoreLocation, this.trustStoreType, this.trustStorePasswd) :
+							this.trustStore;
+		}
+
+		/** */
+		private KeyStore loadStore(String theLocation, String theType, String thePasswd) {
+			KeyStore store = null;
+			InputStream storeSource = null;
+
+			if (this.resourceLoader == null)
+				this.resourceLoader = new DefaultResourceLoader();
+
+			try {
+				storeSource = this.resourceLoader.getResource(theLocation).getURL().openStream();
+			}
+			catch (FileNotFoundException rnfx) {
+				try {
+					storeSource = new FileInputStream(theLocation);
+				}
+				catch (FileNotFoundException fnfx) {
+					throw new IllegalStateException("Failed to find key store " + theLocation);
+				}
+			}
+			catch (IOException iox) {
+				throw new IllegalStateException("Error loading key material: " + iox, iox);
+			}
+
+			try {
+				store = KeyStore.getInstance(theType);
+				store.load(storeSource,	thePasswd.toCharArray());
+				log.trace(EELFLoggerDelegate.debugLogger, "Loaded key store: " + theLocation);
+			}
+			catch (Exception x) {
+				throw new IllegalStateException("Error loading key material: " + x, x);
+			}
+			finally {
+				try {
+					storeSource.close();
+				}
+				catch (IOException iox) {
+					log.warn(EELFLoggerDelegate.debugLogger, "Error closing key store source", iox);
+				}
+			}
+			return store;
+		}
+	
 	}
 
 	/**
@@ -484,17 +505,14 @@ public class InterfaceConfiguration {
 	public HttpClient buildClient() {
 
 		SSLContext sslContext = null;
-		log.info(EELFLoggerDelegate.debugLogger, "Build HttpClient with " + this);
-
-		if (this.resourceLoader == null)
-			this.resourceLoader = new DefaultResourceLoader();
+		log.trace(EELFLoggerDelegate.debugLogger, "Build HttpClient with " + this);
 
 		if (this.ssl == null) {
 			log.trace(EELFLoggerDelegate.debugLogger, "No ssl config was provided");
 		}
 		else {
-			KeyStore keyStore = loadKeyStore(),
-							 trustStore = loadTrustStore();
+			KeyStore keyStore = this.ssl.loadKeyStore(),
+							 trustStore = this.ssl.loadTrustStore();
 
 			SSLContextBuilder contextBuilder = SSLContexts.custom();
 			try {
