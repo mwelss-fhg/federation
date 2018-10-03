@@ -36,22 +36,72 @@
   <property name="generalLogName" value="application" />
   <property name="errorLogName" value="error" />
   <property name="debugLogName" value="debug" />
-<!-- 
-  <property name="defaultPattern" value="%date{ISO8601}|%X{RequestId}|%X{ServiceInstanceId}|%thread|%X{VirtualServerName}|%X{ServiceName}|%X{InstanceUUID}|%.-5level|%X{AlertSeverity}|%X{ServerIPAddress}|%X{ServerFQDN}|%X{RemoteHost}|%X{ClassName}|%X{Timer}| %msg%n" />
-  <property name="debugLoggerPattern" value="%date{ISO8601}|%X{RequestId}|%X{ServiceInstanceId}|%thread|%X{VirtualServerName}|%X{ServiceName}|%X{InstanceUUID}|%.-5level|%X{AlertSeverity}|%X{ServerIPAddress}|%X{ServerFQDN}|%X{RemoteHost}|%X{ClassName}|%X{Timer}| %msg%n" />
--->
- 	<property name="defaultPattern"
-		value="%date{&quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;,UTC}|%X{RequestId}|%X{ServiceInstanceId}|%thread|%X{VirtualServerName}|%X{ServiceName}|%X{InstanceUUID}|%.-5level|%X{AlertSeverity}|%X{ServerIPAddress}|%X{ServerFQDN}|%X{RemoteHost}|%X{ClassName}|%X{Timer}| %msg%n" />
-	<property name="debugLoggerPattern"
-		value="%date{&quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;,UTC}|%X{RequestId}|%X{ServiceInstanceId}|%thread|%X{VirtualServerName}|%X{ServiceName}|%X{InstanceUUID}|%.-5level|%X{AlertSeverity}|%X{ServerIPAddress}|%X{ServerFQDN}|%X{RemoteHost}|%X{ClassName}|%X{Timer}| %msg%n" />
-	<!-- This basic audit pattern uses begin/end parameters instead of current time, otherwise identical to default -->
-	<property name="auditLoggerPattern"
-		value="%X{BeginTimestamp}|%X{EndTimestamp}|%X{RequestId}|%X{ServiceInstanceId}|%thread|%X{VirtualServerName}|%X{ServiceName}|%X{InstanceUUID}|%.-5level|%X{AlertSeverity}|%X{ServerIPAddress}|%X{ServerFQDN}|%X{RemoteHost}|%X{ClassName}|%X{Timer}| %msg%n" />
- 
-  <!-- Example evaluator filter applied against console appender -->
+
+	<!-- From https://wiki.acumos.org/display/OAM/Log+Standards -->
+	<property name="LogTimestamp"   value="%d{&quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;, UTC}"/>
+	<property name="Level"          value="%.-5level"/>
+	<property name="Logger"         value="%logger"/>
+	<property name="Mdc"            value="%replace(%replace(%mdc){'\t','\\\\t'}){'\n','\\\\n'}"/>
+	<property name="Message"        value="%replace(%replace(%msg){'\t','\\\\t'}){'\n','\\\\n'}"/>
+	<property name="RootException"  value="%replace(%replace(%rootException){'\t', '\\\\t'}){'\n','\\\\n'}"/>
+	<property name="Marker"         value="%replace(%replace(%marker){'\t','\\\\t'}){'\n','\\\\n'}"/>
+	<property name="Thread"         value="%thread"/>
+	<property name="p_1_LogTimestamp"       value="${LogTimestamp}" />
+	<property name="p_2_EntryTimestamp"     value="%X{EntryTimestamp}" />
+	<property name="p_3_InvokeTimestamp"    value="%X{InvokeTimestamp}" />
+	<property name="p_4_RequestID"          value="%X{RequestID}" />
+	<property name="p_5_InvocationID"       value="%X{InvocationId}" />
+	<property name="p_6_InstanceID"         value="%X{InstanceUUID}" /> <!--  previously InstanceUUID -->
+	<property name="p_7_ServiceInstanceID"  value="%X{ServiceInstanceId}" />
+	<property name="p_8_thread"             value="$%thread}" />
+	<property name="p_9_ServiceName"        value="%X{ServiceName}" />
+	<property name="p_10_PartnerName"       value="%X{PartnerName}" />
+	<property name="p_11_StatusCode"        value="%X{StatusCode}" />
+	<property name="p_12_ResponseCode"      value="%X{ResponseCode}" />
+	<property name="p_13_ResponseDesc"      value="%X{ResponseDesc}" />
+	<property name="p_14_level"             value="${Level}" />
+	<property name="p_15_Severity"          value="%X{Severity}" />
+	<property name="p_16_ServerIPAddress"   value="%X{ServerIPAddress}" />
+	<property name="p_17_ElapsedTime"       value="%X{ElapsedTime}" />
+	<property name="p_18_ServerFQDN"        value="%X{ServerFQDN}" />
+	<property name="p_19_ClientIPAddress"   value="%X{ClientIPAddress}" />
+	<property name="p_20_VirtualServerName" value="%X{VirtualServerName}" />
+	<property name="p_21_ContextName"       value="%X{ContextName}" />
+	<property name="p_22_TargetEntity"      value="%X{TargetEntity}" />
+	<property name="p_23_TargetServiceName" value="%X{TargetServiceName}" />
+	<property name="p_24_TargetElement"     value="%X{TargetElement}" />
+	<property name="p_25_User"              value="%X{User}" />
+	<property name="p_26_logger"            value="${Logger}" />
+	<property name="p_27_mdc"               value="${Mdc}" />
+	<property name="p_27_no_mdc"            value="%X{DO_NOT_REPEAT_MDC}" /> <!-- a no-op -->
+	<property name="p_28_message"           value="${Message}" />
+	<property name="p_29_marker"            value="${Marker}" />
+	<property name="singleLineAthenaPattern" value="%nopexception${p_1_LogTimestamp}|${p_2_EntryTimestamp}|${p_3_InvokeTimestamp}|${p_4_RequestID}|${p_5_InvocationID}|${p_6_InstanceID}|${p_7_ServiceInstanceID}|${p_8_thread}|${p_9_ServiceName}|${p_10_PartnerName}|${p_11_StatusCode}|${p_12_ResponseCode}|${p_13_ResponseDesc}|${p_14_level}|${p_15_Severity}|${p_16_ServerIPAddress}|${p_17_ElapsedTime}|${p_18_ServerFQDN}|${p_19_ClientIPAddress}|${p_20_VirtualServerName}|${p_21_ContextName}|${p_22_TargetEntity}|${p_23_TargetServiceName}|${p_24_TargetElement}|${p_25_User}|${p_26_logger}|${p_27_no_mdc}|${p_28_message}|${p_29_marker}%n" />
+
+	<property name="p_tim" value="%d{&quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;, UTC}" />
+	<property name="p_thr" value="%thread" />
+	<property name="p_lvl" value="%level" />
+	<property name="p_log" value="%logger" />
+	<property name="p_mdc" value="%replace(%replace(%mdc){'\t','\\\\t'}){'\n', '\\\\n'}" />
+	<property name="p_msg" value="%replace(%replace(%msg){'\t', '\\\\t'}){'\n','\\\\n'}" />
+	<property name="p_exc" value="%replace(%replace(%rootException){'\t', '\\\\t'}){'\n','\\\\n'}" />
+	<property name="p_mrk" value="%replace(%replace(%marker){'\t', '\\\\t'}){'\n','\\\\n'}" />
+	<property name="singleLineBoreasPattern" value="%nopexception${p_tim}\t${p_thr}\t${p_lvl}\t${p_log}\t${p_mdc}\t${p_msg}\t${p_exc}\t${p_mrk}\t%n" />
+	<property name="multiLineBoreasPattern" value="%nopexception${p_tim}\t${p_thr}\t${p_lvl}\t${p_log}\t%mdc\t%msg\t%rootException\t%marker\t%n" />
+
+	<!-- Passes only events with level WARN or above -->
+	<appender name="console-warn" class="ch.qos.logback.core.ConsoleAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>WARN</level>
+		</filter>
+		<encoder>
+			<pattern>${singleLineAthenaPattern}</pattern>
+		</encoder>
+	</appender>
+
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>${defaultPattern}</pattern>
+      <pattern>${singleLineAthenaPattern}</pattern>
     </encoder>
   </appender>    
     
@@ -60,8 +110,7 @@
     <file>${logDirectory}/${generalLogName}.log</file>
     <rollingPolicy
       class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>${logDirectory}/${generalLogName}.%i.log.zip
-      </fileNamePattern>
+      <fileNamePattern>${logDirectory}/${generalLogName}.%i.log.zip</fileNamePattern>
       <minIndex>1</minIndex>
       <maxIndex>9</maxIndex>
     </rollingPolicy>
@@ -70,7 +119,7 @@
       <maxFileSize>5MB</maxFileSize>
     </triggeringPolicy>
     <encoder>
-      <pattern>${defaultPattern}</pattern>
+      <pattern>${singleLineAthenaPattern}</pattern>
     </encoder>
   </appender>
   
@@ -84,8 +133,7 @@
     <file>${logDirectory}/${errorLogName}.log</file>
     <rollingPolicy
       class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>${logDirectory}/${errorLogName}.%i.log.zip
-      </fileNamePattern>
+      <fileNamePattern>${logDirectory}/${errorLogName}.%i.log.zip</fileNamePattern>
       <minIndex>1</minIndex>
       <maxIndex>9</maxIndex>
     </rollingPolicy>
@@ -94,7 +142,7 @@
       <maxFileSize>5MB</maxFileSize>
     </triggeringPolicy>
     <encoder>
-      <pattern>${defaultPattern}</pattern>
+      <pattern>${singleLineAthenaPattern}</pattern>
     </encoder>
   </appender>
   
@@ -108,8 +156,7 @@
     <file>${debugLogDirectory}/${debugLogName}.log</file>
     <rollingPolicy
       class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>${debugLogDirectory}/${debugLogName}.%i.log.zip
-      </fileNamePattern>
+      <fileNamePattern>${debugLogDirectory}/${debugLogName}.%i.log.zip</fileNamePattern>
       <minIndex>1</minIndex>
       <maxIndex>9</maxIndex>
     </rollingPolicy>
@@ -118,7 +165,7 @@
       <maxFileSize>5MB</maxFileSize>
     </triggeringPolicy>
     <encoder>
-      <pattern>${debugLoggerPattern}</pattern>
+      <pattern>${singleLineAthenaPattern}</pattern>
     </encoder>
   </appender>
   
@@ -146,7 +193,7 @@
   
   <root level="info">
 		<appender-ref ref="asyncEELF" />
-		<appender-ref ref="STDOUT" />
+		<appender-ref ref="console-warn" />
 	</root>
 
   <!-- ============================================================================ -->

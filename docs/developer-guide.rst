@@ -48,16 +48,16 @@ In below scenario, we are going to run Acumos A and Acumos B for testing locally
 Launching
 ~~~~~~~~~
 
-Start two microservice instances for development and testing like this::
+Start two microservice instances for development and testing as follows, with the appropriate version numbers::
 
     java -Djavax.net.ssl.trustStore=src/test/resources/acumosTrustStore.jks \
          -Djavax.net.ssl.trustStorePassword=acumos \
-         -jar target/federated-gateway-1.0.0-SNAPSHOT.jar \
+         -jar target/gateway-1.x.y-SNAPSHOT.jar \
          --spring.profiles.active="default,acumosa" 
 
     java -Djavax.net.ssl.trustStore=src/test/resources/acumosTrustStore.jks \
          -Djavax.net.ssl.trustStorePassword=acumos \
-         -jar target/federated-gateway-1.0.0-SNAPSHOT.jar \
+         -jar target/gateway-1.x.y-SNAPSHOT.jar \
          --spring.profiles.active="default,acumosb"
 
 
