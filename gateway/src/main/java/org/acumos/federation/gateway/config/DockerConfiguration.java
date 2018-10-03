@@ -26,6 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.model.AuthConfig;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
@@ -41,6 +42,7 @@ public class DockerConfiguration {
 	private DefaultDockerClientConfig.Builder builder;
 	// need to repeat as the builder does not expose it and it avoids building a config object every time ..
 	private String registryUrl;
+	private String registryUsername;
  
 	public DockerConfiguration() {
 		reset();
@@ -60,7 +62,12 @@ public class DockerConfiguration {
   }
 
 	public void setRegistryUsername(String theUsername) {
+		this.registryUsername = theUsername;
 		this.builder.withRegistryUsername(theUsername);
+	}
+
+	public String getRegistryUsername() {
+		return this.registryUsername;
 	}
 
 	public void setRegistryPassword(String thePassword) {
@@ -106,5 +113,15 @@ public class DockerConfiguration {
     return DockerClientBuilder.getInstance(buildConfig())
         		.withDockerCmdExecFactory(DockerClientBuilder.getDefaultDockerCmdExecFactory())
         		.build();
+	}
+
+	/** */
+	public AuthConfig getAuthConfig() {
+		DockerClientConfig config = buildConfig();
+		return new AuthConfig()
+						.withUsername(config.getRegistryUsername())
+						.withPassword(config.getRegistryPassword())
+						.withEmail(config.getRegistryEmail())
+						.withRegistryAddress("http://" + config.getRegistryUrl() + "/v2/");
 	}
 }

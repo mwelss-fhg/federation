@@ -147,19 +147,23 @@ public class ContentServiceImpl extends AbstractServiceImpl
 					throw new ServiceException("Could not find loaded docker image for " + theArtifact);
 				}
 	
-				//new image name for re-tagging. is this really necessary ??
-				String imageName = theArtifact.getName() + "_" + theSolutionId; 
-				docker.tagImageCmd(image.getId(), imageName, theArtifact.getVersion()).exec();
-				log.debug(EELFLoggerDelegate.debugLogger, "Re-tagged docker image: {} to {}:{}", image, imageName, theArtifact.getVersion());
+				//new image name for re-tagging
+				String imageName = dockerConfig.getRegistryUrl() + "/" + theArtifact.getName() + "_" + theSolutionId;
+				String imageTag = imageName;
+				docker.tagImageCmd(image.getId(), imageTag, theArtifact.getVersion()).exec();
+				log.debug(EELFLoggerDelegate.debugLogger, "Re-tagged (1) docker image: {} to {}:{}", image, imageTag, theArtifact.getVersion());
+				//remove old tag that came with the load
+				docker.removeImageCmd(theArtifact.getDescription())
+							.withForce(Boolean.TRUE)
+							.exec();
 			
-				log.debug(EELFLoggerDelegate.debugLogger, "Attempt docker push for image {}", image);
-				docker.pushImageCmd(image.getId())
-							.withName(imageName)
+				log.debug(EELFLoggerDelegate.debugLogger, "Attempt docker push for image {}, tag {}", image, imageTag);
+				docker.pushImageCmd(imageName)
+							.withAuthConfig(dockerConfig.getAuthConfig())
 							.withTag(theArtifact.getVersion())
-							.exec(pushResult = new TrackingPushImageResultCallback());
+							.exec(pushResult = new TrackingPushImageResultCallback())
+							.awaitCompletion();
 
-				//pushResult.awaitSuccess(); //this will return with no warning even whan failed
-				pushResult.awaitCompletion();
 				PushResponseItem pushResponse = pushResult.getResponseItem();
 				if (pushResponse.isErrorIndicated()) {
 					log.debug(EELFLoggerDelegate.debugLogger, "Failed to push artifact {} image {} to docker registry: {}, {}", theArtifact, image, pushResponse.getError(), pushResponse.getErrorDetail());
@@ -169,7 +173,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 					log.debug(EELFLoggerDelegate.debugLogger, "Completed docker push for artifact {} image {}", theArtifact, image);
 				}
 				
-				String imageUri = dockerConfig.getRegistryUrl() + "/" + imageName + ":" + theArtifact.getVersion();
+				String imageUri = imageName + ":" + theArtifact.getVersion();
 				// update artifact with local repo reference. we also update the name and description in order to stay
 				// alligned with on-boarding's unwritten rules
 				theArtifact.setSize((int)imageSource.size()); //this is the decompressed size ..

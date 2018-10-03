@@ -441,7 +441,7 @@ public class FederationClient extends AbstractClient {
 
 		@Override
 		public InputStream getInputStream() throws IOException, IllegalStateException {
-			log.info(EELFLoggerDelegate.debugLogger, "Download input stream access at {}",ExceptionUtils.getStackTrace(new RuntimeException("Input stream access")) );
+			log.trace(EELFLoggerDelegate.debugLogger, "Download input stream access at {}",ExceptionUtils.getStackTrace(new RuntimeException("Input stream access")) );
 			return super.getInputStream();
 		}
 
