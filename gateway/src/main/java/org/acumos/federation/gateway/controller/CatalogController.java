@@ -507,14 +507,9 @@ public class CatalogController extends AbstractController {
 		
 		if (ArtifactType.DockerImage == ArtifactType.forCode(theArtifact.getArtifactTypeCode())) {
 			if (artifactUri != null) {
-				Identifier imageId = Identifier.fromCompoundString(artifactUri);
-			
-				String imageTag = imageId.tag.orNull();
-				if (imageTag != null) {
-					log.debug(EELFLoggerDelegate.debugLogger,	"encodeArtifact: encoded docker image uri to tag " + imageTag);
-					theArtifact.setName(imageTag);
-					theArtifact.setDescription(imageTag);
-				}
+				//ugly but avoids parsing the manifest on the receiving side
+				//this seems to be what on-boarding is doing anyway, otherwise this would amount to information loss
+				theArtifact.setDescription(artifactUri);
 			}
 		}
 	}

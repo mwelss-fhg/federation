@@ -136,8 +136,10 @@ public class ContentServiceImpl extends AbstractServiceImpl
 				List<Image> images = docker.listImagesCmd().exec();
 				log.debug(EELFLoggerDelegate.debugLogger, "Available docker images: {}", images);
 
+				//this relies on the presence of the original uri/tag in the description (which is what the controller does), otherwise
+				//we'd need to pick this information from the manifest
 				Image image = images.stream()
-												.filter(i -> i.getRepoTags() != null && Stream.of(i.getRepoTags()).anyMatch(t -> t.equals(theArtifact.getUri())))
+												.filter(i -> i.getRepoTags() != null && Stream.of(i.getRepoTags()).anyMatch(t -> t.equals(theArtifact.getDescription())))
 												.findFirst()
 												.orElse(null);
 				if (image == null) {
@@ -145,7 +147,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 					throw new ServiceException("Could not find loaded docker image for " + theArtifact);
 				}
 	
-				//new image name for re-tagging
+				//new image name for re-tagging. is this really necessary ??
 				String imageName = theArtifact.getName() + "_" + theSolutionId; 
 				docker.tagImageCmd(image.getId(), imageName, theArtifact.getVersion()).exec();
 				log.debug(EELFLoggerDelegate.debugLogger, "Re-tagged docker image: {} to {}:{}", image, imageName, theArtifact.getVersion());
