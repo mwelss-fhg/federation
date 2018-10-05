@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 
-import org.acumos.cds.domain.MLPArtifact;
-import org.acumos.cds.domain.MLPDocument;
+import org.acumos.federation.gateway.cds.Artifact;
+import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.ServiceContext;
@@ -51,7 +51,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 	 */
 	@Override
 	public Resource getArtifactContent(
-		String theSolutionId, String theRevisionId, MLPArtifact theArtifact, ServiceContext theContext)
+		String theSolutionId, String theRevisionId, Artifact theArtifact, ServiceContext theContext)
 																																															throws ServiceException {
 		if (theArtifact.getUri() == null) {
 			throw new ServiceException("No artifact uri available for " + theArtifact);
@@ -71,7 +71,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 	 */
 	@Override
 	public void putArtifactContent(
-		String theSolutionId, String theRevisionId, MLPArtifact theArtifact, Resource theResource, ServiceContext theContext)
+		String theSolutionId, String theRevisionId, Artifact theArtifact, Resource theResource, ServiceContext theContext)
 																																										throws ServiceException {
 		File target = null;
 		try {
@@ -88,7 +88,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 
 	@Override
 	public Resource getDocumentContent(
-		String theSolutionId, String theRevisionId, MLPDocument theDocument, ServiceContext theContext)
+		String theSolutionId, String theRevisionId, Document theDocument, ServiceContext theContext)
 																																										throws ServiceException {
 		if (theDocument.getUri() == null) {
 			throw new ServiceException("No document uri available for " + theDocument);
@@ -105,7 +105,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 
 	@Override
 	public void putDocumentContent(
-		String theSolutionId, String theRevisionId, MLPDocument theDocument, Resource theResource, ServiceContext theContext)
+		String theSolutionId, String theRevisionId, Document theDocument, Resource theResource, ServiceContext theContext)
 																																										throws ServiceException {
 		File target = null;
 		try {

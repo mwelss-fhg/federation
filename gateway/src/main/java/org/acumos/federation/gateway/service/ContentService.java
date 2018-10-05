@@ -23,8 +23,8 @@
  */
 package org.acumos.federation.gateway.service;
 
-import org.acumos.cds.domain.MLPArtifact;
-import org.acumos.cds.domain.MLPDocument;
+import org.acumos.federation.gateway.cds.Artifact;
+import org.acumos.federation.gateway.cds.Document;
 import org.springframework.core.io.Resource;
 
 /**
@@ -44,7 +44,7 @@ public interface ContentService {
 	 * @return resource containing access to the actual artifact content
 	 */
 	public Resource getArtifactContent(
-			String theSolutionId, String theRevisionId, MLPArtifact theArtifact, ServiceContext theContext)
+			String theSolutionId, String theRevisionId, Artifact theArtifact, ServiceContext theContext)
 																																										throws ServiceException;
 
 	/**
@@ -57,7 +57,7 @@ public interface ContentService {
 	 * @return resource containing access to the actual artifact content
 	 */
 	public default Resource getArtifactContent(
-			String theSolutionId, String theRevisionId, MLPArtifact theArtifact)					throws ServiceException {
+			String theSolutionId, String theRevisionId, Artifact theArtifact)					throws ServiceException {
 		return getArtifactContent(theSolutionId, theRevisionId, theArtifact, selfService());
 	}
 
@@ -75,7 +75,7 @@ public interface ContentService {
 	 *            the service execution context
 	 */
 	public void putArtifactContent(
-		String theSolutionId, String theRevisionId, MLPArtifact theArtifact, Resource theResource, ServiceContext theContext)
+		String theSolutionId, String theRevisionId, Artifact theArtifact, Resource theResource, ServiceContext theContext)
 																																										throws ServiceException;
 	/**
 	 * If the call is succesful the artifact information is updated with the content uri.
@@ -89,7 +89,7 @@ public interface ContentService {
 	 *            the resource providing the artifact content
 	 */
 	public default void putArtifactContent(
-		String theSolutionId, String theRevisionId, MLPArtifact theArtifact, Resource theResource)
+		String theSolutionId, String theRevisionId, Artifact theArtifact, Resource theResource)
 																																										throws ServiceException {
 		putArtifactContent(theSolutionId, theRevisionId, theArtifact, theResource, selfService());
 	}
@@ -106,7 +106,7 @@ public interface ContentService {
 	 * @return resource containing access to the actual document content
 	 */
 	public Resource getDocumentContent(
-		String theSolutionId, String theRevisionId, MLPDocument theDocument, ServiceContext theContext)
+		String theSolutionId, String theRevisionId, Document theDocument, ServiceContext theContext)
 																																										throws ServiceException;
 
 	/**
@@ -119,7 +119,7 @@ public interface ContentService {
 	 * @return resource containing access to the actual document content
 	 */
 	public default Resource getDocumentContent(
-		String theSolutionId, String theRevisionId, MLPDocument theDocument) throws ServiceException {
+		String theSolutionId, String theRevisionId, Document theDocument) throws ServiceException {
 
 		return getDocumentContent(theSolutionId, theRevisionId, theDocument, selfService());
 	}
@@ -138,7 +138,7 @@ public interface ContentService {
 	 *            the execution context
 	 */
 	public void putDocumentContent(
-		String theSolutionId, String theRevisionId, MLPDocument theDocument, Resource theResource, ServiceContext theContext)
+		String theSolutionId, String theRevisionId, Document theDocument, Resource theResource, ServiceContext theContext)
 																																										throws ServiceException;
 
 	/**
@@ -153,7 +153,7 @@ public interface ContentService {
 	 *            the resource providing the document content
 	 */
 	public default void putDocumentContent(
-		String theSolutionId, String theRevisionId, MLPDocument theDocument, Resource theResource)
+		String theSolutionId, String theRevisionId, Document theDocument, Resource theResource)
 																																										throws ServiceException {
 		putDocumentContent(theSolutionId, theRevisionId, theDocument, theResource, selfService());
 	}

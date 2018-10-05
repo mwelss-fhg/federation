@@ -34,8 +34,8 @@ import java.net.URISyntaxException;
 import java.lang.invoke.MethodHandles;
 
 import org.acumos.cds.AccessTypeCode;
-import org.acumos.cds.domain.MLPArtifact;
-import org.acumos.cds.domain.MLPDocument;
+import org.acumos.federation.gateway.cds.Artifact;
+import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.ArtifactType;
 import org.acumos.federation.gateway.config.DockerConfiguration;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
@@ -82,7 +82,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 
 	@Override
 	public Resource getArtifactContent(
-		String theSolutionId, String theRevisionId, MLPArtifact theArtifact, ServiceContext theContext)
+		String theSolutionId, String theRevisionId, Artifact theArtifact, ServiceContext theContext)
 																																															throws ServiceException {
 		if (theArtifact.getUri() == null) {
 			throw new ServiceException("No artifact uri available for " + theArtifact);
@@ -118,7 +118,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 
 	@Override
 	public void putArtifactContent(
-		String theSolutionId, String theRevisionId, MLPArtifact theArtifact, Resource theResource, ServiceContext theContext)
+		String theSolutionId, String theRevisionId, Artifact theArtifact, Resource theResource, ServiceContext theContext)
 																																														throws ServiceException {
 
 		if (ArtifactType.DockerImage == ArtifactType.forCode(theArtifact.getArtifactTypeCode())) {
@@ -134,7 +134,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 					theArtifact, imageSource.size(), imageSource.duration()/1000);
 
 				List<Image> images = docker.listImagesCmd().exec();
-				log.debug(EELFLoggerDelegate.debugLogger, "Available docker images: {}", images);
+				log.trace(EELFLoggerDelegate.debugLogger, "Available docker images: {}", images);
 
 				//this relies on the presence of the original uri/tag in the description (which is what the controller does), otherwise
 				//we'd need to pick this information from the manifest
@@ -143,15 +143,16 @@ public class ContentServiceImpl extends AbstractServiceImpl
 												.findFirst()
 												.orElse(null);
 				if (image == null) {
-					log.debug(EELFLoggerDelegate.debugLogger, "Could not find loaded docker image: {}", theArtifact.getUri());
+					log.debug(EELFLoggerDelegate.debugLogger, "Could not find loaded docker image with tag {}", theArtifact.getDescription());
 					throw new ServiceException("Could not find loaded docker image for " + theArtifact);
 				}
 	
 				//new image name for re-tagging
-				String imageName = dockerConfig.getRegistryUrl() + "/" + theArtifact.getName() + "_" + theSolutionId;
+				String imageName = dockerConfig.getRegistryUrl() + "/" + theArtifact.getName().toLowerCase() + "_" + theSolutionId;
 				String imageTag = imageName;
+				log.debug(EELFLoggerDelegate.debugLogger, "Attempt re-tagging of docker image {} with {}:{}", image, imageTag, theArtifact.getVersion());
 				docker.tagImageCmd(image.getId(), imageTag, theArtifact.getVersion()).exec();
-				log.debug(EELFLoggerDelegate.debugLogger, "Re-tagged (1) docker image: {} to {}:{}", image, imageTag, theArtifact.getVersion());
+				log.debug(EELFLoggerDelegate.debugLogger, "Re-tagged docker image: {} to {}:{}", image, imageTag, theArtifact.getVersion());
 				//remove old tag that came with the load
 				docker.removeImageCmd(theArtifact.getDescription())
 							.withForce(Boolean.TRUE)
@@ -194,7 +195,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 			}
 		}
 		else {
-			String[] nameParts = splitName(theArtifact.getName());
+			String[] nameParts = splitName(theArtifact.getFilename());
 			String uri = putNexusContent(
 				nexusPrefix(theSolutionId, theRevisionId), nameParts[0], theArtifact.getVersion(), nameParts[1], theResource);
 			// update artifact with local repo reference
@@ -204,7 +205,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 
 	@Override
 	public Resource getDocumentContent(
-		String theSolutionId, String theRevisionId, MLPDocument theDocument, ServiceContext theContext)
+		String theSolutionId, String theRevisionId, Document theDocument, ServiceContext theContext)
 																																										throws ServiceException {
 		if (theDocument.getUri() == null) {
 			throw new ServiceException("No document uri available for " + theDocument);
@@ -215,9 +216,9 @@ public class ContentServiceImpl extends AbstractServiceImpl
 
 	@Override
 	public void putDocumentContent(
-		String theSolutionId, String theRevisionId, MLPDocument theDocument, Resource theResource, ServiceContext theContext)
+		String theSolutionId, String theRevisionId, Document theDocument, Resource theResource, ServiceContext theContext)
 																																										throws ServiceException {
-		String[] nameParts = splitName(theDocument.getName());
+		String[] nameParts = splitName(theDocument.getFilename());
 		String uri = putNexusContent(
 			nexusPrefix(theSolutionId, theRevisionId), nameParts[0], AccessTypeCode.PB.name(), nameParts[1], theResource);
 		theDocument.setUri(uri);

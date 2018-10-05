@@ -35,6 +35,8 @@ import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.federation.gateway.cds.ArtifactType;
+import org.acumos.federation.gateway.cds.Artifact;
+import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
@@ -243,12 +245,12 @@ public class CatalogController extends AbstractController {
 			else {
 				for (MLPArtifact artifact : solutionRevision.getArtifacts()) {
 					if (!context.getPeer().getPeerInfo().isLocal()) {
-						encodeArtifact(theSolutionId, theRevisionId, artifact, theHttpRequest);
+						encodeArtifact(theSolutionId, theRevisionId, (Artifact)artifact, theHttpRequest);
 					}
 				}
 				for (MLPDocument document : solutionRevision.getDocuments()) {
 					if (!context.getPeer().getPeerInfo().isLocal()) {
-						encodeDocument(theSolutionId, theRevisionId, document, theHttpRequest);
+						encodeDocument(theSolutionId, theRevisionId, (Document)document, theHttpRequest);
 					}
 				}
 	
@@ -305,7 +307,7 @@ public class CatalogController extends AbstractController {
 			else {
 				for (MLPArtifact artifact : solutionRevisionArtifacts) {
 					if (!context.getPeer().getPeerInfo().isLocal()) {
-						encodeArtifact(theSolutionId, theRevisionId, artifact, theHttpRequest);
+						encodeArtifact(theSolutionId, theRevisionId, (Artifact)artifact, theHttpRequest);
 					}
 				}
 				response = JsonResponse.<List<MLPArtifact>> buildResponse()
@@ -363,7 +365,7 @@ public class CatalogController extends AbstractController {
 			else {
 				for (MLPDocument document : solutionRevisionDocuments) {
 					if (!context.getPeer().getPeerInfo().isLocal()) {
-						encodeDocument(theSolutionId, theRevisionId, document, theHttpRequest);
+						encodeDocument(theSolutionId, theRevisionId, (Document)document, theHttpRequest);
 					}
 				}
 				response = JsonResponse.<List<MLPDocument>> buildResponse()
@@ -489,9 +491,12 @@ public class CatalogController extends AbstractController {
 	}
 	
 	/** */
-	private void encodeArtifact(String theSolutionId, String theRevisionId, MLPArtifact theArtifact, HttpServletRequest theRequest)
+	private void encodeArtifact(String theSolutionId, String theRevisionId, Artifact theArtifact, HttpServletRequest theRequest)
 																																						throws URISyntaxException {
 		String artifactUri = theArtifact.getUri();
+
+		//remember the artifact filename before redirecting
+		theArtifact.setFilename(theArtifact.getUriFilename());
 
 		//redirect		
 		{
@@ -515,9 +520,12 @@ public class CatalogController extends AbstractController {
 	}
 	
 	/** */
-	private void encodeDocument(String theSolutionId, String theRevisionId, MLPDocument theDocument, HttpServletRequest theRequest)
+	private void encodeDocument(String theSolutionId, String theRevisionId, Document theDocument, HttpServletRequest theRequest)
 																																							throws URISyntaxException {
 		String artifactUri = theDocument.getUri();
+
+		//remember the document filename before redirecting
+		theDocument.setFilename(theDocument.getUriFilename());
 
 		//redirect		
 		{

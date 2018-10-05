@@ -19,7 +19,8 @@
     "size":0,
     "metadata":"mock artifact",
     "created":"2017-09-10",
-    "modified":"2017-09-11"
+    "modified":"2017-09-11",
+		"uri":"/somewhere/artifact.log"
    }],
  "documents":[]
  }

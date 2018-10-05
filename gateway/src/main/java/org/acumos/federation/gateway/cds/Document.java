@@ -19,21 +19,32 @@
  */
 package org.acumos.federation.gateway.cds;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.acumos.cds.domain.MLPDocument;
+
+import org.apache.commons.io.FilenameUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  */
 public class Document extends MLPDocument {
+
+	private String filename;
 
 	public Document() {
 	}
 
 	public Document(MLPDocument theCDSDocument) {
 		super(theCDSDocument);
+		setFilename(getUriFilename());
 	}
 	
 	public Document(Document theDocument) {
 		super(theDocument);
+		this.filename = theDocument.getFilename();
 	}
 
 	public static DocumentBuilder build() {
@@ -43,6 +54,25 @@ public class Document extends MLPDocument {
 	public static DocumentBuilder buildFrom(MLPDocument theDocument) {
 		return new DocumentBuilder(new Document(theDocument));
 	}
+
+	public void setFilename(String theFilename) {
+		this.filename = theFilename;
+	}
+
+	public String getFilename() {
+		return this.filename;
+	}
+
+	@JsonIgnore
+	public String getUriFilename() {
+		try {
+			return FilenameUtils.getName(new URI(getUri()).getPath());
+		}
+		catch (URISyntaxException urisx) {
+			throw new IllegalStateException("Invalid document uri", urisx);
+		}
+	}
+
 
 }
 

@@ -173,7 +173,7 @@ public class PeerGateway {
 			//return (ICommonDataServiceRestClient)theContext.getAttribute(AbstractServiceImpl.Attributes.cdsClient);
 		}
 
-		private MLPArtifact createMLPArtifact(String theSolutionId, String theRevisionId, MLPArtifact peerArtifact,
+		private Artifact createArtifact(String theSolutionId, String theRevisionId, Artifact peerArtifact,
 				ServiceContext theContext) throws Exception {
 
 			Artifact artifact = Artifact.buildFrom(peerArtifact)
@@ -196,7 +196,7 @@ public class PeerGateway {
 		}
 
 		/* we create a new one as nothing is preserved. assumes matching ids. */
-		private MLPArtifact copyMLPArtifact(MLPArtifact peerArtifact, MLPArtifact localArtifact) {
+		private Artifact copyArtifact(Artifact peerArtifact, Artifact localArtifact) {
 
 			return Artifact.buildFrom(peerArtifact)
 								.withId(localArtifact.getArtifactId())
@@ -204,7 +204,7 @@ public class PeerGateway {
 								.build();
 		}
 
-		private MLPDocument createMLPDocument(String theSolutionId, String theRevisionId, MLPDocument peerDocument,
+		private Document createDocument(String theSolutionId, String theRevisionId, Document peerDocument,
 				ServiceContext theContext) {
 
 			Document document = Document.buildFrom(peerDocument)
@@ -226,7 +226,7 @@ public class PeerGateway {
 			}
 		}
 
-		private MLPDocument copyMLPDocument(MLPDocument peerDocument, MLPDocument localDocument) {
+		private Document copyDocument(Document peerDocument, Document localDocument) {
 
 			return Document.buildFrom(peerDocument)
 								.withId(localDocument.getDocumentId())
@@ -324,34 +324,35 @@ public class PeerGateway {
 					continue; //try procecssing the next revision
 				}
 
-				List<MLPArtifact> peerArtifacts = (List)((SolutionRevision)peerRevision).getArtifacts();
-				List<MLPDocument> peerDocuments = (List)((SolutionRevision)peerRevision).getDocuments();
+				List<Artifact> peerArtifacts = (List)((SolutionRevision)peerRevision).getArtifacts();
+				List<Document> peerDocuments = (List)((SolutionRevision)peerRevision).getDocuments();
 
-				List<MLPArtifact> catalogArtifacts = (List)((SolutionRevision)localRevision).getArtifacts();
-				List<MLPDocument>	catalogDocuments = (List)((SolutionRevision)localRevision).getDocuments();
+				List<Artifact> catalogArtifacts = (List)((SolutionRevision)localRevision).getArtifacts();
+				List<Document> catalogDocuments = (List)((SolutionRevision)localRevision).getDocuments();
 
-				final List<MLPArtifact> localArtifacts = catalogArtifacts;
+				final List<Artifact> localArtifacts = catalogArtifacts;
 				// map the artifacts
 				// TODO: track deleted artifacts
-				Map<MLPArtifact, MLPArtifact> peerToLocalArtifacts = new HashMap<MLPArtifact, MLPArtifact>();
+				Map<Artifact, Artifact> peerToLocalArtifacts = new HashMap<Artifact, Artifact>();
 				peerArtifacts.forEach(peerArtifact -> peerToLocalArtifacts.put(peerArtifact, localArtifacts.stream()
 						.filter(localArtifact -> localArtifact.getArtifactId().equals(peerArtifact.getArtifactId()))
 						.findFirst().orElse(null)));
 
-				for (Map.Entry<MLPArtifact, MLPArtifact> artifactEntry : peerToLocalArtifacts.entrySet()) {
-					MLPArtifact peerArtifact = artifactEntry.getKey(), localArtifact = artifactEntry.getValue();
+				for (Map.Entry<Artifact, Artifact> artifactEntry : peerToLocalArtifacts.entrySet()) {
+					Artifact peerArtifact = artifactEntry.getKey(),
+									 localArtifact = artifactEntry.getValue();
 					boolean doUpdate = false;
 					boolean doContent = (peerArtifact.getUri() != null) &&
 															(SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
 
 					if (localArtifact == null) {
-						localArtifact = createMLPArtifact(localSolution.getSolutionId(), localRevision.getRevisionId(),
+						localArtifact = createArtifact(localSolution.getSolutionId(), localRevision.getRevisionId(),
 								peerArtifact, theContext);
 					}
 					else {
 						if (!peerArtifact.getVersion().equals(localArtifact.getVersion())) {
 							// update local artifact
-							localArtifact = copyMLPArtifact(peerArtifact, localArtifact);
+							localArtifact = copyArtifact(peerArtifact, localArtifact);
 							doUpdate = true;
 						}
 						else {
@@ -407,23 +408,23 @@ public class PeerGateway {
 				} //end map artifacts loop
 
 
-				final List<MLPDocument> localDocuments = catalogDocuments;
+				final List<Document> localDocuments = catalogDocuments;
 				// map the documents
 				// TODO: track deleted documents
-				Map<MLPDocument, MLPDocument> peerToLocalDocuments = new HashMap<MLPDocument, MLPDocument>();
+				Map<Document, Document> peerToLocalDocuments = new HashMap<Document, Document>();
 				peerDocuments.forEach(peerDocument -> peerToLocalDocuments.put(peerDocument, localDocuments.stream()
 						.filter(localDocument -> localDocument.getDocumentId().equals(peerDocument.getDocumentId()))
 						.findFirst().orElse(null)));
 
-				for (Map.Entry<MLPDocument, MLPDocument> documentEntry : peerToLocalDocuments.entrySet()) {
-					MLPDocument peerDocument = documentEntry.getKey(),
-											localDocument = documentEntry.getValue();
+				for (Map.Entry<Document, Document> documentEntry : peerToLocalDocuments.entrySet()) {
+					Document peerDocument = documentEntry.getKey(),
+									 localDocument = documentEntry.getValue();
 					boolean doUpdate = false;
 					boolean doContent = (peerDocument.getUri() != null) &&
 															(SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
 
 					if (localDocument == null) {
-						localDocument = createMLPDocument(localSolution.getSolutionId(), localRevision.getRevisionId(),
+						localDocument = createDocument(localSolution.getSolutionId(), localRevision.getRevisionId(),
 								peerDocument, theContext);
 					}
 					else {
@@ -431,7 +432,7 @@ public class PeerGateway {
 						if (peerDocument.getVersion() != null && localDocument.getVersion() != null &&
 								!peerDocument.getVersion().equals(localDocument.getVersion())) {
 							// update local doc
-							localDocument = copyMLPDocument(peerDocument, localDocument);
+							localDocument = copyDocument(peerDocument, localDocument);
 							doUpdate = true;
 						}
 						else {

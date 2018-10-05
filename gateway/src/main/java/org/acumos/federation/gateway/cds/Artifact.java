@@ -19,21 +19,32 @@
  */
 package org.acumos.federation.gateway.cds;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.acumos.cds.domain.MLPArtifact;
+
+import org.apache.commons.io.FilenameUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  */
 public class Artifact extends MLPArtifact {
+
+	private String filename;
 
 	public Artifact() {
 	}
 
 	public Artifact(MLPArtifact theCDSArtifact) {
 		super(theCDSArtifact);
+		setFilename(getUriFilename());
 	}
 	
 	public Artifact(Artifact theArtifact) {
 		super(theArtifact);
+		this.filename = theArtifact.getFilename();
 	}
 
 	public static ArtifactBuilder build() {
@@ -44,6 +55,23 @@ public class Artifact extends MLPArtifact {
 		return new ArtifactBuilder(new Artifact(theArtifact));
 	}
 
-}
+	public void setFilename(String theFilename) {
+		this.filename = theFilename;
+	}
 
+	public String getFilename() {
+		return this.filename;
+	}
+
+	@JsonIgnore
+	public String getUriFilename() {
+		try {
+			return FilenameUtils.getName(new URI(getUri()).getPath());
+		}
+		catch (URISyntaxException urisx) {
+			throw new IllegalStateException("Invalid artifact uri", urisx);
+		}
+	}
+
+}
 
