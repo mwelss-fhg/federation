@@ -32,6 +32,7 @@ import javax.annotation.PreDestroy;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
+import org.acumos.federation.gateway.cds.PeerSubscription;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
@@ -159,14 +160,14 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 				.orElse(null);
 		log.info(EELFLoggerDelegate.debugLogger,
 				"Peer " + thePeerId + " subs:" + (peer == null ? "none" : peer.getSubscriptions()));
-		return peer == null ? Collections.EMPTY_LIST : peer.getSubscriptions();
+		return peer == null ? Collections.EMPTY_LIST : (List)peer.getSubscriptions();
 	}
 
 	/** */
 	@Override
-	public MLPPeerSubscription getPeerSubscription(Long theSubId) {
+	public PeerSubscription getPeerSubscription(Long theSubId) {
 		for (FLPPeer peer : this.peers) {
-			for (MLPPeerSubscription peerSub : peer.getSubscriptions()) {
+			for (PeerSubscription peerSub : peer.getSubscriptions()) {
 				if (peerSub.getSubId().equals(theSubId))
 					return peerSub;
 			}
@@ -179,10 +180,10 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	public void updatePeerSubscription(MLPPeerSubscription theSub) throws ServiceException {
 		for (FLPPeer peer : this.peers) {
 			for (int i = 0; i < peer.getSubscriptions().size(); i++) {
-				MLPPeerSubscription peerSub = peer.getSubscriptions().get(i);
+				PeerSubscription peerSub = peer.getSubscriptions().get(i);
 				if (theSub.getSubId().equals(peerSub.getSubId()) &&
 						theSub.getPeerId().equals(peerSub.getPeerId())) {
-					peer.getSubscriptions().set(i, theSub);
+					peer.getSubscriptions().set(i, new PeerSubscription(theSub));
 					return;
 				}
 			}
@@ -194,7 +195,7 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	public static class FLPPeer extends MLPPeer {
 
 		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-		private List<MLPPeerSubscription> subscriptions;
+		private List<PeerSubscription> subscriptions;
 
 		public FLPPeer() {
 		}
@@ -204,11 +205,11 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 		}
 
 		// @JsonIgnore
-		public List<MLPPeerSubscription> getSubscriptions() {
+		public List<PeerSubscription> getSubscriptions() {
 			return this.subscriptions;
 		}
 
-		public void setSubscriptions(List<MLPPeerSubscription> theSubscriptions) {
+		public void setSubscriptions(List<PeerSubscription> theSubscriptions) {
 			this.subscriptions = theSubscriptions;
 		}
 

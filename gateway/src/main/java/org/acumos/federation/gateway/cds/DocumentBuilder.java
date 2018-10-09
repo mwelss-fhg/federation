@@ -40,8 +40,18 @@ public class DocumentBuilder {
 		return this;
 	}
 
+	public DocumentBuilder withCreated(long theDate) {
+		this.document.setCreated(new Date(theDate));
+		return this;
+	}
+
 	public DocumentBuilder withModifiedDate(Date theDate) {
 		this.document.setModified(theDate);
+		return this;
+	}
+
+	public DocumentBuilder withModified(long theDate) {
+		this.document.setModified(new Date(theDate));
 		return this;
 	}
 

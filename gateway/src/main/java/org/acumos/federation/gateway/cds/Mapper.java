@@ -25,10 +25,12 @@ import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.cds.domain.MLPPeerSubscription;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
@@ -41,28 +43,29 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
  */
 public class Mapper {
 
-
 	public static ObjectMapper build() {
 		ObjectMapper mapper = new ObjectMapper();
 
 		SimpleModule fedModule =
       new SimpleModule("CDSModule",
-          new Version(1, 17, 0, null));
+          new Version(1, 18, 0, null));
     fedModule.addDeserializer(MLPSolution.class, new SolutionDeserializer());
     fedModule.addDeserializer(MLPSolutionRevision.class, new SolutionRevisionDeserializer());
     fedModule.addDeserializer(MLPArtifact.class, new ArtifactDeserializer());
     fedModule.addDeserializer(MLPDocument.class, new DocumentDeserializer());
+    fedModule.addDeserializer(MLPPeerSubscription.class, new PeerSubscriptionDeserializer());
+
 		mapper.registerModule(fedModule);
 
 		return mapper;
 	}
-	
+
 	private static class SolutionDeserializer extends StdDeserializer<MLPSolution> {
- 
+
 		public SolutionDeserializer() {
 			super(MLPSolution.class);
 		}
- 
+
 		@Override
   	public MLPSolution deserialize(JsonParser theParser, DeserializationContext theCtx) 
       																								throws IOException, JsonProcessingException {
@@ -113,6 +116,19 @@ public class Mapper {
   	}
 	}
 
+	private static class PeerSubscriptionDeserializer extends StdDeserializer<MLPPeerSubscription> {
+ 
+		public PeerSubscriptionDeserializer() {
+			super(MLPPeerSubscription.class);
+		}
+ 
+		@Override
+  	public MLPPeerSubscription deserialize(JsonParser theParser, DeserializationContext theCtx) 
+      																								throws IOException, JsonProcessingException {
+  	  ObjectMapper mapper = (ObjectMapper) theParser.getCodec();
+    	return mapper.readValue(theParser, PeerSubscription.class);
+  	}
+	}
 
 }
 

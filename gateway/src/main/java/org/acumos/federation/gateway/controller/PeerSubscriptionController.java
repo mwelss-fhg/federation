@@ -28,6 +28,7 @@ import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
+import org.acumos.federation.gateway.cds.PeerSubscription;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
@@ -80,7 +81,7 @@ public class PeerSubscriptionController extends AbstractController {
 			log.debug(EELFLoggerDelegate.debugLogger, "trigger");
 	
 			MLPPeer peer = this.peerService.getPeerById(thePeerId);
-			MLPPeerSubscription subscription = this.peerSubscriptionService.getPeerSubscription(theSubscriptionId);
+			PeerSubscription subscription = this.peerSubscriptionService.getPeerSubscription(theSubscriptionId);
 			//coherence check
 			//subscription.getPeerId().equals(thePeerId);
 

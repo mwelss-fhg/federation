@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.cds.domain.MLPPeerSubscription;
+import org.acumos.federation.gateway.cds.PeerSubscription;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.ServiceException;
@@ -54,9 +55,9 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 	}
 
 	@Override
-	public MLPPeerSubscription getPeerSubscription(Long theSubId) {
+	public PeerSubscription getPeerSubscription(Long theSubId) {
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription:{}", theSubId);
-		MLPPeerSubscription peerSubscription = getClient().getPeerSubscription(theSubId);
+		PeerSubscription peerSubscription = (PeerSubscription)getClient().getPeerSubscription(theSubId);
 		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription :{}", peerSubscription);
 		return peerSubscription;
 	}

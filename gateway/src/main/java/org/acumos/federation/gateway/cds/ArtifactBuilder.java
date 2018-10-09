@@ -40,8 +40,18 @@ public class ArtifactBuilder {
 		return this;
 	}
 
+	public ArtifactBuilder withCreated(long theDate) {
+		this.artifact.setCreated(new Date(theDate));
+		return this;
+	}
+
 	public ArtifactBuilder withModifiedDate(Date theDate) {
 		this.artifact.setModified(theDate);
+		return this;
+	}
+
+	public ArtifactBuilder withModified(long theDate) {
+		this.artifact.setModified(new Date(theDate));
 		return this;
 	}
 

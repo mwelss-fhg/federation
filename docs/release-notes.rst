@@ -23,6 +23,13 @@ Federation Gateway Release Notes
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 
 --------------------------
+Version 1.18.6, 2018-10-08
+--------------------------
+
+* Fix for the handling of mis-represented content uris (`ACUMOS-1780 <https://jira.acumos.org/browse/ACUMOS-1780>`_)
+* Adds subscription option directing the handling of error in content retrieval with respect to catalog updates
+
+--------------------------
 Version 1.18.5, 2018-10-02
 --------------------------
 

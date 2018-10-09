@@ -45,6 +45,7 @@ import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.cds.SubscriptionScope;
+import org.acumos.federation.gateway.cds.PeerSubscription;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
@@ -139,12 +140,12 @@ public class PeerGateway {
 	public class PeerGatewayUpdateTask implements Runnable {
 
 		private MLPPeer peer;
-		private MLPPeerSubscription sub;
+		private PeerSubscription sub;
 		private List<MLPSolution> solutions;
 
 		public PeerGatewayUpdateTask(MLPPeer thePeer, MLPPeerSubscription theSub, List<MLPSolution> theSolutions) {
 			this.peer = thePeer;
-			this.sub = theSub;
+			this.sub = new PeerSubscription(theSub);
 			this.solutions = theSolutions;
 		}
 
@@ -173,65 +174,86 @@ public class PeerGateway {
 			//return (ICommonDataServiceRestClient)theContext.getAttribute(AbstractServiceImpl.Attributes.cdsClient);
 		}
 
-		private Artifact createArtifact(String theSolutionId, String theRevisionId, Artifact peerArtifact,
-				ServiceContext theContext) throws Exception {
-
-			Artifact artifact = Artifact.buildFrom(peerArtifact)
-														.withUser(getUserId(this.sub))
-														.build();
-			try {
-				getCDSClient(theContext).createArtifact(artifact);
-				getCDSClient(theContext).addSolutionRevisionArtifact(theSolutionId, theRevisionId, artifact.getArtifactId());
-			}
-			catch (HttpStatusCodeException restx) {
-				log.error(EELFLoggerDelegate.errorLogger,
-						"createArtifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(), restx);
-				return null;
-			}
-			catch (Exception x) {
-				log.error(EELFLoggerDelegate.errorLogger, "createArtifact unexpected failure", x);
-				throw x;
-			}
-			return artifact;
+		private Artifact copyArtifact(Artifact peerArtifact) {
+			return Artifact.buildFrom(peerArtifact)
+								.withUser(getUserId(this.sub))
+								.withCreated(0)
+								.withModified(0)
+								.build();
 		}
 
 		/* we create a new one as nothing is preserved. assumes matching ids. */
 		private Artifact copyArtifact(Artifact peerArtifact, Artifact localArtifact) {
-
 			return Artifact.buildFrom(peerArtifact)
 								.withId(localArtifact.getArtifactId())
 								.withUser(getUserId(this.sub))
 								.build();
 		}
 
-		private Document createDocument(String theSolutionId, String theRevisionId, Document peerDocument,
-				ServiceContext theContext) {
+		private void putArtifact(String theSolutionId, String theRevisionId, Artifact theArtifact,
+				ServiceContext theContext) throws ServiceException {
 
-			Document document = Document.buildFrom(peerDocument)
-														.withUser(getUserId(this.sub))
-														.build();
 			try {
-				getCDSClient(theContext).createDocument(document);
-				getCDSClient(theContext).addSolutionRevisionDocument(theRevisionId, AccessTypeCode.PB.name(), document.getDocumentId());
-				return document;
+				if (theArtifact.getCreated().getTime() == 0) {
+					getCDSClient(theContext).createArtifact(theArtifact);
+					getCDSClient(theContext).addSolutionRevisionArtifact(theSolutionId, theRevisionId, theArtifact.getArtifactId());
+					log.info(EELFLoggerDelegate.debugLogger, "Local artifact created: {}", theArtifact);
+				}
+				else {
+					getCDSClient(theContext).updateArtifact(theArtifact);
+					log.info(EELFLoggerDelegate.debugLogger, "Local artifact updated: {}", theArtifact);
+				}
+	
 			}
 			catch (HttpStatusCodeException restx) {
 				log.error(EELFLoggerDelegate.errorLogger,
-						"createDocument CDS call failed. CDS message is " + restx.getResponseBodyAsString(), restx);
-				return null;
+						"Artifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(), restx);
+				throw new ServiceException("Artifact CDS call failed.", restx);
 			}
 			catch (Exception x) {
-				log.error(EELFLoggerDelegate.errorLogger, "createDocument unexpected failure", x);
-				return null;
+				log.error(EELFLoggerDelegate.errorLogger, "Artifact unexpected failure", x);
+				throw new ServiceException("Artifact CDS call failed.", x);
 			}
 		}
 
-		private Document copyDocument(Document peerDocument, Document localDocument) {
+		private Document copyDocument(Document peerDocument) {
+			return Document.buildFrom(peerDocument)
+								.withUser(getUserId(this.sub))
+								.withCreated(0)
+								.withModified(0)
+								.build();
+		}
 
+		private Document copyDocument(Document peerDocument, Document localDocument) {
 			return Document.buildFrom(peerDocument)
 								.withId(localDocument.getDocumentId())
 								.withUser(getUserId(this.sub))
 								.build();
+		}
+
+		private void putDocument(String theSolutionId, String theRevisionId, Document theDocument,
+				ServiceContext theContext) throws ServiceException {
+
+			try {
+				if (theDocument.getCreated().getTime() == 0) {
+					getCDSClient(theContext).createDocument(theDocument);
+					getCDSClient(theContext).addSolutionRevisionDocument(theRevisionId, AccessTypeCode.PB.name(), theDocument.getDocumentId());
+					log.info(EELFLoggerDelegate.debugLogger, "Local document created: {}", theDocument);
+				}
+				else {
+					getCDSClient(theContext).updateDocument(theDocument);
+					log.info(EELFLoggerDelegate.debugLogger, "Local document updated: {}", theDocument);
+				}
+			}
+			catch (HttpStatusCodeException restx) {
+				log.error(EELFLoggerDelegate.errorLogger,
+						"Document CDS call failed. CDS message is " + restx.getResponseBodyAsString(), restx);
+				throw new ServiceException("Document CDS call failed.", restx);
+			}
+			catch (Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "Document handling unexpected failure", x);
+				throw new ServiceException("Document handling unexpected failure", x);
+			}
 		}
 
 
@@ -251,8 +273,8 @@ public class PeerGateway {
 
 			FederationClient fedClient = clients.getFederationClient(this.peer.getApiUrl());
 
-			Solution localSolution,
-							 peerSolution;
+			Solution localSolution = null,
+							 peerSolution = null;
 
 			//retrieve the full representation from the peer
 			peerSolution = (Solution)fedClient.getSolution(theSolution.getSolutionId()).getContent();
@@ -341,26 +363,23 @@ public class PeerGateway {
 				for (Map.Entry<Artifact, Artifact> artifactEntry : peerToLocalArtifacts.entrySet()) {
 					Artifact peerArtifact = artifactEntry.getKey(),
 									 localArtifact = artifactEntry.getValue();
-					boolean doUpdate = false;
-					boolean doContent = (peerArtifact.getUri() != null) &&
-															(SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
+					boolean doCatalog = false;
 
 					if (localArtifact == null) {
-						localArtifact = createArtifact(localSolution.getSolutionId(), localRevision.getRevisionId(),
-								peerArtifact, theContext);
+						localArtifact = copyArtifact(peerArtifact);
+						doCatalog = true;
 					}
 					else {
 						if (!peerArtifact.getVersion().equals(localArtifact.getVersion())) {
 							// update local artifact
 							localArtifact = copyArtifact(peerArtifact, localArtifact);
-							doUpdate = true;
-						}
-						else {
-							//if no changes, do not go after the content
-							doContent = false;
+							doCatalog = true;
 						}
 					}
 
+					boolean doContent = doCatalog &&
+															(peerArtifact.getUri() != null) &&
+															(SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
 					if (doContent) {
 						log.info(EELFLoggerDelegate.debugLogger, "Processing content for artifact {}", peerArtifact); 
 						// TODO: we are trying to access the artifact by its identifier which
@@ -374,17 +393,19 @@ public class PeerGateway {
 						}
 						catch (Exception x) {
 							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos artifact content", x);
+							doCatalog = this.sub.getSubscriptionOptions().alwaysUpdateCatalog();
 						}
 
 						if (artifactContent != null) {
 							try {
 								content.putArtifactContent(
 									localSolution.getSolutionId(), localRevision.getRevisionId(), localArtifact, artifactContent);
-								doUpdate = true;
+								doCatalog = true;
 							}
 							catch (ServiceException sx) {
 								log.error(EELFLoggerDelegate.errorLogger,
 											"Failed to store artifact content to local repo", sx);
+								doCatalog = this.sub.getSubscriptionOptions().alwaysUpdateCatalog();
 							}
 							finally {
 								if (artifactContent instanceof Closeable) {
@@ -394,15 +415,12 @@ public class PeerGateway {
 						}
 					}
 
-					if (doUpdate) {
+					if (doCatalog) {
 						try {
-							getCDSClient(theContext).updateArtifact(localArtifact);
-							log.info(EELFLoggerDelegate.debugLogger, "Local artifact updated with local content reference: {}", localArtifact); 
+							putArtifact(localSolution.getSolutionId(), localRevision.getRevisionId(), localArtifact, theContext);
 						}
-						catch (HttpStatusCodeException restx) {
-							log.error(EELFLoggerDelegate.errorLogger,
-									"updateArtifact CDS call failed. CDS message is " + restx.getResponseBodyAsString(),
-									restx);
+						catch (ServiceException sx) {
+							log.error(EELFLoggerDelegate.errorLogger, "Artifact processing failed.", sx);
 						}
 					}
 				} //end map artifacts loop
@@ -419,13 +437,11 @@ public class PeerGateway {
 				for (Map.Entry<Document, Document> documentEntry : peerToLocalDocuments.entrySet()) {
 					Document peerDocument = documentEntry.getKey(),
 									 localDocument = documentEntry.getValue();
-					boolean doUpdate = false;
-					boolean doContent = (peerDocument.getUri() != null) &&
-															(SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
+					boolean doCatalog = false;
 
 					if (localDocument == null) {
-						localDocument = createDocument(localSolution.getSolutionId(), localRevision.getRevisionId(),
-								peerDocument, theContext);
+						localDocument = copyDocument(peerDocument);
+						doCatalog = true;
 					}
 					else {
 						//version strings are not standard so comparing them is not necessarly safe
@@ -433,14 +449,13 @@ public class PeerGateway {
 								!peerDocument.getVersion().equals(localDocument.getVersion())) {
 							// update local doc
 							localDocument = copyDocument(peerDocument, localDocument);
-							doUpdate = true;
-						}
-						else {
-							//if no changes, do not go after the content
-							doContent = false;
+							doCatalog = true;
 						}
 					}
 
+					boolean doContent = doCatalog &&
+															(peerDocument.getUri() != null) &&
+															(SubscriptionScope.Full == SubscriptionScope.forCode(this.sub.getScopeType()));
 					if (doContent) {
 						log.info(EELFLoggerDelegate.debugLogger, "Processing content for document {}", peerDocument); 
 						// TODO: we are trying to access the document by its identifier which
@@ -454,30 +469,29 @@ public class PeerGateway {
 						}
 						catch (Exception x) {
 							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos document content", x);
+							doCatalog = this.sub.getSubscriptionOptions().alwaysUpdateCatalog();
 						}
 
 						if (documentContent != null) {
 							try {
 								content.putDocumentContent(
 									localSolution.getSolutionId(), localRevision.getRevisionId(), localDocument, documentContent);
-								doUpdate = true;
+								doCatalog = true;
 							}
 							catch (ServiceException sx) {
 								log.error(EELFLoggerDelegate.errorLogger,
 											"Failed to store document content to local repo", sx);
+								doCatalog = this.sub.getSubscriptionOptions().alwaysUpdateCatalog();
 							}
 						}
 					}
 
-					if (doUpdate) {
+					if (doCatalog) {
 						try {
-							getCDSClient(theContext).updateDocument(localDocument);
-							log.info(EELFLoggerDelegate.debugLogger, "Local document updated with local content reference: {}", localDocument); 
+							putDocument(localSolution.getSolutionId(), localRevision.getRevisionId(), localDocument, theContext);
 						}
-						catch (HttpStatusCodeException restx) {
-							log.error(EELFLoggerDelegate.errorLogger,
-									"updateDocument CDS call failed. CDS message is " + restx.getResponseBodyAsString(),
-									restx);
+						catch (ServiceException sx) {
+							log.error(EELFLoggerDelegate.errorLogger,	"Document processing failed",	sx);
 						}
 					}
 	

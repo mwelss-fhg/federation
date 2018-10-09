@@ -19,18 +19,12 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import org.acumos.cds.domain.MLPArtifact;
-
-import org.apache.commons.io.FilenameUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  */
-public class Artifact extends MLPArtifact {
+public class Artifact extends MLPArtifact
+											implements Reference {
 
 	private String filename;
 
@@ -61,16 +55,6 @@ public class Artifact extends MLPArtifact {
 
 	public String getFilename() {
 		return this.filename;
-	}
-
-	@JsonIgnore
-	public String getUriFilename() {
-		try {
-			return FilenameUtils.getName(new URI(getUri()).getPath());
-		}
-		catch (URISyntaxException urisx) {
-			throw new IllegalStateException("Invalid artifact uri", urisx);
-		}
 	}
 
 }

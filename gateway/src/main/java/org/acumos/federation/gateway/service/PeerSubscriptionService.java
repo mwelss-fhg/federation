@@ -24,6 +24,8 @@ import java.util.List;
 
 import org.acumos.cds.domain.MLPPeerSubscription;
 
+import org.acumos.federation.gateway.cds.PeerSubscription;
+
 /**
  * 
  *
@@ -42,7 +44,7 @@ public interface PeerSubscriptionService {
 	 *            Peer subscription ID
 	 * @return Peer Subscription based on the configured Subject Name
 	 */
-	MLPPeerSubscription getPeerSubscription(Long subId);
+	PeerSubscription getPeerSubscription(Long subId);
 
 	/**
 	 * @param mlpPeerSubscription

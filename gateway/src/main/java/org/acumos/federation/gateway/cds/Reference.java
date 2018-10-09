@@ -19,45 +19,36 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import org.acumos.cds.domain.MLPDocument;
+import java.net.URI;
+import java.net.URISyntaxException;
 
+import org.apache.commons.io.FilenameUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
+ * Capable of pointing to some (external) content. Contains the content location as an uri.
  */
-public class Document extends MLPDocument 
-											implements Reference {
+public interface Reference {
 
-	private String filename;
+	public String getUri();
 
-	public Document() {
-	}
+	public void setUri(String theUri);
 
-	public Document(MLPDocument theCDSDocument) {
-		super(theCDSDocument);
-		setFilename(getUriFilename());
-	}
-	
-	public Document(Document theDocument) {
-		super(theDocument);
-		this.filename = theDocument.getFilename();
-	}
-
-	public static DocumentBuilder build() {
-		return new DocumentBuilder(new Document());
-	}
-
-	public static DocumentBuilder buildFrom(MLPDocument theDocument) {
-		return new DocumentBuilder(new Document(theDocument));
-	}
-
-	public void setFilename(String theFilename) {
-		this.filename = theFilename;
-	}
-
-	public String getFilename() {
-		return this.filename;
+	@JsonIgnore
+	public default String getUriFilename() {
+		String curi = getUri();
+		if (curi == null)
+			return null;
+		try {
+			return FilenameUtils.getName(new URI(curi).getPath());
+		}
+		catch (URISyntaxException urisx) {
+			//let's do our worst; this works in a UX env because it employs the same path separator
+			//as uris.
+			return FilenameUtils.getName(curi);
+		}
 	}
 
 }
-
 
