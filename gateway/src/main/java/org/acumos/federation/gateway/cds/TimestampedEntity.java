@@ -19,44 +19,34 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import org.acumos.cds.domain.MLPDocument;
+import java.util.Date;
 
 
 /**
  */
-public class Document extends MLPDocument 
-											implements Reference, TimestampedEntity {
+public interface TimestampedEntity {
 
-	private String filename;
+	public static final Date ORIGIN = new Date(0);
 
-	public Document() {
+	public Date getCreated();
+
+	public void setCreated(Date created); 
+
+	public default void resetCreated() {
+		setCreated(ORIGIN);
 	}
 
-	public Document(MLPDocument theCDSDocument) {
-		super(theCDSDocument);
-		setFilename(getUriFilename());
+	public Date getModified(); 
+
+	public void setModified(Date modified); 
+
+	public default void resetModified() {
+		setModified(ORIGIN);
 	}
 	
-	public Document(Document theDocument) {
-		super(theDocument);
+	public default void resetTimestamp() {
+		resetCreated();
+		resetModified();
 	}
-
-	public static DocumentBuilder build() {
-		return new DocumentBuilder(new Document());
-	}
-
-	public static DocumentBuilder buildFrom(Document theDocument) {
-		return new DocumentBuilder(new Document(theDocument));
-	}
-
-	public void setFilename(String theFilename) {
-		this.filename = theFilename;
-	}
-
-	public String getFilename() {
-		return this.filename;
-	}
-
 }
-
 

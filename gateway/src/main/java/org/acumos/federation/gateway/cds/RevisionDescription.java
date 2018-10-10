@@ -19,43 +19,13 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import org.acumos.cds.domain.MLPDocument;
 
+import org.acumos.cds.domain.MLPRevisionDescription;
 
 /**
  */
-public class Document extends MLPDocument 
-											implements Reference, TimestampedEntity {
-
-	private String filename;
-
-	public Document() {
-	}
-
-	public Document(MLPDocument theCDSDocument) {
-		super(theCDSDocument);
-		setFilename(getUriFilename());
-	}
-	
-	public Document(Document theDocument) {
-		super(theDocument);
-	}
-
-	public static DocumentBuilder build() {
-		return new DocumentBuilder(new Document());
-	}
-
-	public static DocumentBuilder buildFrom(Document theDocument) {
-		return new DocumentBuilder(new Document(theDocument));
-	}
-
-	public void setFilename(String theFilename) {
-		this.filename = theFilename;
-	}
-
-	public String getFilename() {
-		return this.filename;
-	}
+public class RevisionDescription extends MLPRevisionDescription
+																	implements TimestampedEntity {
 
 }
 

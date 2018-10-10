@@ -28,7 +28,7 @@ import com.github.dockerjava.api.model.Identifier;
 /**
  */
 public class Artifact extends MLPArtifact
-											implements Reference {
+											implements Reference, TimestampedEntity {
 
 	private String filename;
 
@@ -62,13 +62,14 @@ public class Artifact extends MLPArtifact
 
 	@JsonIgnore
 	@Override
-	public String getCanonicalFilename() {
+	public String getUriFilename() {
 		if (ArtifactType.DockerImage == ArtifactType.forCode(getArtifactTypeCode())) {
 			return Identifier.fromCompoundString(getUri()).repository.getPath();
 		}
 		else {
-			return Reference.super.getCanonicalFilename();
+			return Reference.super.getUriFilename();
 		}
 	}
+
 }
 

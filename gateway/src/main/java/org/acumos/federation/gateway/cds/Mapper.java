@@ -26,6 +26,7 @@ import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.domain.MLPPeerSubscription;
+import org.acumos.cds.domain.MLPRevisionDescription;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -54,6 +55,7 @@ public class Mapper {
     fedModule.addDeserializer(MLPArtifact.class, new ArtifactDeserializer());
     fedModule.addDeserializer(MLPDocument.class, new DocumentDeserializer());
     fedModule.addDeserializer(MLPPeerSubscription.class, new PeerSubscriptionDeserializer());
+    fedModule.addDeserializer(MLPRevisionDescription.class, new RevisionDescriptionDeserializer());
 
 		mapper.registerModule(fedModule);
 
@@ -130,5 +132,18 @@ public class Mapper {
   	}
 	}
 
+	private static class RevisionDescriptionDeserializer extends StdDeserializer<MLPRevisionDescription> {
+ 
+		public RevisionDescriptionDeserializer() {
+			super(MLPRevisionDescription.class);
+		}
+ 
+		@Override
+  	public MLPRevisionDescription deserialize(JsonParser theParser, DeserializationContext theCtx) 
+      																								throws IOException, JsonProcessingException {
+  	  ObjectMapper mapper = (ObjectMapper) theParser.getCodec();
+    	return mapper.readValue(theParser, RevisionDescription.class);
+  	}
+	}
 }
 

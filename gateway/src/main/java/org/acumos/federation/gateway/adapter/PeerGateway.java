@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Date;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -48,6 +49,7 @@ import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.cds.SubscriptionScope;
 import org.acumos.federation.gateway.cds.PeerSubscription;
+import org.acumos.federation.gateway.cds.TimestampedEntity;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
@@ -55,6 +57,7 @@ import org.acumos.federation.gateway.config.GatewayCondition;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.ContentService;
+import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.acumos.federation.gateway.service.impl.AbstractServiceImpl;
@@ -86,6 +89,8 @@ public class PeerGateway {
 	private ContentService content;
 	@Autowired
 	private CatalogService catalog;
+	@Autowired
+	private PeerSubscriptionService peerSubscriptionService;
 
 
 	public PeerGateway() {
@@ -150,22 +155,38 @@ public class PeerGateway {
 			this.peer = thePeer;
 			this.sub = new PeerSubscription(theSub);
 			this.solutions = theSolutions;
+		
+			//remember when we processed the subscription
+			this.sub.setProcessed(new Date());
 		}
 
 		public void run() {
 
 			log.info(EELFLoggerDelegate.debugLogger, "Received peer " + this.peer + " solutions: " + this.solutions);
 			ServiceContext ctx = catalog.selfService();
+			boolean isComplete = true;
 
 			for (MLPSolution peerSolution : this.solutions) {
 				log.info(EELFLoggerDelegate.debugLogger, "Processing peer solution {}", peerSolution);
 
 				try {
-					mapSolution(peerSolution, ctx);
+					isComplete &= mapSolution(peerSolution, ctx);
 				}
 				catch (Throwable t) {
 					log.error(EELFLoggerDelegate.errorLogger,
 							"Mapping of acumos solution failed for " + peerSolution, t);
+				}
+			}
+					
+			log.info(EELFLoggerDelegate.debugLogger, "Processing of subscription {} completed succesfully: {}", this.sub, isComplete);
+			//only commit the last processed date if we completed succesfully
+			if (isComplete) {
+				try {
+					peerSubscriptionService.updatePeerSubscription(this.sub);
+				}
+				catch (ServiceException sx) {
+					log.error(EELFLoggerDelegate.errorLogger,
+							"Failed to update subscription information", sx);
 				}
 			}
 		}
@@ -180,8 +201,8 @@ public class PeerGateway {
 		private Artifact copyArtifact(Artifact peerArtifact) {
 			return Artifact.buildFrom(peerArtifact)
 								.withUser(getUserId(this.sub))
-								.withCreated(0)
-								.withModified(0)
+								.withCreatedDate(TimestampedEntity.ORIGIN)
+								.withModifiedDate(TimestampedEntity.ORIGIN)
 								.build();
 		}
 
@@ -222,8 +243,8 @@ public class PeerGateway {
 		private Document copyDocument(Document peerDocument) {
 			return Document.buildFrom(peerDocument)
 								.withUser(getUserId(this.sub))
-								.withCreated(0)
-								.withModified(0)
+								.withCreatedDate(TimestampedEntity.ORIGIN)
+								.withModifiedDate(TimestampedEntity.ORIGIN)
 								.build();
 		}
 
@@ -258,7 +279,41 @@ public class PeerGateway {
 				throw new ServiceException("Document handling unexpected failure", x);
 			}
 		}
+	
+		private MLPRevisionDescription copyRevisionDescription(MLPRevisionDescription peerDescription) {
+			MLPRevisionDescription localDescription = new MLPRevisionDescription(peerDescription);
+			localDescription.setCreated(TimestampedEntity.ORIGIN);
+			localDescription.setModified(TimestampedEntity.ORIGIN);
+			return localDescription;
+		}
 
+		private MLPRevisionDescription copyRevisionDescription(MLPRevisionDescription peerDescription, MLPRevisionDescription localDescription) {
+			localDescription.setDescription(peerDescription.getDescription());
+			return localDescription;
+		}
+
+		private void putRevisionDescription(MLPRevisionDescription theDescription,ServiceContext theContext) throws ServiceException {
+			
+			try {
+				if (theDescription.getCreated().getTime() == 0) {
+					getCDSClient(theContext).createRevisionDescription(theDescription);
+					log.info(EELFLoggerDelegate.debugLogger, "Local description created: {}", theDescription);
+				}
+				else {
+					getCDSClient(theContext).updateRevisionDescription(theDescription);
+				}
+			}
+			catch (HttpStatusCodeException restx) {
+				log.error(EELFLoggerDelegate.errorLogger,
+					"Revision description CDS call failed. CDS message is " + restx.getResponseBodyAsString(), restx);
+				throw new ServiceException("Revision description CDS call failed.", restx);
+			}
+			catch (Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "Revision description handling unexpected failure", x);
+				throw new ServiceException("Revision description handling unexpected failure", x);
+			}
+		}
+	
 
 		/**
 		 * Here comes the core process of updating a local solution's related
@@ -269,11 +324,13 @@ public class PeerGateway {
 		 *            artifacts) we are trying to sync
 		 * @param theContext
 		 *            the context in which we perform the catalog operations
+		 * @return true if mapping was succesful, false otherwise
 		 * @throws Exception
 		 *             any error related to CDS and peer interaction
 		 */
-		protected void mapSolution(MLPSolution theSolution, ServiceContext theContext) throws Exception {
+		protected boolean mapSolution(MLPSolution theSolution, ServiceContext theContext) throws Exception {
 
+			boolean isComplete = true;
 			FederationClient fedClient = clients.getFederationClient(this.peer.getApiUrl());
 
 			Solution localSolution = null,
@@ -293,7 +350,7 @@ public class PeerGateway {
 			// revision (but that's an assumption on how on-boarding works)
 			if (peerRevisions == null || peerRevisions.size() == 0) {
 				log.warn(EELFLoggerDelegate.debugLogger, "No peer revisions were retrieved");
-				return;
+				return true;
 			}
 
 			// check if we have locally the latest revision available on the peer
@@ -331,7 +388,8 @@ public class PeerGateway {
 				}
 				catch (Exception x) {
 					log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve peer acumos artifact details", x);
-					continue; //try procecssing the next revision
+					isComplete = false; //try procecessing the next revision but mark the processing as incomplete
+					continue;
 				}
 
 				try {
@@ -346,7 +404,8 @@ public class PeerGateway {
 				catch (ServiceException sx) {
 					log.error(EELFLoggerDelegate.errorLogger,
 							"Failed to put revision " + theSolution.getSolutionId() + "/" + peerRevision.getRevisionId() + " into catalog", sx);
-					continue; //try procecssing the next revision
+					isComplete = false; //try procecessing the next revision but mark the processing as incomplete
+					continue;
 				}
 
 				List<Artifact> peerArtifacts = (List)((SolutionRevision)peerRevision).getArtifacts();
@@ -397,6 +456,7 @@ public class PeerGateway {
 						catch (Exception x) {
 							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos artifact content", x);
 							doCatalog = this.sub.getSubscriptionOptions().alwaysUpdateCatalog();
+							isComplete = false;
 						}
 
 						if (artifactContent != null) {
@@ -409,6 +469,7 @@ public class PeerGateway {
 								log.error(EELFLoggerDelegate.errorLogger,
 											"Failed to store artifact content to local repo", sx);
 								doCatalog = this.sub.getSubscriptionOptions().alwaysUpdateCatalog();
+								isComplete = false;
 							}
 							finally {
 								if (artifactContent instanceof Closeable) {
@@ -424,6 +485,7 @@ public class PeerGateway {
 						}
 						catch (ServiceException sx) {
 							log.error(EELFLoggerDelegate.errorLogger, "Artifact processing failed.", sx);
+							isComplete = false;
 						}
 					}
 				} //end map artifacts loop
@@ -473,6 +535,7 @@ public class PeerGateway {
 						catch (Exception x) {
 							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos document content", x);
 							doCatalog = this.sub.getSubscriptionOptions().alwaysUpdateCatalog();
+							isComplete = false;
 						}
 
 						if (documentContent != null) {
@@ -485,6 +548,7 @@ public class PeerGateway {
 								log.error(EELFLoggerDelegate.errorLogger,
 											"Failed to store document content to local repo", sx);
 								doCatalog = this.sub.getSubscriptionOptions().alwaysUpdateCatalog();
+								isComplete = false;
 							}
 						}
 					}
@@ -495,33 +559,44 @@ public class PeerGateway {
 						}
 						catch (ServiceException sx) {
 							log.error(EELFLoggerDelegate.errorLogger,	"Document processing failed",	sx);
+							isComplete = false;
 						}
 					}
 	
 				} // end map documents loop
 				
-				MLPRevisionDescription catalogDescription = ((SolutionRevision)localRevision).getRevisionDescription();
+				MLPRevisionDescription localDescription = ((SolutionRevision)localRevision).getRevisionDescription();
 				MLPRevisionDescription peerDescription = ((SolutionRevision)peerRevision).getRevisionDescription();
 
 				if (peerDescription != null) {
-					try {
-						if (catalogDescription == null) {
-							getCDSClient(theContext).createRevisionDescription(peerDescription);
-						}
-						else {
-							//is this a good enough test ??
-							if (peerDescription.getModified().after(catalogDescription.getModified())) {
-								getCDSClient(theContext).updateRevisionDescription(peerDescription);
-							}
+					boolean doCatalog = false;
+
+					if (localDescription == null) {
+						localDescription = copyRevisionDescription(peerDescription);
+						doCatalog = true;
+					}
+					else {
+						//is this a good enough test ?? it implies time sync ..
+						if (peerDescription.getModified().after(localDescription.getModified())) {
+							localDescription = copyRevisionDescription(peerDescription, localDescription);
+							doCatalog = true;
 						}
 					}
-					catch (HttpStatusCodeException restx) {
-						log.error(EELFLoggerDelegate.errorLogger,
-									"Failed to store revision description. CDS message is " + restx.getResponseBodyAsString(),
-						restx);
+
+					if (doCatalog) {
+						try {
+							putRevisionDescription(localDescription, theContext);
+						}
+						catch (ServiceException sx) {
+							log.error(EELFLoggerDelegate.errorLogger,	"Description processing failed",	sx);
+							isComplete = false;
+						}
 					}
 				}
+
 			}
+
+			return isComplete;
 		} // mapSolution
 	}
 }

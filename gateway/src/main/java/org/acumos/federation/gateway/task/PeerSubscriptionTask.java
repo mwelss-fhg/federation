@@ -113,8 +113,8 @@ public class PeerSubscriptionTask implements Runnable {
 				}
 			}
 
-			this.subscription.setProcessed(new Date());
-			this.peerSubscriptionService.updatePeerSubscription(this.subscription);
+			//moved this to PeerGateway, not good design but practical ..
+			//this.peerSubscriptionService.updatePeerSubscription(this.subscription);
 		}
 		catch (Exception x) {
 			log.error(EELFLoggerDelegate.errorLogger, "Peer task failed for " + peer.getName() + ", " + peer.getApiUrl() + ", " + subscription, x);

@@ -47,6 +47,7 @@ import org.acumos.federation.gateway.service.ServiceException;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.util.UriUtils;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -195,7 +196,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 			}
 		}
 		else {
-			String[] nameParts = splitName(theArtifact.getFilename());
+			String[] nameParts = splitName(getName(theArtifact));
 			String uri = putNexusContent(
 				nexusPrefix(theSolutionId, theRevisionId), nameParts[0], theArtifact.getVersion(), nameParts[1], theResource);
 			// update artifact with local repo reference
@@ -218,16 +219,16 @@ public class ContentServiceImpl extends AbstractServiceImpl
 	public void putDocumentContent(
 		String theSolutionId, String theRevisionId, Document theDocument, Resource theResource, ServiceContext theContext)
 																																										throws ServiceException {
-		String[] nameParts = splitName(theDocument.getFilename());
+		String[] nameParts = splitName(getName(theDocument));
 		String uri = putNexusContent(
 			nexusPrefix(theSolutionId, theRevisionId), nameParts[0], AccessTypeCode.PB.name(), nameParts[1], theResource);
 		theDocument.setUri(uri);
 	}
 
-	protected Resource getNexusContent(String theUri) throws ServiceException {
+	protected Resource getNexusContent(String thePath) throws ServiceException {
 		URI contentUri = null;
 		try {
-			contentUri = new URI(this.nexusConfig.getUrl() + theUri); 
+			contentUri = new URI(this.nexusConfig.getUrl() + UriUtils.encodePath(thePath, "UTF-8")); 
 			log.info(EELFLoggerDelegate.debugLogger, "Query for {}", contentUri);
 			ResponseEntity<Resource> response = null;
 			RequestEntity<Void> request = RequestEntity
@@ -238,7 +239,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 			return response.getBody();	
 		}
 		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve nexus content from  " + theUri + "(" + contentUri + ")", x);
+			log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve nexus content from  " + thePath + "(" + contentUri + ")", x);
 			throw new ServiceException("Failed to retrieve nexus content from " + contentUri, x);
 		}
 		catch (Throwable t) {
@@ -253,10 +254,10 @@ public class ContentServiceImpl extends AbstractServiceImpl
 
 		try {
 			String path = nexusPath(theGroupId, theContentId, theVersion, thePackaging);
-			URI uri = new URI(this.nexusConfig.getUrl() + path);
+			URI contentUri = new URI(this.nexusConfig.getUrl() + UriUtils.encodePath(path, "UTF-8"));
 			log.info(EELFLoggerDelegate.debugLogger, "Writing artifact content to nexus at {}", path);
 			RequestEntity<Resource> request = RequestEntity
-																					.put(uri)
+																					.put(contentUri)
 																					.contentType(MediaType.APPLICATION_OCTET_STREAM)
 																					//.contentLength()
 																					.body(theResource);
@@ -312,6 +313,20 @@ public class ContentServiceImpl extends AbstractServiceImpl
 			new String[] {theName, "" /*null: better coding but does not facilitate callers*/} :
 			pos == theName.length() - 1 ? new String[] {theName.substring(0,pos), ""} :
 																		new String[] {theName.substring(0,pos), theName.substring(pos+1)};
+	}
+
+	private String getName(Artifact theArtifact) {
+		String name  = theArtifact.getFilename();
+		if (name == null)
+			name = theArtifact.getName();
+		return name;
+	}
+
+	private String getName(Document theDoc) {
+		String name  = theDoc.getFilename();
+		if (name == null)
+			name = theDoc.getName();
+		return name;
 	}
 
 	/**
