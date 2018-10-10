@@ -20,6 +20,8 @@
 
 package org.acumos.federation.gateway.adapter;
 
+import java.lang.invoke.MethodHandles;
+
 import java.io.Closeable;
 
 import java.util.Collections;
@@ -67,12 +69,13 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 
+
 @Component("peergateway")
 @Scope("singleton")
 @Conditional({GatewayCondition.class})
 public class PeerGateway {
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(PeerGateway.class);
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 	@Autowired
 	private TaskExecutor taskExecutor;
 	@Autowired

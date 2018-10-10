@@ -19,6 +19,8 @@
  */
 package org.acumos.federation.gateway.cds;
 
+import java.lang.invoke.MethodHandles;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -26,10 +28,15 @@ import org.apache.commons.io.FilenameUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+
+
 /**
  * Capable of pointing to some (external) content. Contains the content location as an uri.
  */
 public interface Reference {
+
+	public static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	public String getUri();
 
@@ -61,8 +68,10 @@ public interface Reference {
 					 basename = FilenameUtils.getBaseName(filename),
 					 extension = FilenameUtils.getExtension(filename);
 
-		if (basename.endsWith("-" + getVersion())) {
-			return basename.substring(0, basename.lastIndexOf('-')) + "." + extension;
+		log.debug(EELFLoggerDelegate.debugLogger, "filename: {}, basename: {}, extension: {}", filename, basename, extension);
+
+		if (basename != null && basename.endsWith("-" + getVersion())) {
+			return basename.substring(0, basename.lastIndexOf('-')) + (extension != null ? ("." + extension) : "");
 		}
 		else {
 			return filename;

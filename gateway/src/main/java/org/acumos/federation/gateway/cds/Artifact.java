@@ -21,6 +21,10 @@ package org.acumos.federation.gateway.cds;
 
 import org.acumos.cds.domain.MLPArtifact;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import com.github.dockerjava.api.model.Identifier;
+
 /**
  */
 public class Artifact extends MLPArtifact
@@ -56,5 +60,15 @@ public class Artifact extends MLPArtifact
 		return this.filename;
 	}
 
+	@JsonIgnore
+	@Override
+	public String getCanonicalFilename() {
+		if (ArtifactType.DockerImage == ArtifactType.forCode(getArtifactTypeCode())) {
+			return Identifier.fromCompoundString(getUri()).repository.getPath();
+		}
+		else {
+			return Reference.super.getCanonicalFilename();
+		}
+	}
 }
 

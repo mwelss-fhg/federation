@@ -20,6 +20,8 @@
 
 package org.acumos.federation.gateway.config;
 
+import java.lang.invoke.MethodHandles;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -70,7 +72,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class InterfaceConfiguration {
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	private String 			address;
 	private InetAddress	inetAddress;
