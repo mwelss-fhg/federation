@@ -35,6 +35,10 @@ public interface Reference {
 
 	public void setUri(String theUri);
 
+	public String getVersion();
+
+	public void setVersion(String theVersion);
+
 	@JsonIgnore
 	public default String getUriFilename() {
 		String curi = getUri();
@@ -50,5 +54,19 @@ public interface Reference {
 		}
 	}
 
+	@JsonIgnore
+	public default String getCanonicalFilename() {
+		
+		String filename = getUriFilename(),
+					 basename = FilenameUtils.getBaseName(filename),
+					 extension = FilenameUtils.getExtension(filename);
+
+		if (basename.endsWith("-" + getVersion())) {
+			return basename.substring(0, basename.lastIndexOf('-')) + "." + extension;
+		}
+		else {
+			return filename;
+		}
+	}
 }
 

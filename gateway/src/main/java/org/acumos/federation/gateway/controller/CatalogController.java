@@ -496,7 +496,7 @@ public class CatalogController extends AbstractController {
 		String artifactUri = theArtifact.getUri();
 
 		//remember the artifact filename before redirecting
-		theArtifact.setFilename(theArtifact.getUriFilename());
+		theArtifact.setFilename(theArtifact.getCanonicalFilename());
 
 		//redirect		
 		{
@@ -525,7 +525,7 @@ public class CatalogController extends AbstractController {
 		String artifactUri = theDocument.getUri();
 
 		//remember the document filename before redirecting
-		theDocument.setFilename(theDocument.getUriFilename());
+		theDocument.setFilename(theDocument.getCanonicalFilename());
 
 		//redirect		
 		{

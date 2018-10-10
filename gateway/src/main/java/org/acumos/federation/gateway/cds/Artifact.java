@@ -33,7 +33,6 @@ public class Artifact extends MLPArtifact
 
 	public Artifact(MLPArtifact theCDSArtifact) {
 		super(theCDSArtifact);
-		setFilename(getUriFilename());
 	}
 	
 	public Artifact(Artifact theArtifact) {
@@ -45,7 +44,7 @@ public class Artifact extends MLPArtifact
 		return new ArtifactBuilder(new Artifact());
 	}
 
-	public static ArtifactBuilder buildFrom(MLPArtifact theArtifact) {
+	public static ArtifactBuilder buildFrom(Artifact theArtifact) {
 		return new ArtifactBuilder(new Artifact(theArtifact));
 	}
 

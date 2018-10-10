@@ -39,14 +39,13 @@ public class Document extends MLPDocument
 	
 	public Document(Document theDocument) {
 		super(theDocument);
-		this.filename = theDocument.getFilename();
 	}
 
 	public static DocumentBuilder build() {
 		return new DocumentBuilder(new Document());
 	}
 
-	public static DocumentBuilder buildFrom(MLPDocument theDocument) {
+	public static DocumentBuilder buildFrom(Document theDocument) {
 		return new DocumentBuilder(new Document(theDocument));
 	}
 
