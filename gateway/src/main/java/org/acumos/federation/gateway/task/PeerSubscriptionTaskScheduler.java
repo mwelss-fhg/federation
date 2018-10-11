@@ -220,6 +220,7 @@ public class PeerSubscriptionTaskScheduler {
 						log.debug(EELFLoggerDelegate.debugLogger,
 								"peer {} subscription {} was updated, terminating current task", peer.getPeerId(), peerSub.getSubId());
 						peerSubTask.stopTask();
+						peerSubTask = null;
 						//this remove can be inlines as we are iterating over peersSubsTasks at this time
 						this.peersSubsTask.remove(peer.getPeerId(), peerSub.getSubId());
 					}
