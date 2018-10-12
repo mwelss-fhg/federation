@@ -21,11 +21,15 @@ package org.acumos.federation.gateway.test;
 
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
+import java.nio.charset.Charset;
 
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDC;
+import org.acumos.federation.gateway.adapter.onap.sdc.ASDCException;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 
 public class AsdcTest {
 
@@ -52,6 +56,18 @@ public class AsdcTest {
 		URI uri = new URI("http://user:pass@host:443/context/path#fragment");
 		asdc.setUri(uri);
 		Assert.assertNotNull(asdc.getUri());
+	}
+
+	@Test
+	public void testASDCException() throws Exception {
+		String responseBody = "{\"requestError\": {\"policyException\":{\"text\":\"hello\",\"variables\":[\"d\",\"e\"]}}}";
+		HttpClientErrorException ex = new HttpClientErrorException(HttpStatus.I_AM_A_TEAPOT, 
+				"status text", responseBody.getBytes(), Charset.forName("UTF-8"));
+		ASDCException e = new ASDCException(ex);
+		e.addSuppressed(new IllegalArgumentException());
+		log.info("testASDCException: ASDC msg {}", e.getASDCMessage());
+		log.info("testASDCException: msg {}", e.getMessage());
+		log.info("testASDCException: is found? {}", ASDCException.isNotFound(new IllegalArgumentException()));
 	}
 
 }

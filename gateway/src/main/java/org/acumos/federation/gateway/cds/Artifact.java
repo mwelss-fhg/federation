@@ -22,7 +22,6 @@ package org.acumos.federation.gateway.cds;
 import org.acumos.cds.domain.MLPArtifact;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import com.github.dockerjava.api.model.Identifier;
 
 /**

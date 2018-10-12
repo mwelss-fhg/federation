@@ -20,10 +20,9 @@
 package org.acumos.federation.gateway.security;
 
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
-
-import org.springframework.security.core.Authentication;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
+import org.springframework.security.core.Authentication;
 
 /**
  */

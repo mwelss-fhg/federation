@@ -24,7 +24,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -39,14 +38,12 @@ import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.transport.RestPageRequest;
 import org.acumos.cds.transport.RestPageResponse;
-import org.acumos.federation.gateway.cds.PeerStatus;
 import org.acumos.federation.gateway.cds.Mapper;
-import org.acumos.federation.gateway.config.CDMSClientConfiguration;
-import org.acumos.federation.gateway.config.NexusConfiguration;
+import org.acumos.federation.gateway.cds.PeerStatus;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
-import org.acumos.nexus.client.NexusArtifactClient;
-import org.acumos.nexus.client.data.UploadArtifactInfo;
+import org.acumos.federation.gateway.config.CDMSClientConfiguration;
+import org.acumos.federation.gateway.config.NexusConfiguration;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
@@ -72,12 +69,12 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.RequestEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 
 /**

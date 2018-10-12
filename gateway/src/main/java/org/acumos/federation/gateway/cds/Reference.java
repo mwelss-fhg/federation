@@ -20,15 +20,13 @@
 package org.acumos.federation.gateway.cds;
 
 import java.lang.invoke.MethodHandles;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.apache.commons.io.FilenameUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 
 
 /**

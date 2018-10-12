@@ -23,7 +23,6 @@ package org.acumos.federation.gateway.service;
 import java.util.List;
 
 import org.acumos.cds.domain.MLPPeerSubscription;
-
 import org.acumos.federation.gateway.cds.PeerSubscription;
 
 /**

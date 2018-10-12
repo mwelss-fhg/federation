@@ -20,12 +20,11 @@
 
 package org.acumos.federation.gateway.config;
 
-import java.lang.invoke.MethodHandles;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyStore;
@@ -33,7 +32,6 @@ import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;

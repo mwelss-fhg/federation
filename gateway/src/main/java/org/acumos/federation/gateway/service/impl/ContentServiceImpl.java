@@ -24,47 +24,37 @@
 package org.acumos.federation.gateway.service.impl;
 
 import java.io.InputStream;
-
+import java.lang.invoke.MethodHandles;
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Stream;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import java.lang.invoke.MethodHandles;
-
 import org.acumos.cds.AccessTypeCode;
 import org.acumos.federation.gateway.cds.Artifact;
-import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.ArtifactType;
+import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.config.DockerConfiguration;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.config.NexusConfiguration;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
-
+import org.apache.commons.io.input.ProxyInputStream;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.util.UriUtils;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.util.UriUtils;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Image;
-import com.github.dockerjava.api.model.Identifier;
-import com.github.dockerjava.api.model.Repository;
 import com.github.dockerjava.api.model.PushResponseItem;
 import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.github.dockerjava.core.command.PushImageResultCallback;
-
-import org.apache.commons.io.input.ProxyInputStream;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
 
 /**
  * Nexus based implementation of the ContentService.
