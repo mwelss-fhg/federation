@@ -38,10 +38,6 @@ public class ToscaLab {
 				lab.create_model(new FileInputStream(spec)));
 	}
 
-
-	//private PythonInterpreter create_model_interpreter = null;
-	//private PyCode create_model = null;
-
 	public ToscaLab() {
 		//the problem here is that if we use jython anywhere else this static initialization will be reflected
 		Properties props = new Properties();
@@ -53,22 +49,18 @@ public class ToscaLab {
 	}
 
 	public String create_model(InputStream theSpec) throws Exception {
-
-		//if (this.create_model_interpreter == null) {
-			PythonInterpreter python = new PythonInterpreter();
+		try (PythonInterpreter python = new PythonInterpreter()) {
 			python.setIn(theSpec);
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			python.setOut(out);
-
 			InputStream script = ClassLoader.getSystemResourceAsStream("model_create.py");
 			if (script == null)
 				throw new Exception("Failed to load 'model_create.py' script");
 			else
 				python.execfile(script);
-
 			return out.toString();
-		//}
-	} 
+		}
+	}
 }
 
 

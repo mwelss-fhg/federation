@@ -20,24 +20,19 @@
 
 package org.acumos.federation.gateway.adapter;
 
-import java.lang.invoke.MethodHandles;
-
 import java.io.Closeable;
-
+import java.lang.invoke.MethodHandles;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Date;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.acumos.cds.AccessTypeCode;
-//to go away 
 import org.acumos.cds.client.ICommonDataServiceRestClient;
-import org.acumos.cds.domain.MLPArtifact;
-import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.cds.domain.MLPRevisionDescription;
@@ -45,10 +40,10 @@ import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.Document;
+import org.acumos.federation.gateway.cds.PeerSubscription;
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.cds.SubscriptionScope;
-import org.acumos.federation.gateway.cds.PeerSubscription;
 import org.acumos.federation.gateway.cds.TimestampedEntity;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
@@ -60,7 +55,6 @@ import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
-import org.acumos.federation.gateway.service.impl.AbstractServiceImpl;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
@@ -92,6 +86,7 @@ public class PeerGateway {
 	@Autowired
 	private PeerSubscriptionService peerSubscriptionService;
 
+	private static final String federationDotOperator = "federation.operator";
 
 	public PeerGateway() {
 		log.trace(EELFLoggerDelegate.debugLogger, "PeerGateway::new");
@@ -102,18 +97,18 @@ public class PeerGateway {
 		log.trace(EELFLoggerDelegate.debugLogger, "initPeerGateway");
 
 		/* make sure an operator was specified and that it is a declared user */
-		if (null == this.env.getProperty("federation.operator")) {
-			throw new BeanInitializationException("Missing 'federation.operator' configuration");
+		if (null == this.env.getProperty(federationDotOperator)) {
+			throw new BeanInitializationException("Missing configuration key " + federationDotOperator);
 		} 
 		else {
 			try {
-				if (null == this.clients.getCDSClient().getUser(this.env.getProperty("federation.operator"))) {
-					log.warn(EELFLoggerDelegate.errorLogger,
-							"'federation.operator' does not point to an existing user");
+				if (null == this.clients.getCDSClient().getUser(this.env.getProperty(federationDotOperator))) {
+					log.warn(EELFLoggerDelegate.errorLogger, federationDotOperator + 
+							" does not point to an existing user");
 				}
 			}
 			catch (/* HttpStatusCode */Exception dx) {
-				log.warn(EELFLoggerDelegate.errorLogger, "failed to verify 'federation.operator' value", dx);
+				log.warn(EELFLoggerDelegate.errorLogger, "failed to verify value " + federationDotOperator, dx);
 			}
 		}
 
@@ -130,7 +125,7 @@ public class PeerGateway {
 																	 * , MLPSolution theSolution
 																	 */) {
 		String userId = theSubscription.getUserId();
-		return userId != null ? userId : this.env.getProperty("federation.operator");
+		return userId != null ? userId : this.env.getProperty(federationDotOperator);
 	}
 
 	@EventListener
@@ -195,7 +190,6 @@ public class PeerGateway {
 		//as ugly as they come
 		private ICommonDataServiceRestClient getCDSClient(ServiceContext theContext) {
 			return PeerGateway.this.clients.getCDSClient();
-			//return (ICommonDataServiceRestClient)theContext.getAttribute(AbstractServiceImpl.Attributes.cdsClient);
 		}
 
 		private Artifact copyArtifact(Artifact peerArtifact) {

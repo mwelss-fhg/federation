@@ -20,7 +20,6 @@
 
 package org.acumos.federation.gateway.util;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
@@ -38,9 +37,6 @@ public class Utils {
 	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
 
 	private static ObjectMapper objectMapper = new ObjectMapper();
-
-	public Utils() {
-	}
 
 	public static boolean isEmptyOrNullString(String input) {
 		boolean isEmpty = false;
@@ -66,6 +62,7 @@ public class Utils {
 				map = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {
 				});
 			} catch (IOException x) {
+				log.error("jsongStringToMap failed", x);
 				throw new IllegalArgumentException("Argument not a map", x);
 			}
 		}
@@ -77,92 +74,8 @@ public class Utils {
 		try {
 			return objectMapper.writeValueAsString(theMap);
 		} catch (JsonProcessingException x) {
+			log.error("mapToJsonString failed", x);
 			throw new IllegalArgumentException("Failed to convert", x);
-		}
-	}
-
-	public static String getTempFolderPath(String artifactName, String version, String nexusTempPath) {
-		log.debug("--------------- getTempFolderPath() started --------------");
-		if (!isEmptyOrNullString(nexusTempPath)) {
-			nexusTempPath = nexusTempPath + "/" + artifactName + "/" + version;
-			// create the directory for the solution and version specified
-			File dir = new File(nexusTempPath);
-			log.debug("------------ Directory for artifactName and Version : -------------" + dir);
-			if (!dir.exists()) {
-				log.debug("------------ Directory not exists for artifactName and Version : --------------------");
-				dir.mkdir();
-				log.debug("----------- New Directory created for artifactName and Version : ----------------" + dir);
-			}
-		}
-		log.debug("-------------  getTempFolderPath() ended ---------------");
-		return nexusTempPath;
-	}
-
-	public static void deletetTempFiles(String tempFolder) throws Exception {
-		log.info("--------  deletetTempFiles() Started ------------");
-
-		File directory = new File(tempFolder);
-
-		// make sure directory exists
-		if (!directory.exists()) {
-			log.debug("----------- Directory does not exist. ----------");
-
-		} else {
-
-			try {
-
-				delete(directory);
-				log.info("----------- deletetTempFiles() Ended ----------------");
-			} catch (Exception e) {
-				log.error("--------- Exception deletetTempFiles() -------------", e);
-				throw e;
-			}
-		}
-
-	}
-
-	public static void delete(File file) throws IOException {
-		log.debug("------------  delete() started ------------");
-		try {
-			if (file.isDirectory()) {
-
-				// directory is empty, then delete it
-				if (file.list().length == 0) {
-
-					file.delete();
-					log.debug("--------- Directory is deleted : ----------- " + file.getAbsolutePath());
-
-				} else {
-
-					// list all the directory contents
-					String files[] = file.list();
-
-					if (files != null && files.length != 0) {
-						for (String temp : files) {
-							// construct the file structure
-							File fileDelete = new File(file, temp);
-
-							// recursive delete
-							delete(fileDelete);
-						}
-					}
-
-					// check the directory again, if empty then delete it
-					if (file.list().length == 0) {
-						file.delete();
-						log.debug(" -------Directory is deleted :------------- " + file.getAbsolutePath());
-					}
-				}
-
-			} else {
-				// if file, then delete it
-				file.delete();
-				log.debug("---------File is deleted :----------- " + file.getAbsolutePath());
-			}
-			log.debug("------------- delete() ended ---------------");
-		} catch (Exception ex) {
-			log.error("----------- Exceptoin Occured delete() ---------------", ex);
-
 		}
 	}
 

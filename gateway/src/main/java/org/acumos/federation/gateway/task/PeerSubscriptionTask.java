@@ -96,6 +96,8 @@ public class PeerSubscriptionTask implements Runnable {
 		try {
 			log.info(EELFLoggerDelegate.debugLogger, "Peer task for peer {}, subscription {}", this.peer.getName(), this.subscription.getSubId());
 			FederationClient fedClient = clients.getFederationClient(this.peer.getApiUrl());
+			if (fedClient == null)
+				throw new IllegalArgumentException("run: failed to get client for peer URL " + this.peer.getApiUrl());
 			JsonResponse<List<MLPSolution>> response = fedClient.getSolutions(selector);
 			log.info(EELFLoggerDelegate.debugLogger, "Peer task for peer {}, subscription {} got response {}", this.peer.getName(), this.subscription.getSubId(), response);
 			if (response != null) {

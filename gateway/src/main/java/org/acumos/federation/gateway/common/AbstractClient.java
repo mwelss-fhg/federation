@@ -21,21 +21,16 @@
 package org.acumos.federation.gateway.common;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
-import java.util.Date;
-import java.util.Map;
 import java.util.Collections;
 
-import org.acumos.cds.transport.RestPageRequest;
 import org.apache.http.client.HttpClient;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -96,48 +91,5 @@ public abstract class AbstractClient {
 			throw new IllegalArgumentException("Failed to parse target URL", ex);
 		}
 	}	
-
-	/**
-	 * Builds URI by adding specified path segments and query parameters to the base
-	 * URL.
-	 * 
-	 * @param path
-	 *            Array of path segments
-	 * @param queryParams
-	 *            key-value pairs; ignored if null or empty. Gives special treatment
-	 *            to Date-type values.
-	 * @param pageRequest
-	 *            page, size and sort specification; ignored if null.
-	 * @return URI
-	 */
-	protected URI buildUri(final String[] path, final Map<String, Object> queryParams, RestPageRequest pageRequest) {
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(this.baseUrl);
-		for (int p = 0; p < path.length; ++p)
-			builder.pathSegment(path[p]);
-		if (queryParams != null && queryParams.size() > 0) {
-			for (Map.Entry<String, ? extends Object> entry : queryParams.entrySet()) {
-				Object value = null;
-				// Server expect Date as Long.
-				if (entry.getValue() instanceof Date)
-					value = ((Date) entry.getValue()).getTime();
-				else
-					value = entry.getValue().toString();
-				builder.queryParam(entry.getKey(), value);
-			}
-		}
-		if (pageRequest != null) {
-			if (pageRequest.getSize() != null)
-				builder.queryParam("page", Integer.toString(pageRequest.getPage()));
-			if (pageRequest.getPage() != null)
-				builder.queryParam("size", Integer.toString(pageRequest.getSize()));
-			if (pageRequest.getFieldToDirectionMap() != null && pageRequest.getFieldToDirectionMap().size() > 0) {
-				for (Map.Entry<String, String> entry : pageRequest.getFieldToDirectionMap().entrySet()) {
-					String value = entry.getKey() + (entry.getValue() == null ? "" : ("," + entry.getValue()));
-					builder.queryParam("sort", value);
-				}
-			}
-		}
-		return builder.build().encode().toUri();
-	}
 
 }

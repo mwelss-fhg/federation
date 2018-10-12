@@ -54,13 +54,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 																							 org.acumos.federation.gateway.config.AdapterConfiguration.class}))
 public class Application {
 
-	private final static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(Application.class);
+	private static final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(Application.class);
 
 	/**
 	 * We should be able to swap the LocalConfiguration in the case of adapters.
+	 * 
+	 * @param args
+	 *            Ignored
+	 * @throws IOException
+	 *             if environment config cannot be parsed
 	 */
-	public static void main(String[] args) throws Exception {
-    
+	public static void main(String[] args) throws IOException {
+		checkEnvironmentConfig();
 		SpringApplicationBuilder gatewayBuilder =
 			new SpringApplicationBuilder(Application.class)
 											.bannerMode(Banner.Mode.OFF)
@@ -76,7 +81,7 @@ public class Application {
 
 	}
 
-	public static final String CONFIG_ENV_VAR_NAME = "SPRING_APPLICATION_JSON";
+	private static final String CONFIG_ENV_VAR_NAME = "SPRING_APPLICATION_JSON";
 
 	private static void checkEnvironmentConfig() throws IOException {
 		final String springApplicationJson = System.getenv(CONFIG_ENV_VAR_NAME);
