@@ -27,4 +27,5 @@ Federation Gateway
        overview.rst
        design.rst
        developer-guide.rst
+       config.rst
        release-notes.rst
