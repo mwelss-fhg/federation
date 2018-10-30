@@ -96,5 +96,41 @@ public class PeerSubscription extends MLPPeerSubscription {
 		always
 	}
 
+	/**
+	 * Detect changes in a peer subscription. The 'modified' timestamp is not a reliable test as we
+	 * we modify it outselves, so instead we look at the content.
+	 * TODO: selector and options are json string, we should compare teh actual json structure.
+	 */
+	public static boolean isModified(MLPPeerSubscription theCurrentSub, MLPPeerSubscription theNewSub) {
+		boolean res = true;
+
+		String taskSelector = theCurrentSub.getSelector(),
+					 peerSelector = theNewSub.getSelector();
+		res &= ((taskSelector != null && peerSelector == null) ||
+						(taskSelector == null && peerSelector != null) ||
+					  (taskSelector != null && peerSelector != null && !taskSelector.equals(peerSelector)));
+
+		String taskOptions = theCurrentSub.getOptions(),
+					 peerOptions = theNewSub.getOptions();
+		res &= ((taskOptions != null && peerOptions == null) ||
+						(taskOptions == null && peerOptions != null) ||
+					  (taskOptions != null && peerOptions != null && !taskOptions.equals(peerOptions)));
+
+		Long taskRefresh = theCurrentSub.getRefreshInterval(),
+				 peerRefresh = theNewSub.getRefreshInterval();
+		res &= ((taskRefresh != null && peerRefresh == null) ||
+						(taskRefresh == null && peerRefresh != null) ||
+					  (taskRefresh != null && peerRefresh != null && !taskRefresh.equals(peerRefresh)));
+
+		//cannot be null
+		res &= !theCurrentSub.getScopeType().equals(theNewSub.getScopeType());
+		res &= !theCurrentSub.getUserId().equals(theNewSub.getUserId());
+		res &= !theCurrentSub.getPeerId().equals(theNewSub.getPeerId());
+		res &= !theCurrentSub.getAccessType().equals(theNewSub.getAccessType());
+
+		return res;
+	}
+
+
 }
 

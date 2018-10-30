@@ -124,7 +124,9 @@ public enum API {
 	 * the params include both path and query params.
 	 */
 	public URI buildUri(String theHttpUrl, Map<String, ?> theParams) {
-		return uriBuilder(theHttpUrl, theParams.keySet()).buildAndExpand(theParams).encode().toUri();
+		/* While encoding seems like a good/safe idea no API URI actually requires encoding and this causes
+		problems when encoding base64 encoded selectors */
+		return uriBuilder(theHttpUrl, theParams.keySet()).buildAndExpand(theParams)/*.encode()*/.toUri();
 	}
 
 	/**

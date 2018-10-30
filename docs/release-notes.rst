@@ -23,6 +23,13 @@ Federation Gateway Release Notes
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 
 --------------------------
+Version 1.18.7, 2018-10-30
+--------------------------
+
+* Fix the subscription task early cancellation (`ACUMOS-1937 <https://jira.acumos.org/browse/ACUMOS-1937>`_)
+* Fix the preemptive authentication (`ACUMOS-1952 <https://jira.acumos.org/browse/ACUMOS-1952>`_)
+
+--------------------------
 Version 1.18.6, 2018-10-08
 --------------------------
 

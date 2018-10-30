@@ -20,14 +20,34 @@
 
 package org.acumos.federation.gateway.config;
 
+import java.net.URI;
+import java.net.URL;
+import java.net.MalformedURLException;
+
 import java.lang.invoke.MethodHandles;
+
+import org.apache.http.HttpHost;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.BasicHttpContext;
+
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
 
 /**
  * 
@@ -41,7 +61,7 @@ public class NexusConfiguration {
 	private String		proxy;
 	private String	  groupId;
 	private String	  id;
-	private String		url;
+	private URL				url;
 	private String		username;
 	private String		password;
 	private String		nameSeparator;
@@ -63,12 +83,12 @@ public class NexusConfiguration {
 		this.id = theId;
 	}
 
-	public void setUrl(String theUrl) {
-		this.url = theUrl;
+	public void setUrl(String theSpec) throws MalformedURLException {
+		this.url = new URL(theSpec);
   }
 	
 	public String getUrl() {
-		return this.url;
+		return this.url.toString();
   }
 
 	public void setUsername(String theUsername) {
@@ -100,28 +120,38 @@ public class NexusConfiguration {
 		return this.nameSeparator;
 	}
 
+	/**
+	 * Prepare a RestTemplate fitted for Nexus interactions, in particular ready to perform preemptive basic authentication.
+	 */
 	public RestTemplate getNexusClient() {
-
-		//cannot use the localIfConfig straightup as it does not carry the Nexus specific client authentication info
-		//but this only need to be built once
-		InterfaceConfiguration nexusIfConfig = InterfaceConfigurationBuilder.buildFrom(this.localIfConfig)
-																							.withClient(new InterfaceConfiguration.Client(this.username, this.password))
-																							.buildConfig();
-
-		
-		log.info(EELFLoggerDelegate.debugLogger, "Nexus config: {}", nexusIfConfig);
 
 		RestTemplateBuilder builder =
 			new RestTemplateBuilder()
-				.requestFactory(new HttpComponentsClientHttpRequestFactory( 
-													nexusIfConfig.buildClient()));
-		if (this.url != null) {
-			builder.rootUri(this.url);
-		}
-		if (this.username != null) {
-			builder.basicAuthorization(this.username, this.password);
-		}
+				.requestFactory(
+					new HttpComponentsClientHttpRequestFactory(this.localIfConfig.buildClient()) {
+
+						protected HttpContext createHttpContext(HttpMethod theMethod, URI theUri) {
+							HttpHost nexusHost = new HttpHost(NexusConfiguration.this.url.getHost(), NexusConfiguration.this.url.getPort());
+
+							CredentialsProvider nexusCreds = new BasicCredentialsProvider();
+							nexusCreds.setCredentials(
+       					new AuthScope(nexusHost.getHostName(), nexusHost.getPort()),
+        				new UsernamePasswordCredentials(NexusConfiguration.this.username, NexusConfiguration.this.password));
+
+							AuthCache authCache = new BasicAuthCache();
+ 							BasicScheme basicAuth = new BasicScheme();
+							authCache.put(nexusHost, basicAuth);
+ 
+							HttpClientContext nexusContext = HttpClientContext.create();
+							nexusContext.setAuthCache(authCache);
+							nexusContext.setCredentialsProvider(nexusCreds);
+ 							return nexusContext;
+						}
+					});
 
 		return builder.build();
 	}
+
+	
+
 }

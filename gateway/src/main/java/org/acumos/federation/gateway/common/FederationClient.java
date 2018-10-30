@@ -82,11 +82,11 @@ public class FederationClient extends AbstractClient {
 
 	/**
 	 * @return Ping information from/for Remote Acumos
-	 * @throws HttpStatusCodeException
-	 *             Throws HttpStatusCodeException if remote acumos interaction has failed.
+	 * @throws FederationException
+	 *             Throws FederationException if remote acumos interaction has failed.
 	 */
 	public JsonResponse<MLPPeer> ping()
-			throws HttpStatusCodeException {
+			throws FederationException {
 		URI uri = API.PING.buildUri(this.baseUrl);
 		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
 		ResponseEntity<JsonResponse<MLPPeer>> response = null;
@@ -95,23 +95,24 @@ public class FederationClient extends AbstractClient {
 					new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {
 					});
 		}
-		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
-			throw x;
+		catch (HttpStatusCodeException scx) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", scx);
+			throw new PeerException(uri, scx);
 		}
 		catch (Throwable t) {
 			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+			throw new FederationException(uri, t);
 		}
 		finally {
 			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
-		return response == null ? null : response.getBody();
+		return response.getBody();
 	}
 
 	/**
 	 */
 	public JsonResponse<List<MLPPeer>> getPeers()
-			throws HttpStatusCodeException {
+			throws FederationException {
 		URI uri = API.PEERS.buildUri(this.baseUrl);
 		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
 		ResponseEntity<JsonResponse<List<MLPPeer>>> response = null;
@@ -120,17 +121,18 @@ public class FederationClient extends AbstractClient {
 					new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {
 					});
 		}
-		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
-			throw x;
+		catch (HttpStatusCodeException scx) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", scx);
+			throw new PeerException(uri, scx);
 		}
 		catch (Throwable t) {
 			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+			throw new FederationException(uri, t);
 		}
 		finally {
 			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
-		return response == null ? null : response.getBody();
+		return response.getBody();
 	}	
 
 
@@ -144,13 +146,15 @@ public class FederationClient extends AbstractClient {
 	 *             Throws HttpStatusCodeException is remote acumos is not available
 	 */
 	public JsonResponse<List<MLPSolution>> getSolutions(Map<String, Object> theSelection)
-			throws HttpStatusCodeException {
+			throws FederationException {
 
 		String selectorParam = null;
 		try {
+			log.info(EELFLoggerDelegate.debugLogger, "getSolutions selector {}", Utils.mapToJsonString(theSelection));
 			selectorParam = theSelection == null ? null
 					// : UriUtils.encodeQueryParam(Utils.mapToJsonString(theSelection),"UTF-8");
 					: Base64Utils.encodeToString(Utils.mapToJsonString(theSelection).getBytes("UTF-8"));
+			log.info(EELFLoggerDelegate.debugLogger, "getSolutions encoded selector {}", selectorParam);
 		}
 		catch (Exception x) {
 			throw new IllegalArgumentException("Cannot process the selection argument", x);
@@ -165,17 +169,18 @@ public class FederationClient extends AbstractClient {
 					new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {
 					});
 		}
-		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
-			throw x;
+		catch (HttpStatusCodeException scx) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", scx);
+			throw new PeerException(uri, scx);
 		}
 		catch (Throwable t) {
 			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+			throw new FederationException(uri, t);
 		}
 		finally {
 			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
-		return response == null ? null : response.getBody();
+		return response.getBody();
 	}
 
 	/**
@@ -185,7 +190,7 @@ public class FederationClient extends AbstractClient {
 	 *             Throws HttpStatusCodeException if remote acumos interaction has failed.
 	 */
 	public JsonResponse<MLPSolution> getSolution(String theSolutionId)
-			throws HttpStatusCodeException {
+			throws FederationException {
 
 		URI uri = API.SOLUTION_DETAIL.buildUri(this.baseUrl, theSolutionId);
 		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
@@ -195,17 +200,18 @@ public class FederationClient extends AbstractClient {
 					new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {
 					});
 		}
-		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
-			throw x;
+		catch (HttpStatusCodeException scx) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", scx);
+			throw new PeerException(uri, scx);
 		}
 		catch (Throwable t) {
 			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+			throw new FederationException(uri, t);
 		}
 		finally {
 			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
-		return response == null ? null : response.getBody();
+		return response.getBody();
 	}
 
 	/**
@@ -216,7 +222,7 @@ public class FederationClient extends AbstractClient {
 	 *             Throws HttpStatusCodeException is remote acumos is not available
 	 */
 	public JsonResponse<List<MLPSolutionRevision>> getSolutionRevisions(String theSolutionId)
-			throws HttpStatusCodeException {
+			throws FederationException {
 
 		URI uri = API.SOLUTION_REVISIONS.buildUri(this.baseUrl, theSolutionId);
 		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
@@ -226,17 +232,18 @@ public class FederationClient extends AbstractClient {
 					new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {
 					});
 		}
-		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
-			throw x;
+		catch (HttpStatusCodeException scx) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", scx);
+			throw new PeerException(uri, scx);
 		}
 		catch (Throwable t) {
 			log.info(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+			throw new FederationException(uri, t);
 		}
 		finally {
 			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
-		return response == null ? null : response.getBody();
+		return response.getBody();
 	}
 
 	/**
@@ -249,7 +256,7 @@ public class FederationClient extends AbstractClient {
 	 *             Throws HttpStatusCodeException is remote acumos is not available
 	 */
 	public JsonResponse<MLPSolutionRevision> getSolutionRevision(String theSolutionId, String theRevisionId)
-			throws HttpStatusCodeException {
+			throws FederationException {
 
 		URI uri = API.SOLUTION_REVISION_DETAILS.buildUri(this.baseUrl, theSolutionId, theRevisionId);
 		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
@@ -259,17 +266,18 @@ public class FederationClient extends AbstractClient {
 					new ParameterizedTypeReference<JsonResponse<MLPSolutionRevision>>() {
 					});
 		}
-		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
-			throw x;
+		catch (HttpStatusCodeException scx) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", scx);
+			throw new PeerException(uri, scx);
 		}
 		catch (Throwable t) {
 			log.info(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+			throw new FederationException(uri, t);
 		}
 		finally {
 			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
-		return response == null ? null : response.getBody();
+		return response.getBody();
 	}
 
 	/**
@@ -283,7 +291,7 @@ public class FederationClient extends AbstractClient {
 	 *             Throws HttpStatusCodeException is remote acumos is not available
 	 */
 	public JsonResponse<List<MLPArtifact>> getArtifacts(String theSolutionId, String theRevisionId)
-			throws HttpStatusCodeException {
+			throws FederationException {
 		URI uri = API.SOLUTION_REVISION_ARTIFACTS.buildUri(this.baseUrl, theSolutionId, theRevisionId);
 		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
 		ResponseEntity<JsonResponse<List<MLPArtifact>>> response = null;
@@ -292,17 +300,18 @@ public class FederationClient extends AbstractClient {
 					new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {
 					});
 		}
-		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
-			throw x;
+		catch (HttpStatusCodeException scx) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", scx);
+			throw new PeerException(uri, scx);
 		}
 		catch (Throwable t) {
 			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+			throw new FederationException(uri, t);
 		}
 		finally {
 			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
 		}
-		return response == null ? null : response.getBody();
+		return response.getBody();
 	}
 
 	/**
@@ -317,7 +326,7 @@ public class FederationClient extends AbstractClient {
 	 *             On failure
 	 */
 	public Resource getArtifactContent(String theSolutionId, String theRevisionId, String theArtifactId)
-																																											throws HttpStatusCodeException {
+																																											throws FederationException {
 		return download2(API.ARTIFACT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theArtifactId));
 	}
 
@@ -332,7 +341,7 @@ public class FederationClient extends AbstractClient {
 	 *             Throws HttpStatusCodeException is remote acumos is not available
 	 */
 	public JsonResponse<List<MLPDocument>> getDocuments(String theSolutionId, String theRevisionId)
-			throws HttpStatusCodeException {
+			throws FederationException {
 		URI uri = API.SOLUTION_REVISION_DOCUMENTS.buildUri(this.baseUrl, theSolutionId, theRevisionId);
 		log.info(EELFLoggerDelegate.debugLogger, "Query for " + uri);
 		ResponseEntity<JsonResponse<List<MLPDocument>>> response = null;
@@ -341,12 +350,13 @@ public class FederationClient extends AbstractClient {
 					new ParameterizedTypeReference<JsonResponse<List<MLPDocument>>>() {
 					});
 		}
-		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", x);
-			throw x;
+		catch (HttpStatusCodeException scx) {
+			log.error(EELFLoggerDelegate.errorLogger, uri + " failed", scx);
+			throw new PeerException(uri, scx);
 		}
 		catch (Throwable t) {
 			log.error(EELFLoggerDelegate.errorLogger, uri + " unexpected failure.", t);
+			throw new FederationException(uri, t);
 		}
 		finally {
 			log.info(EELFLoggerDelegate.debugLogger, uri + " response " + response);
@@ -366,11 +376,11 @@ public class FederationClient extends AbstractClient {
 	 *             On failure
 	 */
 	public Resource getDocumentContent(String theSolutionId, String theRevisionId, String theDocumentId)
-																																										throws HttpStatusCodeException {
+																																										throws FederationException {
 		return download2(API.DOCUMENT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theDocumentId));
 	}
 
-	protected Resource download(URI theUri) throws HttpStatusCodeException {
+	protected Resource download(URI theUri) throws FederationException {
 		log.info(EELFLoggerDelegate.debugLogger, "Query for download {}", theUri);
 		ResponseEntity<Resource> response = null;
 		RequestEntity<Void> request = RequestEntity
@@ -380,32 +390,25 @@ public class FederationClient extends AbstractClient {
 		try {
 			response = restTemplate.exchange(request, Resource.class);
 		}
-		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, theUri + " failed", x);
-			throw x;
+		catch (HttpStatusCodeException scx) {
+			log.error(EELFLoggerDelegate.errorLogger, theUri + " failed", scx);
+			throw new PeerException(theUri, scx);
 		}
 		catch (Throwable t) {
 			log.error(EELFLoggerDelegate.errorLogger, theUri + " unexpected failure.", t);
-			//not very clean
-			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, theUri + " unexpected failure: " + t);
+			throw new FederationException(theUri, t);
 		}
 		finally {
 			log.info(EELFLoggerDelegate.debugLogger, theUri + " response " + response);
 		}
 
-		if (response == null) {
-			//should never get here		
-			return null;
-		}
-		else {
-			return response.getBody();
-		}
+		return response.getBody();
 	}
 
 	/**
 	 * Important: the Resource returned by this method MUST BE CLOSED by whoever uses it.
 	 */
-	protected StreamingResource download2(URI theUri) throws HttpStatusCodeException {
+	protected StreamingResource download2(URI theUri) throws FederationException {
 		log.info(EELFLoggerDelegate.debugLogger, "Query for download {}", theUri);
 		ClientHttpResponse response = null;
 		try {
@@ -421,8 +424,8 @@ public class FederationClient extends AbstractClient {
 	
 			return new StreamingResource(response);
 		}
-		catch (IOException ex) {
-			throw new ResourceAccessException("I/O error for " + theUri + ": " + ex.getMessage(), ex);
+		catch (IOException iox) {
+			throw new FederationException(theUri, iox);
 		}
 	}
 

@@ -32,13 +32,16 @@ import javax.annotation.PreDestroy;
 
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPPeer;
+import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
+import org.acumos.federation.gateway.common.FederationException;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
+import org.acumos.federation.gateway.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -88,17 +91,17 @@ public class TestAdapter {
 	@EventListener
 	public void handlePeerSubscriptionUpdate(PeerSubscriptionEvent theEvent) {
 		log.info(EELFLoggerDelegate.debugLogger, "received peer subscription update event {}", theEvent);
-		taskExecutor.execute(new TestTask(theEvent.getPeer(), theEvent.getSolutions()));
+		taskExecutor.execute(new TestTask(theEvent.getPeer(), theEvent.getSubscription()));
 	}
 
 	public class TestTask implements Runnable {
 
 		private MLPPeer peer;
-		private List<MLPSolution> solutions;
+		private MLPPeerSubscription sub;
 
-		public TestTask(MLPPeer thePeer, List<MLPSolution> theSolutions) {
+		public TestTask(MLPPeer thePeer, MLPPeerSubscription theSub) {
 			this.peer = thePeer;
-			this.solutions = theSolutions;
+			this.sub = theSub;
 		}
 
 		public void run() {
@@ -110,7 +113,20 @@ public class TestAdapter {
 			}
 
 			synchronized (peerImports) {
-				for (MLPSolution solution : this.solutions) {
+
+				List<MLPSolution> peerSolutions = null;
+				try {
+					peerSolutions = (List)clients.getFederationClient(this.peer.getApiUrl())
+						.getSolutions(Utils.jsonStringToMap(this.sub.getSelector())).getContent();
+				}
+				catch (FederationException fx) {
+					log.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve solutions", fx);
+					return;
+				}
+
+				log.info(EELFLoggerDelegate.debugLogger, "Processing peer {} subscription {} yielded solutions {}", this.peer, this.sub.getSubId(), peerSolutions);
+
+				for (MLPSolution solution : peerSolutions) {
 
 					MLPSolution peerImport = peerImports.get(solution.getSolutionId());
 					if (peerImport == null) {

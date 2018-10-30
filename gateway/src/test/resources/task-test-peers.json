@@ -20,7 +20,7 @@
 		"subscriptions":[
 			{
         "subId":1,
-				"peerId":"5d2f3b51-3d38-46cd-b171-7e0f3718087a",
+				"peerId":"11111111-1111-1111-1111-111111111111",
 				"selector":"{\"modelTypeCode\":\"CL,PR\"}",
 				"refreshInterval":"2000",
 				"maxArtifactSize":"2048",

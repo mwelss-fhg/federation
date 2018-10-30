@@ -18,34 +18,28 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.event;
+package org.acumos.federation.gateway.common;
 
-import java.util.EventObject;
-import java.util.List;
-
-import org.acumos.cds.domain.MLPPeer;
-import org.acumos.cds.domain.MLPPeerSubscription;
+import java.net.URI;
 
 /**
- * Carries event information related to a peer subscription check
+ * Common root for errors occuring during federation interactions (with the a peer)
  */
-public class PeerSubscriptionEvent extends EventObject {
+public class FederationException extends Exception {
 
-	private MLPPeer peer;
-	private MLPPeerSubscription subscription;
-
-	public PeerSubscriptionEvent(Object theSource, MLPPeer thePeer, MLPPeerSubscription theSubscription) {
-		super(theSource);
-		this.peer = thePeer;
-		this.subscription = theSubscription;
+	public FederationException(URI theUri, Throwable theCause) {
+		this(theUri.toString(), theCause);
 	}
 
-	public MLPPeer getPeer() {
-		return this.peer;
+	public FederationException(String theUri, Throwable theCause) {
+		super(theUri + " failed", theCause);
 	}
 
-	public MLPPeerSubscription getSubscription() {
-		return this.subscription;
+	public FederationException(URI theUri) {
+		this(theUri.toString());
 	}
 
+	public FederationException(String theUri) {
+		super(theUri + " failed");
+	}
 }

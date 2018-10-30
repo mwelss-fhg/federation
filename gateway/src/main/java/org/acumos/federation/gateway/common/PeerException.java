@@ -18,34 +18,23 @@
  * ===============LICENSE_END=========================================================
  */
 
-package org.acumos.federation.gateway.event;
+package org.acumos.federation.gateway.common;
 
-import java.util.EventObject;
-import java.util.List;
+import java.net.URI;
 
-import org.acumos.cds.domain.MLPPeer;
-import org.acumos.cds.domain.MLPPeerSubscription;
+import org.springframework.web.client.HttpStatusCodeException;
 
 /**
- * Carries event information related to a peer subscription check
+ * Federation error as explcitly reported by a peer
  */
-public class PeerSubscriptionEvent extends EventObject {
+public class PeerException extends FederationException {
 
-	private MLPPeer peer;
-	private MLPPeerSubscription subscription;
-
-	public PeerSubscriptionEvent(Object theSource, MLPPeer thePeer, MLPPeerSubscription theSubscription) {
-		super(theSource);
-		this.peer = thePeer;
-		this.subscription = theSubscription;
+	public PeerException(URI theUri, HttpStatusCodeException theCause) {
+		super(theUri, theCause);
 	}
 
-	public MLPPeer getPeer() {
-		return this.peer;
-	}
-
-	public MLPPeerSubscription getSubscription() {
-		return this.subscription;
+	public PeerException(String theUri, HttpStatusCodeException theCause) {
+		super(theUri, theCause);
 	}
 
 }

@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +38,7 @@ import javax.annotation.PreDestroy;
 import org.acumos.cds.ArtifactTypeCode;
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPPeer;
+import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDC;
@@ -45,6 +47,7 @@ import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.ArtifactType;
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.AssetType;
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDC.LifecycleState;
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDCException;
+import org.acumos.federation.gateway.util.Utils;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
@@ -123,17 +126,17 @@ public class ONAP {
 	@EventListener
 	public void handlePeerSubscriptionUpdate(PeerSubscriptionEvent theEvent) {
 		log.info(EELFLoggerDelegate.debugLogger, "received peer subscription update event " + theEvent);
-		taskExecutor.execute(new ONAPPushTask(theEvent.getPeer(), theEvent.getSolutions()));
+		taskExecutor.execute(new ONAPPushTask(theEvent.getPeer(), theEvent.getSubscription()));
 	}
 
 	public class ONAPPushTask implements Runnable {
 
 		private MLPPeer peer;
-		private List<MLPSolution> solutions;
+		private MLPPeerSubscription sub;
 
-		public ONAPPushTask(MLPPeer thePeer, List<MLPSolution> theSolutions) {
+		public ONAPPushTask(MLPPeer thePeer, MLPPeerSubscription theSub) {
 			this.peer = thePeer;
-			this.solutions = theSolutions;
+			this.sub = theSub;
 		}
 
 		public void run() {
@@ -141,7 +144,36 @@ public class ONAP {
 			// list with category and subcategory currently used for onap
 			// more dynamic mapping to come: based on solution information it will provide
 			// sdc assettype, category and subcategory
-			log.info(EELFLoggerDelegate.debugLogger, "Processing {} Acumos solutions received from {}", solutions.size(), peer);
+
+			Map selector = null;
+			try {
+				selector = Utils.jsonStringToMap(this.sub.getSelector());
+			}
+			catch(Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "Failed to parse selector for subscription {}", this.sub);
+				return;
+			}
+			Date lastProcessed = this.sub.getProcessed();
+			if (lastProcessed != null) {
+				selector.put("modified", lastProcessed);
+			}
+			lastProcessed = new Date();
+			
+			FederationClient acumosClient = clients.getFederationClient(this.peer.getApiUrl());
+			if (acumosClient == null) {
+				log.error(EELFLoggerDelegate.errorLogger, "Failed to get client for peer {}", this.peer);
+				return;
+			}
+
+			List<MLPSolution> acumosSolutions = null;
+			try {
+				acumosSolutions = (List)acumosClient.getSolutions(selector).getContent();
+			}
+			catch(Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "Processing peer " + this.peer + " subscription " + this.sub.getSubId() + ": getSolutions failed.", x);
+				return;
+			}
+			log.info(EELFLoggerDelegate.debugLogger, "Processing peer {} subscription {}, {} yielded solutions {}", this.peer, this.sub.getSubId(), selector, acumosSolutions);
 
 			JSONArray sdcAssets = null;
 			try {
@@ -156,20 +188,18 @@ public class ONAP {
 					return;
 			}
 			log.info(EELFLoggerDelegate.debugLogger, "Mapping received Acumos solutions \n{}\n to retrieved ONAP SDC assets \n{}",
-			this.solutions, sdcAssets);
+			acumosSolutions, sdcAssets);
 
-			for (MLPSolution acumosSolution : this.solutions) {
-
-				FederationClient fedClient = clients.getFederationClient(this.peer.getApiUrl());
+			for (MLPSolution acumosSolution : acumosSolutions) {
 
 				List<MLPSolutionRevision> acumosRevisions = null;
 				try {
-					acumosRevisions = (List<MLPSolutionRevision>) fedClient
+					acumosRevisions = (List<MLPSolutionRevision>) acumosClient
 							.getSolutionRevisions(acumosSolution.getSolutionId()).getContent();
 				}
 				catch (Exception x) {
 					log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos revisions", x);
-					throw x;
+					return;
 				}
 				sortAcumosSolutionRevisions(acumosRevisions);
 

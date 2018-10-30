@@ -45,8 +45,11 @@ import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.cds.SubscriptionScope;
 import org.acumos.federation.gateway.cds.TimestampedEntity;
+import org.acumos.federation.gateway.util.Utils;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
+import org.acumos.federation.gateway.common.FederationException;
+import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.config.GatewayCondition;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
@@ -132,7 +135,7 @@ public class PeerGateway {
 	public void handlePeerSubscriptionUpdate(PeerSubscriptionEvent theEvent) {
 		log.info(EELFLoggerDelegate.debugLogger, "received peer subscription update event {}", theEvent);
 		taskExecutor.execute(
-				new PeerGatewayUpdateTask(theEvent.getPeer(), theEvent.getSubscription(), theEvent.getSolutions()));
+				new PeerGatewayUpdateTask(theEvent.getPeer(), theEvent.getSubscription()));
 	}
 
 	/**
@@ -144,28 +147,59 @@ public class PeerGateway {
 
 		private MLPPeer peer;
 		private PeerSubscription sub;
-		private List<MLPSolution> solutions;
 
-		public PeerGatewayUpdateTask(MLPPeer thePeer, MLPPeerSubscription theSub, List<MLPSolution> theSolutions) {
+		public PeerGatewayUpdateTask(MLPPeer thePeer, MLPPeerSubscription theSub) {
 			this.peer = thePeer;
 			this.sub = new PeerSubscription(theSub);
-			this.solutions = theSolutions;
-		
-			//remember when we processed the subscription
-			this.sub.setProcessed(new Date());
 		}
 
 		public void run() {
 
-			log.info(EELFLoggerDelegate.debugLogger, "Received peer " + this.peer + " solutions: " + this.solutions);
+			Map selector = null;
+			try {
+				selector = Utils.jsonStringToMap(this.sub.getSelector());
+			}
+			catch(Exception x) {
+				log.error(EELFLoggerDelegate.errorLogger, "Failed to parse selector for subscription {}", this.sub);
+				return;
+			}
+			Date lastProcessed = this.sub.getProcessed();
+			if (lastProcessed != null) {
+				selector.put("modified", lastProcessed);
+			}
+			lastProcessed = new Date();
+			
+			FederationClient peerClient = clients.getFederationClient(this.peer.getApiUrl());
+			if (peerClient == null) {
+				log.error(EELFLoggerDelegate.errorLogger, "Failed to get client for peer {}", this.peer);
+				return;
+			}
+
+			JsonResponse<List<MLPSolution>> peerSolutionsResponse = null;
+			try {
+				peerSolutionsResponse = peerClient.getSolutions(selector);
+			}
+			catch (FederationException fx) {
+				log.info(EELFLoggerDelegate.errorLogger, "Processing peer " + this.peer + " subscription " + this.sub.getSubId() + " error.", fx);
+				return;
+			}
+
+			List<MLPSolution> peerSolutions = peerSolutionsResponse.getContent();
+			log.info(EELFLoggerDelegate.debugLogger, "Processing peer {} subscription {}, {} yielded solutions {}", this.peer, this.sub.getSubId(), selector, peerSolutions);
+			if (peerSolutions == null) {
+				log.warn(EELFLoggerDelegate.debugLogger, "No solutions available for peer {} subscription {} in {}", this.peer, this.sub.getSubId(), peerSolutionsResponse);
+				peerSolutions = Collections.EMPTY_LIST;
+				//and let it proceed so we end up marking it as processed
+			}
+
 			ServiceContext ctx = catalog.selfService();
 			boolean isComplete = true;
 
-			for (MLPSolution peerSolution : this.solutions) {
+			for (MLPSolution peerSolution : peerSolutions) {
 				log.info(EELFLoggerDelegate.debugLogger, "Processing peer solution {}", peerSolution);
 
 				try {
-					isComplete &= mapSolution(peerSolution, ctx);
+					isComplete &= mapSolution(peerSolution, peerClient, ctx);
 				}
 				catch (Throwable t) {
 					log.error(EELFLoggerDelegate.errorLogger,
@@ -177,6 +211,7 @@ public class PeerGateway {
 			//only commit the last processed date if we completed succesfully
 			if (isComplete) {
 				try {
+					this.sub.setProcessed(lastProcessed);
 					peerSubscriptionService.updatePeerSubscription(this.sub);
 				}
 				catch (ServiceException sx) {
@@ -307,8 +342,31 @@ public class PeerGateway {
 				throw new ServiceException("Revision description handling unexpected failure", x);
 			}
 		}
-	
 
+		private boolean hasChanged(Artifact thePeerArtifact, Artifact theLocalArtifact) {
+			if (thePeerArtifact.getVersion() != null && theLocalArtifact.getVersion() != null) { 
+				return !thePeerArtifact.getVersion().equals(theLocalArtifact.getVersion());
+			}
+
+			if (thePeerArtifact.getSize() != null && theLocalArtifact.getSize() != null) { 
+				return !thePeerArtifact.getSize().equals(theLocalArtifact.getSize());
+			}
+
+			return true;
+		}	
+
+		private boolean hasChanged(Document thePeerDoc, Document theLocalDoc) {
+			if (thePeerDoc.getVersion() != null && theLocalDoc.getVersion() != null) { 
+				return !thePeerDoc.getVersion().equals(theLocalDoc.getVersion());
+			}
+
+			if (thePeerDoc.getSize() != null && theLocalDoc.getSize() != null) { 
+				return !thePeerDoc.getSize().equals(theLocalDoc.getSize());
+			}
+
+			return true;
+		}
+	
 		/**
 		 * Here comes the core process of updating a local solution's related
 		 * information with what is available from a peer.
@@ -322,16 +380,29 @@ public class PeerGateway {
 		 * @throws Exception
 		 *             any error related to CDS and peer interaction
 		 */
-		protected boolean mapSolution(MLPSolution theSolution, ServiceContext theContext) throws Exception {
+		protected boolean mapSolution(MLPSolution theSolution, FederationClient thePeerClient, ServiceContext theContext) throws Exception {
 
 			boolean isComplete = true;
-			FederationClient fedClient = clients.getFederationClient(this.peer.getApiUrl());
 
 			Solution localSolution = null,
 							 peerSolution = null;
 
 			//retrieve the full representation from the peer
-			peerSolution = (Solution)fedClient.getSolution(theSolution.getSolutionId()).getContent();
+			JsonResponse<MLPSolution> peerSolutionResponse = null;
+			try {
+				peerSolutionResponse = thePeerClient.getSolution(theSolution.getSolutionId());
+			}
+			catch (FederationException fx) {
+				log.warn(EELFLoggerDelegate.errorLogger, "Failed to retrieve peer solution details for " + theSolution, fx);
+				return false;
+			}
+
+			peerSolution = (Solution)peerSolutionResponse.getContent();
+			if (peerSolution == null) {
+				log.warn(EELFLoggerDelegate.debugLogger, "No solution details available for {} in {}", theSolution, peerSolutionResponse);
+				return false;
+			}
+
 			localSolution = catalog.putSolution(
 																	Solution.buildFrom(peerSolution)
 																		.withUser(getUserId(this.sub))
@@ -373,16 +444,21 @@ public class PeerGateway {
 
 			for (Map.Entry<MLPSolutionRevision, MLPSolutionRevision> revisionEntry : peerToLocalRevisions.entrySet()) {
 				MLPSolutionRevision peerRevision = revisionEntry.getKey(), localRevision = revisionEntry.getValue();
-			
+
 				//revision related information (artifacts/documents/description/..) is now embedded in the revision details
-				//federation api call so one call is all is needed	
+				//federation api call so one call is all is needed
+				JsonResponse<MLPSolutionRevision> peerRevisionResponse = null;
 				try {
-					peerRevision = fedClient.getSolutionRevision(peerSolution.getSolutionId(), peerRevision.getRevisionId())
-																		.getContent();
+					peerRevisionResponse = thePeerClient.getSolutionRevision(peerSolution.getSolutionId(), peerRevision.getRevisionId());
 				}
-				catch (Exception x) {
-					log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve peer acumos artifact details", x);
-					isComplete = false; //try procecessing the next revision but mark the processing as incomplete
+				catch (FederationException fx) {
+					isComplete = false; //try the next revision but mark the overall processing as incomplete
+					continue;
+				}
+
+				peerRevision = peerRevisionResponse.getContent();
+				if (peerRevision == null) {
+					isComplete = false; //try the next revision but mark the overall processing as incomplete
 					continue;
 				}
 
@@ -420,13 +496,15 @@ public class PeerGateway {
 					Artifact peerArtifact = artifactEntry.getKey(),
 									 localArtifact = artifactEntry.getValue();
 					boolean doCatalog = false;
+					
+					log.info(EELFLoggerDelegate.debugLogger, "Processing peer artifact {} against local artifact {}", peerArtifact, localArtifact);
 
 					if (localArtifact == null) {
 						localArtifact = copyArtifact(peerArtifact);
 						doCatalog = true;
 					}
 					else {
-						if (!peerArtifact.getVersion().equals(localArtifact.getVersion())) {
+						if (hasChanged(peerArtifact, localArtifact)) {
 							// update local artifact
 							localArtifact = copyArtifact(peerArtifact, localArtifact);
 							doCatalog = true;
@@ -443,11 +521,11 @@ public class PeerGateway {
 						// data is the right approach (as it does not rely on the E5 definition).
 						Resource artifactContent = null;
 						try {
-							artifactContent = fedClient.getArtifactContent(
+							artifactContent = thePeerClient.getArtifactContent(
 								peerSolution.getSolutionId(), peerRevision.getRevisionId(), peerArtifact.getArtifactId());
 							log.info(EELFLoggerDelegate.debugLogger, "Received {} bytes of artifact content", artifactContent.contentLength()); 
 						}
-						catch (Exception x) {
+						catch (FederationException x) {
 							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos artifact content", x);
 							doCatalog = this.sub.getSubscriptionOptions().alwaysUpdateCatalog();
 							isComplete = false;
@@ -498,14 +576,14 @@ public class PeerGateway {
 									 localDocument = documentEntry.getValue();
 					boolean doCatalog = false;
 
+					log.info(EELFLoggerDelegate.debugLogger, "Processing peer document {} against local version {}", peerDocument, localDocument);
 					if (localDocument == null) {
 						localDocument = copyDocument(peerDocument);
 						doCatalog = true;
 					}
 					else {
 						//version strings are not standard so comparing them is not necessarly safe
-						if (peerDocument.getVersion() != null && localDocument.getVersion() != null &&
-								!peerDocument.getVersion().equals(localDocument.getVersion())) {
+						if (hasChanged(peerDocument, localDocument)) {
 							// update local doc
 							localDocument = copyDocument(peerDocument, localDocument);
 							doCatalog = true;
@@ -522,11 +600,11 @@ public class PeerGateway {
 						// data is a more flexible approach.
 						Resource documentContent = null;
 						try {
-							documentContent = fedClient.getDocumentContent(
+							documentContent = thePeerClient.getDocumentContent(
 								peerSolution.getSolutionId(), localRevision.getRevisionId(), peerDocument.getDocumentId());
 							log.info(EELFLoggerDelegate.debugLogger, "Received {} bytes of document content", documentContent.contentLength()); 
 						}
-						catch (Exception x) {
+						catch (FederationException x) {
 							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve acumos document content", x);
 							doCatalog = this.sub.getSubscriptionOptions().alwaysUpdateCatalog();
 							isComplete = false;

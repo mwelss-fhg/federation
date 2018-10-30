@@ -100,9 +100,4 @@ public class TaskConfiguration implements AsyncConfigurer {
 		return new PeerSubscriptionTaskScheduler();
 	}
 
-	@Bean
-	@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public PeerSubscriptionTask peerSubscriptionTask() {
-		return new PeerSubscriptionTask();
-	}
 }

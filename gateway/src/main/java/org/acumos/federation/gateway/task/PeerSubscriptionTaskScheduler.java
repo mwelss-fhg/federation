@@ -33,12 +33,15 @@ import javax.annotation.PreDestroy;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.federation.gateway.cds.PeerStatus;
+import org.acumos.federation.gateway.cds.PeerSubscription;
 import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.util.Utils;
+import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -68,6 +71,8 @@ public class PeerSubscriptionTaskScheduler {
 	private ApplicationContext appCtx;
 	@Autowired
 	private TaskScheduler taskScheduler = null;
+	@Autowired
+	private ApplicationEventPublisher eventPublisher;
 
 	private Table<String, Long, PeerTaskHandler> peersSubsTask = HashBasedTable.create();
 
@@ -142,7 +147,6 @@ public class PeerSubscriptionTaskScheduler {
 
 	@Scheduled(initialDelay = 5000, fixedRateString = "${peer.jobchecker.interval:400}000")
 	public void checkPeerJobs() {
-
 		log.debug(EELFLoggerDelegate.debugLogger, "checkPeerSubscriptionJobs");
 		// Get the List of MLP Peers
 		List<MLPPeer> peers = peerService.getPeers();
@@ -213,10 +217,7 @@ public class PeerSubscriptionTaskScheduler {
 				if (peerSubTask != null) {
 					MLPPeerSubscription taskSub = peerSubTask.getSubscription();
 					// was the subscription updated? if yes, cancel current task.
-					//TODO: this does not correctly identify one time executions that were completed
-					if (!((peerSub.getModified() == null && taskSub.getModified() == null) ||
-							  (peerSub.getModified() != null && taskSub.getModified() != null &&
-								 peerSub.getModified().equals(taskSub.getModified())))) {
+					if (PeerSubscription.isModified(peerSub, taskSub)) {
 						log.debug(EELFLoggerDelegate.debugLogger,
 								"peer {} subscription {} was updated, terminating current task", peer.getPeerId(), peerSub.getSubId());
 						peerSubTask.stopTask();
@@ -243,28 +244,35 @@ public class PeerSubscriptionTaskScheduler {
 	 */
 	private class PeerTaskHandler {
 
-		private ScheduledFuture future;
-		private PeerSubscriptionTask task;
+		private ScheduledFuture				future;
+		private PeerSubscriptionTask	task;
 
 		public synchronized PeerTaskHandler startTask(MLPPeer thePeer, MLPPeerSubscription theSub) {
+			if (this.task != null)
+				throw new IllegalStateException("Already scheduled");
+			else
+				this.task = new PeerSubscriptionTask(thePeer, theSub);
+
 			Long refreshInterval = theSub.getRefreshInterval();
-	
-			this.task = (PeerSubscriptionTask) PeerSubscriptionTaskScheduler.this.appCtx.getBean("peerSubscriptionTask");
 			if (refreshInterval.longValue() == 0) {
 				this.future = PeerSubscriptionTaskScheduler.this.taskScheduler
-												.schedule(this.task.handle(thePeer, theSub), new Date(System.currentTimeMillis() + 5000));
+												.schedule(this.task, new Date(System.currentTimeMillis() + 5000));
 			}
 			else {
 				this.future = PeerSubscriptionTaskScheduler.this.taskScheduler
-												.scheduleAtFixedRate(this.task.handle(thePeer, theSub), 1000 * refreshInterval.longValue() );
+												.scheduleAtFixedRate(this.task, 1000 * refreshInterval.longValue() );
 			}
 			return this;
 		}
 		
 		public synchronized PeerTaskHandler runTask(MLPPeer thePeer, MLPPeerSubscription theSub) {
-			this.task = (PeerSubscriptionTask) PeerSubscriptionTaskScheduler.this.appCtx.getBean("peerSubscriptionTask");
+			if (this.task != null)
+				throw new IllegalStateException("Already scheduled");
+			else
+				this.task = new PeerSubscriptionTask(thePeer, theSub);
+
 			this.future = PeerSubscriptionTaskScheduler.this.taskScheduler
-												.schedule(this.task.handle(thePeer, theSub), new Date(System.currentTimeMillis() + 5000));
+												.schedule(this.task, new Date(System.currentTimeMillis() + 5000));
 			return this;
 		}
 
@@ -272,16 +280,39 @@ public class PeerSubscriptionTaskScheduler {
 			if (this.future == null)
 				throw new IllegalStateException("Not started");
 
-			this.future.cancel(true);
+			this.future.cancel(false);
 			return this;
 		}
 
-		public synchronized MLPPeerSubscription getSubscription() {
-			if (this.task == null)
-				throw new IllegalStateException("Not started");
-
-			return this.task.getSubscription();
+		public MLPPeerSubscription getSubscription() {
+			return (this.task == null) ? null : this.task.getSubscription();
 		}
 	}	
 
+	public class PeerSubscriptionTask implements Runnable {
+
+		private MLPPeer	peer;
+		private MLPPeerSubscription subscription;
+
+		PeerSubscriptionTask(MLPPeer peer, MLPPeerSubscription subscription) {
+			this.peer = peer;
+			this.subscription = subscription;
+		}
+
+		public MLPPeer getPeer() {
+			return this.peer;
+		}
+
+		public MLPPeerSubscription getSubscription() {
+			return this.subscription;
+		}
+
+		@Override
+		public void run() {
+
+			//tell whoever needs to know that this subscription is to be processed
+			PeerSubscriptionTaskScheduler.this.eventPublisher.publishEvent(
+					new PeerSubscriptionEvent(this, this.peer, this.subscription));
+		}
+	}
 }

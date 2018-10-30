@@ -96,10 +96,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class TaskTest {
 
 	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
-	@MockBean(name = "clients")
-	private Clients	clients;
-	@MockBean(name = "federationClient")
-	private HttpClient	federationClient;
 	@Autowired
 	private ApplicationContext context;
 
@@ -115,130 +111,6 @@ public class TaskTest {
 			(PeerSubscriptionListener)this.context.getBean("testListener");
 
 		try {
-			BasicHttpResponse mockResponse = 
-				new BasicHttpResponse(
-					new BasicStatusLine(
-						new ProtocolVersion("HTTP",1,1), 200, "Success"));
-/*
-			String mockContent = "{" +
-					"\"status\": true," +
- 					"\"response_code\": 200," +
- 					"\"response_detail\": \"Success\"," +
- 					"\"response_body\": [{" +
-					"\"solutionId\":\"6793411f-c7a1-4e93-85bc-f91d267541d8\"," +
-					"\"name\":\"mock model\"," +
-  				"\"description\":\"Test mock model\"," +
-  				"\"ownerId\":\"admin\"," +
-  				"\"active\":\"true\"," +
-  				"\"modelTypeCode\":\"CL\"," +
-  				"\"toolkitTypeCode\":\"\"," +
-  				"\"validationStatusCode\":\"\"," +
-  				"\"metadata\":\"acumosa\"," +
-  				"\"created\":\"2017-08-10\"," +
-  				"\"modified\":\"2017-08-11\"" +
-  				"}]}";
-
-			byte[] mockContentBytes = mockContent.getBytes("UTF-8");
-
-			mockResponse.setEntity(
-				new ByteArrayEntity(mockContentBytes));
-			mockResponse.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
-			mockResponse.addHeader("Content-Length", String.valueOf(mockContentBytes.length));
-*/
-			ClassPathResource mockResource = new ClassPathResource("mockPeerSolutionsResponse.json");
-
-			mockResponse.setEntity(
-				new InputStreamEntity(mockResource.getInputStream()));
-			mockResponse.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
-			mockResponse.addHeader("Content-Length", String.valueOf(mockResource.contentLength()));
-
-			MLPSolution mockSolution = new MLPSolution();
-			mockSolution.setSolutionId("1");
-			mockSolution.setName("mock model");
-			mockSolution.setDescription("mock model test");
-			mockSolution.setActive(true);
-
-			JsonResponse<List<MLPSolution>> mockPayload = new JsonResponse();
-			mockPayload.setMessage("Success");
-			mockPayload.setContent(Collections.singletonList(mockSolution));
-
-			when(
-				this.federationClient.execute(
-					any(HttpHost.class), any(HttpRequest.class)
-				)
-			).thenReturn(mockResponse);
-
-			when(
-				this.federationClient.execute(
-					any(HttpHost.class), any(HttpRequest.class), any(HttpContext.class)
-				)
-			).thenReturn(mockResponse);
-			
-			when(
-				this.federationClient.execute(
-					any(HttpUriRequest.class)
-				)
-			).thenReturn(mockResponse);
-
-//this one gets called!
-			when(
-				this.federationClient.execute(
-					any(HttpUriRequest.class), any(HttpContext.class)
-				)
-			//).thenReturn(mockResponse);
-			).thenAnswer(new Answer<HttpResponse>() {
-					public HttpResponse answer(InvocationOnMock theInvocation) {
-						return mockResponse;
-					}
-				});
-
-			when(
-				this.federationClient.execute(
-					any(HttpHost.class), any(HttpRequest.class), any(ResponseHandler.class)
-				)
-			).thenReturn(mockPayload);
-						
-			when(
-				this.federationClient.execute(
-					any(HttpHost.class), any(HttpRequest.class), any(ResponseHandler.class), any(HttpContext.class)
-				)
-			).thenReturn(mockPayload);
-			
-			when(
-				this.federationClient.execute(
-					any(HttpUriRequest.class), any(ResponseHandler.class)
-				)
-			).thenReturn(mockPayload);
-						
-			when(
-				this.federationClient.execute(
-					any(HttpUriRequest.class), any(ResponseHandler.class), any(HttpContext.class)
-				)
-			).thenReturn(mockPayload);
-
-			//prepare the clients
-			when(
-				this.clients.getFederationClient(
-					any(String.class)
-				)
-			)
-			.thenAnswer(new Answer<FederationClient>() {
-					public FederationClient answer(InvocationOnMock theInvocation) {
-						//this ends up providing a client based on the mocked http client
-					  return new FederationClient(
-                  (String)theInvocation.getArguments()[0]/*the URI*/,
-                  federationClient);
-					}
-				});
-
-	
-		}
-		catch(Exception x) {
-			log.error(EELFLoggerDelegate.errorLogger, "Failed to setup mock", x);
-			assertTrue(1 == 0);
-		}
-
-		try {
 			boolean complete = listener.peerEventLatch.await(10, TimeUnit.SECONDS);
 			log.info(EELFLoggerDelegate.debugLogger, "event: " + complete + "/" + listener.peerEventLatch.getCount());
 			assertTrue("All expected events have occured in the test interval",
@@ -249,8 +121,7 @@ public class TaskTest {
 		}
 		//
 		assertTrue(listener.event != null);
-		assertTrue(listener.event.getSolutions().size() == 1);
-		assertTrue(listener.event.getSolutions().get(0).getName().equals("mock model"));
+		assertTrue(listener.event.getSubscription().getPeerId().equals("11111111-1111-1111-1111-111111111111"));
 	}
 
 	public static class TaskTestConfiguration {

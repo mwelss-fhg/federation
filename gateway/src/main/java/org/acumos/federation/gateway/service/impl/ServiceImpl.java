@@ -46,11 +46,13 @@ public abstract class ServiceImpl {
 	public static boolean isSelectable(MLPSolution theSolution, Map<String, ?> theSelector) /*throws ServiceException*/ {
 		boolean res = true;
 
+		log.trace(EELFLoggerDelegate.debugLogger, "isSelectable {}", theSolution);
 		if (theSelector == null || theSelector.isEmpty())
 			return true;
 
 		Object solutionId = theSelector.get("solutionId");
 		if (solutionId != null) {
+			log.trace(EELFLoggerDelegate.debugLogger, "using solutionId based selection {}", solutionId);
 			if (solutionId instanceof String) {
 				res &= theSolution.getSolutionId().equals(solutionId);
 			}
@@ -62,6 +64,7 @@ public abstract class ServiceImpl {
 
 		Object modelTypeCode = theSelector.get("modelTypeCode");
 		if (modelTypeCode != null) {
+			log.trace(EELFLoggerDelegate.debugLogger, "using modelTypeCode based selection {}", modelTypeCode);
 			String solutionModelTypeCode = theSolution.getModelTypeCode();
 			if (solutionModelTypeCode == null) {
 				return false;
@@ -82,6 +85,7 @@ public abstract class ServiceImpl {
 
 		Object toolkitTypeCode = theSelector.get("toolkitTypeCode");
 		if (toolkitTypeCode != null) {
+			log.trace(EELFLoggerDelegate.debugLogger, "using toolkitTypeCode based selection {}", toolkitTypeCode);
 			String solutionToolkitTypeCode = theSolution.getToolkitTypeCode();
 			if (solutionToolkitTypeCode == null) {
 				return false;
@@ -102,6 +106,7 @@ public abstract class ServiceImpl {
 
 		Object tags = theSelector.get("tags");
 		if (tags != null) {
+			log.trace(EELFLoggerDelegate.debugLogger, "using tags based selection {}", tags);
 			Set<MLPTag> solutionTags = theSolution.getTags();
 			if (solutionTags == null) {
 				return false;
@@ -122,6 +127,7 @@ public abstract class ServiceImpl {
 
 		Object name = theSelector.get("name");
 		if (name != null) {
+			log.debug(EELFLoggerDelegate.debugLogger, "using name based selection {}", name);
 			String solutionName = theSolution.getName();
 			if (solutionName == null) {
 				return false;
@@ -133,6 +139,7 @@ public abstract class ServiceImpl {
 
 		Object desc = theSelector.get("description");
 		if (desc != null) {
+			log.debug(EELFLoggerDelegate.debugLogger, "using description based selection {}", desc);
 			String solutionDesc = theSolution.getDescription();
 			if (solutionDesc == null) {
 				return false;

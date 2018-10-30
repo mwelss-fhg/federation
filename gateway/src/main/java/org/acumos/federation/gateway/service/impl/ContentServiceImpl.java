@@ -245,6 +245,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		try {
 			String path = nexusPath(theGroupId, theContentId, theVersion, thePackaging);
 			URI contentUri = new URI(this.nexusConfig.getUrl() + UriUtils.encodePath(path, "UTF-8"));
+			//URI contentUri = new URI(this.nexusConfig.getUrl() + path);
 			log.info(EELFLoggerDelegate.debugLogger, "Writing artifact content to nexus at {}", path);
 			RequestEntity<Resource> request = RequestEntity
 																					.put(contentUri)
@@ -298,6 +299,9 @@ public class ContentServiceImpl extends AbstractServiceImpl
 	 * @return a string array containing the 2 part or null if the part was missing
 	 */
 	private String[] splitName(String theName) {
+		log.info(EELFLoggerDelegate.debugLogger,	"Splitting name {}", theName);
+		if (null == theName)
+			return new String[] {"", ""};
 		int pos = theName.lastIndexOf('.');
 		return (pos < 0) ?
 			new String[] {theName, "" /*null: better coding but does not facilitate callers*/} :
