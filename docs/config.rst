@@ -24,10 +24,15 @@ Federation Gateway Configuration Guide
 This document explains the steps required to configure two Acumos
 instances to be peers so that they can communicate via their
 Federation Gateway components.  Gateways use certificates for mutual
-SSL authentication.  An overview of the general process is here:
+SSL authentication.
+
+An overview of the general process is here:
 `Mutual SSL Authentication
 <https://www.codeproject.com/Articles/326574/An-Introduction-to-Mutual-SSL-Authentication/>`_
 
+Assistance with the detailed process is here:
+`How to setup your own CA with OpenSSL
+<https://gist.github.com/Soarez/9688998>`_
 
 Background
 ----------
@@ -89,48 +94,55 @@ Ubuntu version 16.04.  The instructions use shell-style variables
 (e.g., ``$VAR``) to indicate where a value must be supplied and
 reused.
 
-Step 0: Choose a key (6 characters or more) and determine the fully
-qualified domain name (FQDN) of the peer. Store these values in shell
-variables ``ACUMOS_KEYPASS`` and ``ACUMOS_DOMAIN`` for use in the
-command below.  For example::
+Step 1: Determine the fully qualified domain name of the peer (FQDN)
+and choose a password (6 characters or more). Store these values in
+shell variables ``ACUMOS_HOST`` and ``ACUMOS_PASS`` for use in the
+commands below.  For example::
 
-  export ACUMOS_KEYPASS="mykey123456"
-  export ACUMOS_DOMAIN="myserver.mymodels.org"
+  export ACUMOS_HOST="myserver.mymodels.org"
+  export ACUMOS_PASS="mykey123456"
 
-Step 1: Because a new CA will be created here, openssl requires a
-configuration file ``openssl.cnf``.  Create this file using the
-template below, and in the ``[ alt_names ]`` section replace the
-string ``<acumos-domain>`` with the FQDN value you chose above.
+Step 2: Because a new certificate authorithy (CA) will be created
+here, openssl requires a configuration file ``openssl.cnf``.  Create
+this file using the template below, and in the ``[alt_names]``
+section replace the string ``<acumos-host>`` with the FQDN you chose
+above.
 
-Step 2: Create a CA private key::
+Step 3: Create the Acumos CA private key::
 
-  openssl genrsa -des3 -out acumosCA.key -passout pass:$ACUMOS_KEYPASS 4096
+  openssl genrsa -des3 -out acumosCA.key -passout pass:$ACUMOS_PASS 4096
 
-Step 3: Create an Acumos CA certificate ::
+Step 4: Create the Acumos CA certificate. You may wish to use
+different values (i.e., not "Unspecified") in this command, just be
+consistent in later commands::
 
   openssl req -x509 -new -nodes -key acumosCA.key -sha256 -days 1024 \
-     -config openssl.cnf -out acumosCA.crt -passin pass:$ACUMOS_KEYPASS \
-     -subj "/C=US/ST=Unspecified/L=Unspecified/O=Acumos/OU=Acumos/CN=$ACUMOS_DOMAIN"
+    -config openssl.cnf -out acumosCA.crt -passin pass:$ACUMOS_PASS \
+    -subj "/C=US/ST=Unspecified/L=Unspecified/O=Acumos/OU=Acumos/CN=$ACUMOS_HOST"
 
-Step 4: Create a server private key::
+Step 5: Create a JKS-format truststore with the Acumos CA certificate::
 
-  openssl genrsa -out acumos.key -passout pass:$ACUMOS_KEYPASS 4096
+  keytool -import -file acumosCA.crt -alias acumosCA -keypass $ACUMOS_PASS \
+      -keystore acumosTrustStore.jks -storepass $ACUMOS_PASS -noprompt
 
-Step 5: Create a certificate signing request (CSR) for the server certificate::
+Step 6: Create the server private key::
 
-  openssl req -new -key acumos.key -passin pass:$ACUMOS_KEYPASS -out acumos.csr \
-      -subj "/C=US/ST=Unspecified/L=Unspecified/O=Acumos/OU=Acumos/CN=$ACUMOS_DOMAIN"
+  openssl genrsa -out acumos.key -passout pass:$ACUMOS_PASS 4096
 
-Step 6: Sign the CSR with the Acumos CA certificate to yield a server certificate::
+Step 7: Create a certificate signing request (CSR) for your FQDN.
+Please note the C, ST, L, O, OU and CN key-value pairs must match what
+was used above::
 
-  openssl x509 -req -in acumos.csr -CA acumosCA.crt -CAkey acumosCA.key \
-      -CAcreateserial -passin pass:$ACUMOS_KEYPASS \
-      -extfile openssl.cnf -out acumos.crt -days 500 -sha256
+  openssl req -new -key acumos.key -passin pass:$ACUMOS_PASS -out acumos.csr \
+    -subj "/C=US/ST=Unspecified/L=Unspecified/O=Acumos/OU=Acumos/CN=$ACUMOS_HOST"
 
-Step 7: Create a PKCS12 format keystore with the server key and certificate::
+Step 8: Sign the CSR with the Acumos CA certificate to yield a server certificate::
 
-  Copy the private key and SSL certificate to a plain text file, acumos.txt. The private key 
-  should go on top with the SSL certificate. Should yield:
+  openssl ca -config openssl.cnf -passin pass:$ACUMOS_PASS -in acumos.csr -out acumos.crt
+
+Step 9: Copy the server private key and certificate to a plain text
+file ``acumos.txt``. The private key should appear first, followed by
+the certificate. The finished file should have this structure::
   
   -----BEGIN RSA PRIVATE KEY-----
   (Private Key: acumos.key contents)
@@ -139,16 +151,20 @@ Step 7: Create a PKCS12 format keystore with the server key and certificate::
   (SSL certificate: acumos.crt contents)
   -----END CERTIFICATE-----
   
-  and then:
+Step 10: Create a PKCS12 format keystore with the server key and certificate::
   
-  openssl pkcs12 -export -in acumos.txt -out acumos.p12
+  openssl pkcs12 -export -in acumos.txt -passout pass:$ACUMOS_PASS -out acumos.pkcs12
 
-Step 8: Create a JKS-format truststore with the Acumos CA certificate::
+Step 11: Copy the JKS and PKCS12 files to the machine where the
+federation component runs and configure them:
 
-  keytool -import -file acumosCA.crt -alias acumosCA -keypass $ACUMOS_KEYPASS \
-      -keystore acumosTrustStore.jks -storepass $ACUMOS_KEYPASS -noprompt
+* Enter the path to the JKS file in key ``trust-store``
+* Enter the password for the JKS file in key ``trust-store-password``
+* Enter the path to the PKCS12 file in key ``key-store``
+* Enter the password for the  PKCS12 file in key ``key-store-password``
+* Enter the key store type in key ``key-store-type`` with value ``PKCS12``
 
-
+  
 Final Checklist
 ---------------
 
@@ -443,7 +459,7 @@ Template openssl.cnf
 
   [ alt_names ]
 
-  DNS.1 = <acumos-domain>
+  DNS.1 = <acumos-host>
   # federation-service: for portal-be access to federation local port via expose
   DNS.2 = federation-service
 
@@ -573,4 +589,4 @@ Template openssl.cnf
   tsa_name                = yes   # Must the TSA name be included in the reply?
 				  # (optional, default: no)
   ess_cert_id_chain       = no    # Must the ESS cert id chain be included?
-				  # (optional, default: no)
+				  # (optional, default: no
