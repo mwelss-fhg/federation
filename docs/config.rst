@@ -125,6 +125,12 @@ Step 5: Create a JKS-format truststore with the Acumos CA certificate::
   keytool -import -file acumosCA.crt -alias acumosCA -keypass $ACUMOS_PASS \
       -keystore acumosTrustStore.jks -storepass $ACUMOS_PASS -noprompt
 
+The recommended practice here is to import the self-signed Acumos CA
+certificate into an existing trust store. For example you can extend
+the file "cacerts" that is included with a Java Runtime Engine (JRE)
+distribution below directory "jre/lib/security" which usually uses the
+password "changeit".
+
 Step 6: Create the server private key::
 
   openssl genrsa -out acumos.key -passout pass:$ACUMOS_PASS 4096
@@ -143,16 +149,16 @@ Step 8: Sign the CSR with the Acumos CA certificate to yield a server certificat
 Step 9: Copy the server private key and certificate to a plain text
 file ``acumos.txt``. The private key should appear first, followed by
 the certificate. The finished file should have this structure::
-  
+
   -----BEGIN RSA PRIVATE KEY-----
   (Private Key: acumos.key contents)
   -----END RSA PRIVATE KEY-----
   -----BEGIN CERTIFICATE-----
   (SSL certificate: acumos.crt contents)
   -----END CERTIFICATE-----
-  
+
 Step 10: Create a PKCS12 format keystore with the server key and certificate::
-  
+
   openssl pkcs12 -export -in acumos.txt -passout pass:$ACUMOS_PASS -out acumos.pkcs12
 
 Step 11: Copy the JKS and PKCS12 files to the machine where the
@@ -164,13 +170,13 @@ federation component runs and configure them:
 * Enter the password for the  PKCS12 file in key ``key-store-password``
 * Enter the key store type in key ``key-store-type`` with value ``PKCS12``
 
-  
+
 Final Checklist
 ---------------
 
 These are the prerequisites for Acumos instance A (``hostA.name.org``)
 to pull models from its Acumos peer B (``hostB.name.org``):
- 
+
 #. Federation gateways are running on both instances
 #. Gateway A has a PKCS12 file containing a certificate for ``hostA.name.org`` and signed by authority CA-1
 #. Gateway A deployment configuration has the path to the PKCS12 file in key ``federation.ssl.key-store``
@@ -190,23 +196,36 @@ certificates).
 Troubleshooting
 ---------------
 
-First, use the following steps to extract certificates and keys to
-test connections manually.
+Inspect the certificate advertised by your server using this command::
+
+  openssl s_client -connect yourserver.yourmodels.org:9084
+
+Look carefully at the "Certificate chain" section.  In case of error
+you may see a message like this::
+
+  Verify return code: 21 (unable to verify the first certificate)
+
+For advanced troubleshooting, use the following steps to extract
+certificates and keys to test connections manually.
 
 Extract the CA certificate created above in PEM format::
 
   keytool -export -alias acumos -file acumos-ca.crt -keystore acumosTrustStore.jks
   openssl x509 -inform der -in acumos-ca.crt -out acumos-ca.pem
-  
+
 Extract the signed certificate for the client host attempting the
 connection in PEM format::
 
-  openssl pkcs12 -in acumos.p12 -clcerts -nokeys -out  acumos.pem
+  openssl pkcs12 -in acumos.p12 -clcerts -nokeys -out acumos.pem
+
+Look at the signed certificate details, for example the expiration date::
+
+  openssl x509 -in acumos.pem -text -noout
 
 Extract the private key for the client host attempting the connection::
 
-  openssl pkcs12 -in acumos.p12 -nocerts -out acumos.key  
-  
+  openssl pkcs12 -in acumos.p12 -nocerts -out acumos.key
+
 Next run the following command to test the certificates used to
 establish a connection to remote peer ``yourserver.yourmodels.org`` at
 port 9084 from server ``myserver.mymodels.org``. The certificate files
