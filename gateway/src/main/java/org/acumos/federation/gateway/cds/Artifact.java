@@ -62,7 +62,7 @@ public class Artifact extends MLPArtifact
 	@JsonIgnore
 	@Override
 	public String getUriFilename() {
-		if (ArtifactType.DockerImage == ArtifactType.forCode(getArtifactTypeCode())) {
+		if (ArtifactTypes.DockerImage == ArtifactTypes.forCode(getArtifactTypeCode())) {
 			return Identifier.fromCompoundString(getUri()).repository.getPath();
 		}
 		else {

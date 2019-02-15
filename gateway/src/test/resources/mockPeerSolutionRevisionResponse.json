@@ -4,22 +4,21 @@
  "content": {
   "revisionId":"2c7e4481-6e6f-47d9-b7a4-c4e674d2b341",
   "solutionId":"6793411f-c7a1-4e93-85bc-f91d267541d8",
-  "description":"First attempt",
   "version":"1.0",
   "metadata":"acumosa",
   "userId":"abcdabcd-abcd-abcd-abcd-abcdabcdabcd",
   "accessTypeCode": "PB",
-  "validationStatusCode": "PS",
-  "created":"2017-08-10",
-  "modified":"2017-08-11",
+  "created":"1550013200",
+  "modified":"1550013200",
   "artifacts":[{
     "artifactId":"2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b341",
     "artifactTypeCode":"dk",
-    "description":"First attempt",
+  	"version":"1.0",
+    "description":"mock artifact",
     "size":0,
     "metadata":"mock artifact",
-    "created":"2017-09-10",
-    "modified":"2017-09-11",
+    "created":"1550013200",
+    "modified":"1550013200",
 		"uri":"/somewhere/artifact.log"
    }],
  "documents":[]

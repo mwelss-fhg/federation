@@ -99,7 +99,10 @@ public class PeerSubscription extends MLPPeerSubscription {
 	/**
 	 * Detect changes in a peer subscription. The 'modified' timestamp is not a reliable test as we
 	 * we modify it outselves, so instead we look at the content.
-	 * TODO: selector and options are json string, we should compare teh actual json structure.
+	 * TODO: selector and options are json string, we should compare the actual json structure.
+	 * @param theCurrentSub Old sub
+	 * @param theNewSub New sub
+	 * @return Boolean
 	 */
 	public static boolean isModified(MLPPeerSubscription theCurrentSub, MLPPeerSubscription theNewSub) {
 		boolean res = true;

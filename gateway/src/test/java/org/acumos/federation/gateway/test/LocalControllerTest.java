@@ -32,7 +32,8 @@ import org.acumos.cds.domain.MLPSolution;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
 import org.apache.http.HttpResponse;
@@ -85,11 +86,13 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootTest(classes = org.acumos.federation.gateway.Application.class,
 								webEnvironment = WebEnvironment.DEFINED_PORT,
 								properties = {
+									"spring.main.allow-bean-definition-overriding=true",
 									"federation.instance=adapter",
 									"federation.instance.name=test",
 									"federation.operator=admin",
-									"peersLocal.source=classpath:test-peers.json",
-									"catalogLocal.source=classpath:test-catalog.json",
+									"codes-local.source=classpath:test-codes.json",
+									"peers-local.source=classpath:test-peers.json",
+									"catalog-local.source=classpath:test-catalog.json",
 									"federation.server.port=${random.int[49152,65535]}",
 									"federation.ssl.key-store=classpath:acumosa.pkcs12",
 									"federation.ssl.key-store-password=acumosa",
@@ -108,7 +111,7 @@ import org.springframework.web.client.RestTemplate;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LocalControllerTest {
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+	private final Logger log = LoggerFactory.getLogger(getClass().getName());
 //	@Autowired
 //	private TestRestTemplate restTemplate;
 
@@ -245,13 +248,13 @@ public class LocalControllerTest {
 		
 		String url = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111111/solutions";
 
-		log.info(EELFLoggerDelegate.debugLogger, "testPeerSolutions: {}", url);
+		log.info("testPeerSolutions: {}", url);
 		ResponseEntity<JsonResponse<List<MLPSolution>>> response =
 			this.restTemplate.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 		
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testPeerSolutions: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testPeerSolutions: {}", response);
+			log.info("testPeerSolutions: {}", response.getBody());
+			log.info("testPeerSolutions: {}", response);
 		}
 		
 		assertTrue(response != null);
@@ -269,13 +272,13 @@ public class LocalControllerTest {
 
 		String url = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111111/solutions/00000000-0000-0000-0000-000000000000";
 
-		log.info(EELFLoggerDelegate.debugLogger, "testPeerSolution: {}", url);
+		log.info("testPeerSolution: {}", url);
 		ResponseEntity<JsonResponse<MLPSolution>> response =
 			this.restTemplate.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
 	
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testSolution: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testSolution: {}", response);
+			log.info("testSolution: {}", response.getBody());
+			log.info("testSolution: {}", response);
 		}
 
 		assertTrue(response != null);
@@ -292,13 +295,13 @@ public class LocalControllerTest {
 
 		String url = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111111/ping";
 
-		log.info(EELFLoggerDelegate.debugLogger, "testPeerPing: {}", url);
+		log.info("testPeerPing: {}", url);
 		ResponseEntity<JsonResponse<MLPPeer>> response =
 			this.restTemplate.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {});
 		
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testPing: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testPing: {}", response);
+			log.info("testPing: {}", response.getBody());
+			log.info("testPing: {}", response);
 		}
 
 		assertTrue(response != null);
@@ -315,13 +318,13 @@ public class LocalControllerTest {
 
 		String url = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111111/peers";
 		
-		log.info(EELFLoggerDelegate.debugLogger, "testPeerPeers: {}", url);
+		log.info("testPeerPeers: {}", url);
 		ResponseEntity<JsonResponse<List<MLPPeer>>> response =
 			this.restTemplate.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {} );
 	
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testPeerPeers: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testPeerPeers: {}", response);
+			log.info("testPeerPeers: {}", response.getBody());
+			log.info("testPeerPeers: {}", response);
 		}
 
 		assertTrue(response != null);
@@ -338,13 +341,13 @@ public class LocalControllerTest {
 
 		String url = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111111/subscription/1";
 
-		log.info(EELFLoggerDelegate.debugLogger, "testPeerSubscription: {}", url);
+		log.info("testPeerSubscription: {}", url);
 		ResponseEntity<JsonResponse<String>> response =
 			this.restTemplate.exchange(url, HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<String>>() {});
 		
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testPeerSubscription: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testPeerSubscription: {}", response);
+			log.info("testPeerSubscription: {}", response.getBody());
+			log.info("testPeerSubscription: {}", response);
 		}
 
 		assertTrue(response != null);
@@ -360,7 +363,7 @@ public class LocalControllerTest {
 
 		String url = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111112/ping";
 	
-		log.info(EELFLoggerDelegate.debugLogger, "testPeerNoSuch: {}", url);
+		log.info("testPeerNoSuch: {}", url);
 		try {
 			this.restTemplate.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
 			assertTrue("expected to fail", true);

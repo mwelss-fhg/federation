@@ -35,7 +35,6 @@ public class SolutionRevision extends MLPSolutionRevision {
 
 	public static interface Fields {
 		public static final String accessTypeCode = "accessTypeCode";
-		public static final String validationStatusCode = "validationStatusCode";
 	};
 
 	private List<? extends MLPArtifact>		artifacts = Collections.EMPTY_LIST;

@@ -1,0 +1,9 @@
+{
+	"subId":1,
+	"peerId":"a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0",
+	"selector":"{\"modelTypeCode\":[\"CL\",\"PR\"]}",
+	"refreshInterval":"120",
+	"maxArtifactSize":"2048",
+	"created":1549401637,
+	"modified":1549401637
+}

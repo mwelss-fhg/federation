@@ -19,19 +19,25 @@
  */
 package org.acumos.federation.gateway.test;
 
+import java.util.function.Consumer;
 
 
 public class MockResponse {
 
-	private String 	resourceName;
-	private int			responseCode;
-	private String	responseMsg;
+	private String 		resourceName;
+	private int				responseCode;
+	private String		responseMsg;
+	private Consumer<MockResponse>	responseConsumer;
 
-	/** */
 	public MockResponse(int theCode, String theMessage, String theResourceName) {
+		this(theCode, theMessage, theResourceName, null);
+	}
+
+	public MockResponse(int theCode, String theMessage, String theResourceName, Consumer<MockResponse> theConsumer) {
 		this.responseCode = theCode;
 		this.responseMsg = theMessage;
 		this.resourceName = theResourceName;
+		this.responseConsumer = theConsumer;
 	}
 
 	public String getResourceName() {
@@ -46,8 +52,23 @@ public class MockResponse {
 		return this.responseMsg;
 	}
 
+	public void consume() {
+		if (this.responseConsumer != null) {
+			this.responseConsumer.accept(this);
+		}
+	}
+
+	public String toString() {
+		return this.responseCode + " " + this.responseMsg + " : " + this.resourceName;
+	}
+
 	public static MockResponse success(String theResource) {
-		return new MockResponse(200, "Success", theResource);
-	}	
+		return success(theResource, null);
+	}
+
+	public static MockResponse success(String theResource, Consumer<MockResponse> theConsumer) {
+		return new MockResponse(200, "Success", theResource, theConsumer);
+	}
+	
 }
 

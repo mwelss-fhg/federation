@@ -21,6 +21,7 @@
 package org.acumos.federation.gateway.util;
 
 /**
+ * @param <T> Type
  */
 public interface Action<T> {
 

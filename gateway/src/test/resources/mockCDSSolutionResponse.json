@@ -3,7 +3,6 @@
   "modified": 1524734111000,
   "solutionId": "10101010-1010-1010-1010-101010101010",
   "name": "test",
-  "description": "test",
   "metadata": null,
   "active": true,
   "modelTypeCode": "PR",
@@ -16,13 +15,10 @@
       "tag": "testPubTag"
     }
   ],
-  "webStats": {
-  	"solutionId": "10101010-1010-1010-1010-101010101010",
-    "viewCount": 4,
-    "downloadCount": 0,
-    "lastDownload": 1525254094000,
-    "ratingCount": 0,
-    "ratingAverageTenths": 0,
-    "featured": false
-  }
+  "viewCount": 4,
+  "downloadCount": 0,
+  "lastDownload": 1525254094000,
+  "ratingCount": 0,
+  "ratingAverageTenths": 0,
+  "featured": false
 }

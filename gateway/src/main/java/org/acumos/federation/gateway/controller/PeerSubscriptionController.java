@@ -28,7 +28,8 @@ import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.cds.PeerSubscription;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.task.PeerSubscriptionTaskScheduler;
@@ -51,7 +52,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping(API.Roots.LOCAL)
 public class PeerSubscriptionController extends AbstractController {
  
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private PeerService peerService;
@@ -60,9 +61,7 @@ public class PeerSubscriptionController extends AbstractController {
 	@Autowired
 	private ApplicationContext appCtx;
 
-	/**
-	 * @param theHttpResponse
-	 */
+
 	@CrossOrigin
 	@PreAuthorize("hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).PEER_ACCESS)")
 	@ApiOperation(value = "Invoked by other Acumos components in order to trigger subscription execution", response = String.class)
@@ -74,10 +73,10 @@ public class PeerSubscriptionController extends AbstractController {
 			@PathVariable("peerId") String thePeerId,
 			@PathVariable("subscriptionId") Long theSubscriptionId) {
 
-		log.debug(EELFLoggerDelegate.debugLogger, API.Roots.LOCAL + "" + API.Paths.SUBSCRIPTION);
+		log.debug(API.Roots.LOCAL + "" + API.Paths.SUBSCRIPTION);
 		JsonResponse<String> response = null;
 		try {
-			log.debug(EELFLoggerDelegate.debugLogger, "trigger");
+			log.debug("trigger");
 	
 			MLPPeer peer = this.peerService.getPeerById(thePeerId);
 			PeerSubscription subscription = this.peerSubscriptionService.getPeerSubscription(theSubscriptionId);
@@ -90,14 +89,14 @@ public class PeerSubscriptionController extends AbstractController {
 														.withContent("subscription execution triggered")
 														.build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-			log.debug(EELFLoggerDelegate.debugLogger, "subscription execution triggered");
+			log.debug("subscription execution triggered");
 		} 
 		catch (Exception x) {
 			response = JsonResponse.<String> buildErrorResponse()
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "On-demand subscription execution failed", x);
+			log.error("On-demand subscription execution failed", x);
 		}
 		return response;
 	}

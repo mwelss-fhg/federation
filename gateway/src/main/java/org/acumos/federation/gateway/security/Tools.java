@@ -28,7 +28,8 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -36,7 +37,7 @@ import org.acumos.federation.gateway.config.EELFLoggerDelegate;
  */
 public class Tools {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private Tools() {
 	}
@@ -48,13 +49,13 @@ public class Tools {
 	 * @return a map of requested parts and their values. Only those parts for which an entry was found will be available.
 	 */
 	public static  Map<String, Object> getNameParts(String theName, String... theParts) {
-		log.info(EELFLoggerDelegate.debugLogger, " X500 name: " + theName);
+		log.info(" X500 name: " + theName);
 		LdapName x500name = null;
 		try {
 			x500name = new LdapName(theName);
 		}
 		catch (InvalidNameException inx) {
-			log.warn(EELFLoggerDelegate.errorLogger, "Failed to parse name information '{}'", theName);
+			log.warn("Failed to parse name information '{}'", theName);
 			throw new IllegalArgumentException(inx);
 		}
 

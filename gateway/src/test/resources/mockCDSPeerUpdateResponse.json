@@ -9,7 +9,6 @@
   "webUrl": "https://gateway.acumosb.org:9084",
   "contact1": "admin@acumosb.org",
   "statusCode": "RN",
-  "validationStatusCode": "PS",
   "local": false,
   "self": false
 }

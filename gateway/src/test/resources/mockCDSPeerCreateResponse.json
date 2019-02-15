@@ -9,7 +9,6 @@
   "webUrl": "https://gateway.acumosc.org:9084",
   "contact1": "admin@acumosc.org",
   "statusCode": "RQ",
-  "validationStatusCode": "PS",
   "local": false,
   "self": false
 }

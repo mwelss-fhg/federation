@@ -25,7 +25,8 @@ import java.util.List;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.federation.gateway.cds.PeerSubscription;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements PeerSubscriptionService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private Environment env;
@@ -48,23 +49,23 @@ public class PeerSubscriptionServiceImpl extends AbstractServiceImpl implements 
 
 	@Override
 	public List<MLPPeerSubscription> getPeerSubscriptions(String thePeerId) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscriptions:{}", thePeerId);
+		log.debug("getPeerSubscriptions:{}", thePeerId);
 		List<MLPPeerSubscription> peerSubscriptions = getClient().getPeerSubscriptions(thePeerId);
-		log.debug(EELFLoggerDelegate.debugLogger, "peer {} subscriptions : {}", thePeerId, peerSubscriptions.size());
+		log.debug("peer {} subscriptions : {}", thePeerId, peerSubscriptions.size());
 		return peerSubscriptions;
 	}
 
 	@Override
 	public PeerSubscription getPeerSubscription(Long theSubId) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription:{}", theSubId);
+		log.debug("getPeerSubscription:{}", theSubId);
 		PeerSubscription peerSubscription = (PeerSubscription)getClient().getPeerSubscription(theSubId);
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerSubscription :{}", peerSubscription);
+		log.debug("getPeerSubscription :{}", peerSubscription);
 		return peerSubscription;
 	}
 
 	@Override
 	public void updatePeerSubscription(MLPPeerSubscription theSubscription) throws ServiceException {
-		log.debug(EELFLoggerDelegate.debugLogger, "updatePeerSubscription");
+		log.debug("updatePeerSubscription");
 		ICommonDataServiceRestClient cdsClient = getClient();
 		MLPPeerSubscription existingSubscription = cdsClient.getPeerSubscription(theSubscription.getSubId());
 		//this effectively stops one from re-assigning a subscription to another peer.

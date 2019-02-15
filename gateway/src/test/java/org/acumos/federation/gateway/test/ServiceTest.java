@@ -63,8 +63,8 @@ public abstract class ServiceTest {
 
 	@Autowired
 	private ApplicationContext context;
-	
-	private	Map<String, MockResponse> mocks = new HashMap<String, MockResponse>();
+
+	private MockAnswer answer = new MockAnswer();	
 
 	/**
 	 * Derived classes should use this to register mock responses.
@@ -74,8 +74,8 @@ public abstract class ServiceTest {
 	/**
 	 * Use to register a mocked http request/response.
 	 */
-	protected void registerMockResponse(String thePath, MockResponse theResponse) {
-		this.mocks.put(thePath, theResponse);
+	protected void registerMockResponse(String theLine, MockResponse theResponse) {
+		this.answer.mockResponse(info -> info.getLine().equals(theLine), theResponse);
 	}
 
 
@@ -88,36 +88,7 @@ public abstract class ServiceTest {
 			this.localClient.execute(
 				any(HttpUriRequest.class), any(HttpContext.class)
 			)
-		).thenAnswer(new Answer<HttpResponse>() {
-				public HttpResponse answer(InvocationOnMock theInvocation) throws Throwable {
-					HttpUriRequest req = (HttpUriRequest)
-						theInvocation.getArguments()[0];
-					String key = req.getMethod() + " " + req.getURI().getPath() + (req.getURI().getQuery() == null ? "" : ("?" + req.getURI().getQuery()));
-
-					MockResponse mockResponse = mocks.get(key);
-					if (mockResponse == null) {
-						throw new IOException("Mock unhandled " + key);
-					}
-
-					BasicCloseableHttpResponse httpResponse = 
-						new BasicCloseableHttpResponse(
-							new BasicStatusLine(
-								new ProtocolVersion("HTTP",1,1), mockResponse.getResponseCode(), mockResponse.getResponseMsg()));
-
-					ClassPathResource resource = new ClassPathResource(mockResponse.getResourceName());
-
-					try {
-						httpResponse.setEntity(new InputStreamEntity(resource.getInputStream()));
-						httpResponse.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
-						httpResponse.addHeader("Content-Length", String.valueOf(resource.contentLength()));
-					}
-					catch (IOException iox) {
-						throw new IOException("Failed to load mock resource " + resource, iox);
-					}
-
-					return httpResponse;
-				}
-			});
+		).thenAnswer(this.answer);
 
 		when(
 			this.localConfig.buildClient()
@@ -127,20 +98,6 @@ public abstract class ServiceTest {
 					return localClient;	
 				}
 			});
-	}
-
-	/**
-	 * Apache's http framework expects a CloseableHttpResponse at some point and this is cheaper than mocking every time.
-	 */
-	private static class BasicCloseableHttpResponse extends BasicHttpResponse implements CloseableHttpResponse {
-
-		public BasicCloseableHttpResponse(StatusLine theStatus) {
-			super(theStatus);
-		}
-
-		@Override
-		public void close() throws IOException {
-		}
 	}
 
 }

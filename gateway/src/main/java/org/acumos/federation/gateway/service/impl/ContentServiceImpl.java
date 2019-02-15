@@ -32,9 +32,11 @@ import java.util.stream.Stream;
 import org.acumos.cds.AccessTypeCode;
 import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.ArtifactType;
+import org.acumos.federation.gateway.cds.ArtifactTypes;
 import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.config.DockerConfiguration;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.config.NexusConfiguration;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.ServiceContext;
@@ -64,7 +66,7 @@ import com.github.dockerjava.core.command.PushImageResultCallback;
 public class ContentServiceImpl extends AbstractServiceImpl
 																	implements ContentService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired
   private NexusConfiguration nexusConfig;
@@ -78,9 +80,9 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		if (theArtifact.getUri() == null) {
 			throw new ServiceException("No artifact uri available for " + theArtifact);
 		}
-		log.info(EELFLoggerDelegate.debugLogger, "Retrieving artifact content for {}", theArtifact);
+		log.info("Retrieving artifact content for {}", theArtifact);
 
-		if (ArtifactType.DockerImage == ArtifactType.forCode(theArtifact.getArtifactTypeCode())) {
+		if (ArtifactTypes.DockerImage.getCode().equals(theArtifact.getArtifactTypeCode())) {
 			try {
 				//pull followed by save
 				DockerClient docker = this.dockerConfig.getDockerClient();
@@ -89,16 +91,16 @@ public class ContentServiceImpl extends AbstractServiceImpl
 					docker.pullImageCmd(theArtifact.getUri())
 								.exec(pullResult);
 					pullResult.awaitCompletion();
-					log.debug(EELFLoggerDelegate.debugLogger, "Completed docker image pull for {}", theArtifact);
+					log.debug("Completed docker image pull for {}", theArtifact);
 				}
 
 				InputStream imageSource = docker.saveImageCmd(theArtifact.getUri()).exec();
-				log.debug(EELFLoggerDelegate.debugLogger, "Completed docker image save for {}", theArtifact);
+				log.debug("Completed docker image save for {}", theArtifact);
 
 				return new InputStreamResource(imageSource);
 			}
 			catch (Exception x) {
-				log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve artifact content for docker artifact " + theArtifact, x);
+				log.error("Failed to retrieve artifact content for docker artifact " + theArtifact, x);
 				throw new ServiceException("Failed to retrieve artifact content for docker artifact " + theArtifact, x);
 			}
 		}
@@ -112,7 +114,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		String theSolutionId, String theRevisionId, Artifact theArtifact, Resource theResource, ServiceContext theContext)
 																																														throws ServiceException {
 
-		if (ArtifactType.DockerImage == ArtifactType.forCode(theArtifact.getArtifactTypeCode())) {
+		if (ArtifactTypes.DockerImage.getCode().equals(theArtifact.getArtifactTypeCode())) {
 			TrackingPushImageResultCallback pushResult = null;
 			try {
 				TrackingInputStream imageSource = new TrackingInputStream(theResource.getInputStream());
@@ -121,11 +123,11 @@ public class ContentServiceImpl extends AbstractServiceImpl
 
 				docker.loadImageCmd(imageSource)
 							.exec(); //sync xecution
-				log.debug(EELFLoggerDelegate.debugLogger, "Completed docker image load for {}. Transfered {} bytes in {} seconds.",
+				log.debug("Completed docker image load for {}. Transfered {} bytes in {} seconds.",
 					theArtifact, imageSource.size(), imageSource.duration()/1000);
 
 				List<Image> images = docker.listImagesCmd().exec();
-				log.trace(EELFLoggerDelegate.debugLogger, "Available docker images: {}", images);
+				log.trace("Available docker images: {}", images);
 
 				//this relies on the presence of the original uri/tag in the description (which is what the controller does), otherwise
 				//we'd need to pick this information from the manifest
@@ -134,22 +136,22 @@ public class ContentServiceImpl extends AbstractServiceImpl
 												.findFirst()
 												.orElse(null);
 				if (image == null) {
-					log.debug(EELFLoggerDelegate.debugLogger, "Could not find loaded docker image with tag {}", theArtifact.getDescription());
+					log.debug("Could not find loaded docker image with tag {}", theArtifact.getDescription());
 					throw new ServiceException("Could not find loaded docker image for " + theArtifact);
 				}
 	
 				//new image name for re-tagging
 				String imageName = dockerConfig.getRegistryUrl() + "/" + theArtifact.getName().toLowerCase() + "_" + theSolutionId;
 				String imageTag = imageName;
-				log.debug(EELFLoggerDelegate.debugLogger, "Attempt re-tagging of docker image {} with {}:{}", image, imageTag, theArtifact.getVersion());
+				log.debug("Attempt re-tagging of docker image {} with {}:{}", image, imageTag, theArtifact.getVersion());
 				docker.tagImageCmd(image.getId(), imageTag, theArtifact.getVersion()).exec();
-				log.debug(EELFLoggerDelegate.debugLogger, "Re-tagged docker image: {} to {}:{}", image, imageTag, theArtifact.getVersion());
+				log.debug("Re-tagged docker image: {} to {}:{}", image, imageTag, theArtifact.getVersion());
 				//remove old tag that came with the load
 				docker.removeImageCmd(theArtifact.getDescription())
 							.withForce(Boolean.TRUE)
 							.exec();
 			
-				log.debug(EELFLoggerDelegate.debugLogger, "Attempt docker push for image {}, tag {}", image, imageTag);
+				log.debug("Attempt docker push for image {}, tag {}", image, imageTag);
 				docker.pushImageCmd(imageName)
 							.withAuthConfig(dockerConfig.getAuthConfig())
 							.withTag(theArtifact.getVersion())
@@ -158,11 +160,11 @@ public class ContentServiceImpl extends AbstractServiceImpl
 
 				PushResponseItem pushResponse = pushResult.getResponseItem();
 				if (pushResponse.isErrorIndicated()) {
-					log.debug(EELFLoggerDelegate.debugLogger, "Failed to push artifact {} image {} to docker registry: {}, {}", theArtifact, image, pushResponse.getError(), pushResponse.getErrorDetail());
+					log.debug("Failed to push artifact {} image {} to docker registry: {}, {}", theArtifact, image, pushResponse.getError(), pushResponse.getErrorDetail());
 					throw new ServiceException("Failed to push image to docker registry: " + pushResponse.getError() + "\n" + pushResponse.getErrorDetail());
 				}
 				else {
-					log.debug(EELFLoggerDelegate.debugLogger, "Completed docker push for artifact {} image {}", theArtifact, image);
+					log.debug("Completed docker push for artifact {} image {}", theArtifact, image);
 				}
 				
 				String imageUri = imageName + ":" + theArtifact.getVersion();
@@ -175,8 +177,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 				//we should now delete the image from the (local) docker host
 			}
 			catch (Exception x) {
-				log.error(EELFLoggerDelegate.errorLogger,
-									"Failed to put docker artifact content", x);
+				log.error("Failed to put docker artifact content", x);
 				throw new ServiceException("Failed to put docker artifact content", x);
 			}
 			finally {
@@ -201,7 +202,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		if (theDocument.getUri() == null) {
 			throw new ServiceException("No document uri available for " + theDocument);
 		}
-		log.info(EELFLoggerDelegate.debugLogger, "Retrieving document content for {}", theDocument);
+		log.info("Retrieving document content for {}", theDocument);
 		return getNexusContent(theDocument.getUri());
 	}
 
@@ -219,7 +220,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		URI contentUri = null;
 		try {
 			contentUri = new URI(this.nexusConfig.getUrl() + UriUtils.encodePath(thePath, "UTF-8")); 
-			log.info(EELFLoggerDelegate.debugLogger, "Query for {}", contentUri);
+			log.info("Query for {}", contentUri);
 			ResponseEntity<Resource> response = null;
 			RequestEntity<Void> request = RequestEntity
 																		.get(contentUri)
@@ -229,11 +230,11 @@ public class ContentServiceImpl extends AbstractServiceImpl
 			return response.getBody();	
 		}
 		catch (HttpStatusCodeException x) {
-			log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve nexus content from  " + thePath + "(" + contentUri + ")", x);
+			log.error("Failed to retrieve nexus content from  " + thePath + "(" + contentUri + ")", x);
 			throw new ServiceException("Failed to retrieve nexus content from " + contentUri, x);
 		}
 		catch (Throwable t) {
-			log.error(EELFLoggerDelegate.errorLogger, "Unexpected failure for " + contentUri + "(" + contentUri + ")", t);
+			log.error("Unexpected failure for " + contentUri + "(" + contentUri + ")", t);
 			throw new ServiceException("Unexpected failure for " + contentUri, t);
 		}
 
@@ -246,23 +247,23 @@ public class ContentServiceImpl extends AbstractServiceImpl
 			String path = nexusPath(theGroupId, theContentId, theVersion, thePackaging);
 			URI contentUri = new URI(this.nexusConfig.getUrl() + UriUtils.encodePath(path, "UTF-8"));
 			//URI contentUri = new URI(this.nexusConfig.getUrl() + path);
-			log.info(EELFLoggerDelegate.debugLogger, "Writing artifact content to nexus at {}", path);
+			log.info("Writing artifact content to nexus at {}", path);
 			RequestEntity<Resource> request = RequestEntity
 																					.put(contentUri)
 																					.contentType(MediaType.APPLICATION_OCTET_STREAM)
 																					//.contentLength()
 																					.body(theResource);
 			ResponseEntity<Void> response = this.nexusConfig.getNexusClient().exchange(request, Void.class);
-			log.debug(EELFLoggerDelegate.debugLogger, "Writing artifact content to {} resulted in {}", path, response.getStatusCode());
+			log.debug("Writing artifact content to {} resulted in {}", path, response.getStatusCode());
 			if (response.getStatusCode().is2xxSuccessful()) {
-				log.info(EELFLoggerDelegate.debugLogger, "Wrote artifact content to {}", path);
+				log.info("Wrote artifact content to {}", path);
 				return path;
 			}
 			else
 				throw new ServiceException("Failed to write artifact content to nexus. Got " + response.getStatusCode());
 		}
 		catch (Exception x) {
-			log.error(EELFLoggerDelegate.errorLogger,	"Failed to push content to Nexus repo", x);
+			log.error("Failed to push content to Nexus repo", x);
 			throw new ServiceException("Failed to push content to Nexus repo", x);
 		}
 	}
@@ -299,7 +300,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 	 * @return a string array containing the 2 part or null if the part was missing
 	 */
 	private String[] splitName(String theName) {
-		log.info(EELFLoggerDelegate.debugLogger,	"Splitting name {}", theName);
+		log.info("Splitting name {}", theName);
 		if (null == theName)
 			return new String[] {"", ""};
 		int pos = theName.lastIndexOf('.');

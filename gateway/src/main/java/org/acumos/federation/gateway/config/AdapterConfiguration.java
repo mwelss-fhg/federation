@@ -21,14 +21,17 @@
 package org.acumos.federation.gateway.config;
 
 import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.cds.CodeNamesConfiguration;
 import org.acumos.federation.gateway.security.AuthenticationConfiguration;
 import org.acumos.federation.gateway.security.FederationMethodSecurityConfiguration;
 import org.acumos.federation.gateway.service.CatalogService;
+import org.acumos.federation.gateway.service.CodeNamesService;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.LocalWatchService;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.impl.CatalogServiceLocalImpl;
+import org.acumos.federation.gateway.service.impl.CodeNamesServiceLocalImpl;
 import org.acumos.federation.gateway.service.impl.ContentServiceLocalImpl;
 import org.acumos.federation.gateway.service.impl.PeerServiceLocalImpl;
 import org.acumos.federation.gateway.task.TaskConfiguration;
@@ -47,7 +50,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Configuration
 @Import({TaskConfiguration.class,
 				 AuthenticationConfiguration.class,
-				 FederationMethodSecurityConfiguration.class})
+				 FederationMethodSecurityConfiguration.class,
+				 CodeNamesConfiguration.class})
 @EnableConfigurationProperties({FederationInterfaceConfiguration.class,
 																LocalInterfaceConfiguration.class,
 																CDMSClientConfiguration.class,
@@ -77,6 +81,11 @@ public abstract class AdapterConfiguration  {
 	@Bean
 	public ContentService localContentService() {
 		return new ContentServiceLocalImpl();
+	}
+
+	@Bean
+	public CodeNamesService codeNamesService() {
+		return new CodeNamesServiceLocalImpl();
 	}
 
   @Bean

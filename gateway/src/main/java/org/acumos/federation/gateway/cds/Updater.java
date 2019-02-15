@@ -22,6 +22,8 @@ package org.acumos.federation.gateway.cds;
 
 /**
  * Functional vararg interface for calculating updates to CDS properties.
+ * @param <R> Return type
+ * @param <T> Argument type
  */
 @FunctionalInterface
 public interface Updater<R,T> {

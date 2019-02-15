@@ -39,7 +39,8 @@ import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.common.FederationException;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.acumos.federation.gateway.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +60,7 @@ import org.springframework.stereotype.Component;
 @Conditional({TestAdapterCondition.class})
 public class TestAdapter {
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+	private final Logger log = LoggerFactory.getLogger(getClass().getName());
 	private TaskExecutor taskExecutor;
 
 	private Map<String, Map<String, MLPSolution>> imports = new HashMap<String, Map<String, MLPSolution>>();
@@ -71,7 +72,7 @@ public class TestAdapter {
 
 	@PostConstruct
 	public void initTestAdapter() {
-		log.trace(EELFLoggerDelegate.debugLogger, "initTestAdapter");
+		log.trace("initTestAdapter");
 
 		this.taskExecutor = new ThreadPoolTaskExecutor();
 		((ThreadPoolTaskExecutor) this.taskExecutor).setCorePoolSize(1);
@@ -80,17 +81,17 @@ public class TestAdapter {
 		((ThreadPoolTaskExecutor) this.taskExecutor).initialize();
 
 		// Done
-		log.trace(EELFLoggerDelegate.debugLogger, "TestAdapter available");
+		log.trace("TestAdapter available");
 	}
 
 	@PreDestroy
 	public void cleanupTestAdapter() {
-		log.trace(EELFLoggerDelegate.debugLogger, "TestAdapter destroyed");
+		log.trace("TestAdapter destroyed");
 	}
 
 	@EventListener
 	public void handlePeerSubscriptionUpdate(PeerSubscriptionEvent theEvent) {
-		log.info(EELFLoggerDelegate.debugLogger, "received peer subscription update event {}", theEvent);
+		log.info("received peer subscription update event {}", theEvent);
 		taskExecutor.execute(new TestTask(theEvent.getPeer(), theEvent.getSubscription()));
 	}
 
@@ -120,27 +121,27 @@ public class TestAdapter {
 						.getSolutions(Utils.jsonStringToMap(this.sub.getSelector())).getContent();
 				}
 				catch (FederationException fx) {
-					log.warn(EELFLoggerDelegate.debugLogger, "Failed to retrieve solutions", fx);
+					log.warn("Failed to retrieve solutions", fx);
 					return;
 				}
 
-				log.info(EELFLoggerDelegate.debugLogger, "Processing peer {} subscription {} yielded solutions {}", this.peer, this.sub.getSubId(), peerSolutions);
+				log.info("Processing peer {} subscription {} yielded solutions {}", this.peer, this.sub.getSubId(), peerSolutions);
 
 				for (MLPSolution solution : peerSolutions) {
 
 					MLPSolution peerImport = peerImports.get(solution.getSolutionId());
 					if (peerImport == null) {
-						log.info(EELFLoggerDelegate.debugLogger, "New solution {}", solution.getSolutionId());
+						log.info("New solution {}", solution.getSolutionId());
 						peerImports.put(solution.getSolutionId(), solution);
 					}
 					else {
-						log.info(EELFLoggerDelegate.debugLogger, "Existing solution {}", solution.getSolutionId());
+						log.info("Existing solution {}", solution.getSolutionId());
 						if (peerImport.getModified().equals(solution.getModified())) {
-							log.info(EELFLoggerDelegate.debugLogger, "No updates to solution {}", solution.getSolutionId());
+							log.info("No updates to solution {}", solution.getSolutionId());
 							continue;
 						}
 						else {
-							log.info(EELFLoggerDelegate.debugLogger, "Solution {} has updates", solution.getSolutionId());
+							log.info("Solution {} has updates", solution.getSolutionId());
 						}
 					}
 
@@ -150,16 +151,15 @@ public class TestAdapter {
 					Solution sol = null;
 					try {
 						sol = (Solution)fedClient.getSolution(solution.getSolutionId()).getContent();
-						log.info(EELFLoggerDelegate.debugLogger, "retrieved solution {}", solution);
+						log.info("retrieved solution {}", solution);
 						revisions = (List)sol.getRevisions();
 					}
 					catch (Exception x) {
-						log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve solution", x);
+						log.error("Failed to retrieve solution", x);
 						continue;
 					}
 					
-					log.info(EELFLoggerDelegate.debugLogger,
-						"Received {} revisions {}", revisions.size(), revisions);
+					log.info("Received {} revisions {}", revisions.size(), revisions);
 
 					for (MLPSolutionRevision revision: revisions) {
 						List<MLPArtifact> artifacts = null;
@@ -168,23 +168,22 @@ public class TestAdapter {
 																								solution.getSolutionId(),	revision.getRevisionId()).getContent();
 						}
 						catch (Exception x) {
-							log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve artifacts", x);
+							log.error("Failed to retrieve artifacts", x);
 							continue;
 						}
-						log.info(EELFLoggerDelegate.debugLogger,
-								"Received {} artifacts {}", artifacts.size(), artifacts);
+						log.info("Received {} artifacts {}", artifacts.size(), artifacts);
 
 						for (MLPArtifact artifact : artifacts) {
 							Resource artifactContent = null;
 							try {
 								artifactContent = fedClient.getArtifactContent(
 																		solution.getSolutionId(), revision.getRevisionId(), artifact.getArtifactId());
-								log.warn(EELFLoggerDelegate.debugLogger, "Received artifact content: "
+								log.warn("Received artifact content: "
 										+ new BufferedReader(new InputStreamReader(artifactContent.getInputStream()))
 												.lines().collect(Collectors.joining("\n")));
 							}
 							catch (Exception x) {
-								log.error(EELFLoggerDelegate.errorLogger, "Failed to download artifact", x);
+								log.error("Failed to download artifact", x);
 								continue;
 							}
 						}

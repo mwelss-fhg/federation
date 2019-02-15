@@ -36,6 +36,9 @@ import java.util.NoSuchElementException;
 import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
 import org.apache.http.HttpHost;
@@ -61,8 +64,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
-import org.springframework.boot.context.embedded.Ssl;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+import org.springframework.boot.web.server.Ssl;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
@@ -70,7 +73,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class InterfaceConfiguration {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private String 			address;
 	private InetAddress	inetAddress;
@@ -79,7 +82,7 @@ public class InterfaceConfiguration {
 	private	Server	server; 
 
 	public InterfaceConfiguration() {
-		log.trace(EELFLoggerDelegate.debugLogger, this + "::new");
+		log.trace(this + "::new");
 	}
 
 /*
@@ -93,7 +96,7 @@ public class InterfaceConfiguration {
 */
 	@PostConstruct
 	public void initInterface() {
-		log.trace(EELFLoggerDelegate.debugLogger, this + "::init");
+		log.trace(this + "::init");
 	}	
 
 	public String getAddress() {
@@ -149,6 +152,8 @@ public class InterfaceConfiguration {
 
 	/** 
 	 * Provide the subject name specified in the SSL config
+	 * @return Name
+	 * @throws KeyStoreException On failure
 	 */
 	public String getSubjectName() throws KeyStoreException {
 		if (!hasSSL())
@@ -272,7 +277,7 @@ public class InterfaceConfiguration {
 	 */
 	public static class SSL {
 
-		private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+		private final Logger log = LoggerFactory.getLogger(getClass().getName());
 
 		@Autowired
 		private ResourceLoader resourceLoader;
@@ -421,7 +426,7 @@ public class InterfaceConfiguration {
 			try {
 				store = KeyStore.getInstance(theType);
 				store.load(storeSource,	thePasswd.toCharArray());
-				log.trace(EELFLoggerDelegate.debugLogger, "Loaded key store: " + theLocation);
+				log.trace("Loaded key store: " + theLocation);
 			}
 			catch (Exception x) {
 				throw new IllegalStateException("Error loading key material: " + x, x);
@@ -431,7 +436,7 @@ public class InterfaceConfiguration {
 					storeSource.close();
 				}
 				catch (IOException iox) {
-					log.warn(EELFLoggerDelegate.debugLogger, "Error closing key store source", iox);
+					log.warn("Error closing key store source", iox);
 				}
 			}
 			return store;
@@ -442,16 +447,16 @@ public class InterfaceConfiguration {
 	/**
 	 * Configure the existing/default/a servlet container with the configuration
 	 * information of this interface.
-	 * @param theContainer the servlet container to be configured
+	 * @param theServer the servlet container to be configured
 	 * @return ConfigurableEmbeddedServletContainer the container, configured
 	 */
-	public ConfigurableEmbeddedServletContainer configureContainer(
-										ConfigurableEmbeddedServletContainer theContainer) {
+	public ConfigurableServletWebServerFactory configureWebServer(
+										ConfigurableServletWebServerFactory theServer) {
 		if (hasServer()) {
-			theContainer.setPort(this.server.getPort());
+			theServer.setPort(this.server.getPort());
 		}
 		if (hasAddress()) {
-			theContainer.setAddress(this.inetAddress);
+			theServer.setAddress(this.inetAddress);
 		}
 		if (hasSSL()) {
 			Ssl cssl = new Ssl();
@@ -465,9 +470,9 @@ public class InterfaceConfiguration {
 			cssl.setTrustStoreType(this.ssl.getTrustStoreType());
 			cssl.setKeyAlias(this.ssl.getKeyAlias());
 			cssl.setClientAuth(Ssl.ClientAuth.valueOf(this.ssl.clientAuth.toUpperCase()));
-			theContainer.setSsl(cssl);
+			theServer.setSsl(cssl);
 		}
-		return theContainer;
+		return theServer;
 	}
 
 	/**
@@ -505,10 +510,10 @@ public class InterfaceConfiguration {
 	public HttpClient buildClient() {
 
 		SSLContext sslContext = null;
-		log.trace(EELFLoggerDelegate.debugLogger, "Build HttpClient with " + this);
+		log.trace("Build HttpClient with " + this);
 
 		if (this.ssl == null) {
-			log.trace(EELFLoggerDelegate.debugLogger, "No ssl config was provided");
+			log.trace("No ssl config was provided");
 		}
 		else {
 			KeyStore keyStore = this.ssl.loadKeyStore(),
@@ -541,7 +546,7 @@ public class InterfaceConfiguration {
 		if (sslContext != null) {
 			sslSocketFactory = new SSLConnectionSocketFactory(sslContext, new String[] { "TLSv1.2" }, null,
 					SSLConnectionSocketFactory.getDefaultHostnameVerifier());
-			log.trace(EELFLoggerDelegate.debugLogger, "SSL connection factory configured");
+			log.trace("SSL connection factory configured");
 		}
 
 		RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create();
@@ -562,10 +567,10 @@ public class InterfaceConfiguration {
 		if (hasClient()) {
 			credsProvider = new BasicCredentialsProvider();
 			credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(this.client.getUsername(), this.client.getPassword()));
-			log.trace(EELFLoggerDelegate.debugLogger, "Credentials configured");
+			log.trace("Credentials configured");
 		}
 		else {
-			log.trace(EELFLoggerDelegate.debugLogger, "No credentials were provided");
+			log.trace("No credentials were provided");
 		}
 
 		HttpClientBuilder clientBuilder = HttpClients.custom();

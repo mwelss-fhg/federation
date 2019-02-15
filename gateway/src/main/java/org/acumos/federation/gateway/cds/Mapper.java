@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 
 /**
@@ -57,6 +58,7 @@ public class Mapper {
     fedModule.addDeserializer(MLPRevisionDescription.class, new RevisionDescriptionDeserializer());
 
 		mapper.registerModule(fedModule);
+		mapper.registerModule(new JavaTimeModule());
 
 		return mapper;
 	}

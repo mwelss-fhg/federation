@@ -31,7 +31,8 @@ import org.acumos.cds.domain.MLPSolution;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +57,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping(API.Roots.LOCAL)
 public class PeerCatalogController extends AbstractController {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private Clients clients;
@@ -67,6 +68,7 @@ public class PeerCatalogController extends AbstractController {
 	 * Provides access 
 	 * @param theHttpResponse
 	 *            HttpServletResponse
+	 * @param thePeerId Peer ID
 	 * @param theSelector
 	 *            Solutions selector
 	 * @return List of Published ML Solutions in JSON format.
@@ -81,7 +83,7 @@ public class PeerCatalogController extends AbstractController {
 			HttpServletResponse theHttpResponse,
 			@PathVariable("peerId") String thePeerId,
 			@RequestParam(value = API.QueryParameters.SOLUTIONS_SELECTOR, required = false) String theSelector) {
-		log.debug(EELFLoggerDelegate.debugLogger, API.Roots.LOCAL + "" + API.Paths.SOLUTIONS);
+		log.debug(API.Roots.LOCAL + "" + API.Paths.SOLUTIONS);
 		JsonResponse<List<MLPSolution>> response = null;
 		try {
 			MLPPeer peer = this.peerService.getPeerById(thePeerId);
@@ -98,7 +100,7 @@ public class PeerCatalogController extends AbstractController {
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "An error occurred while processing a local peer solutions request for peer " + thePeerId, x);
+			log.error("An error occurred while processing a local peer solutions request for peer " + thePeerId, x);
 		}
 		return response;
 	}
@@ -112,7 +114,7 @@ public class PeerCatalogController extends AbstractController {
 			HttpServletResponse theHttpResponse,
 			@PathVariable("peerId") String thePeerId,
 			@PathVariable(value = "solutionId") String theSolutionId) {
-		log.debug(EELFLoggerDelegate.debugLogger, API.Roots.LOCAL + "" + API.Paths.SOLUTION_DETAILS);
+		log.debug(API.Roots.LOCAL + "" + API.Paths.SOLUTION_DETAILS);
 		JsonResponse<MLPSolution> response = null;
 		try {
 			MLPPeer peer = this.peerService.getPeerById(thePeerId);
@@ -125,7 +127,7 @@ public class PeerCatalogController extends AbstractController {
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "An error occurred while fetching solution " + theSolutionId + " from peer " + thePeerId, x);
+			log.error("An error occurred while fetching solution " + theSolutionId + " from peer " + thePeerId, x);
 		}
 		return response;
 	}

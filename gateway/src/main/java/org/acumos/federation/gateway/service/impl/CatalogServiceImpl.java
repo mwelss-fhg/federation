@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.time.Instant;
 
 import javax.annotation.PostConstruct;
 
@@ -51,7 +52,9 @@ import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.cds.ValidationStatus;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.cds.TimestampedEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.CatalogServiceConfiguration;
 import org.acumos.federation.gateway.service.ServiceContext;
@@ -70,7 +73,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 public class CatalogServiceImpl extends AbstractServiceImpl
 																implements CatalogService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private CatalogServiceConfiguration config;
@@ -81,7 +84,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 
 	@Override
 	public List<MLPSolution> getSolutions(Map<String, ?> theSelector, ServiceContext theContext) throws ServiceException {
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions with selector {}", theSelector);
+		log.debug("getSolutions with selector {}", theSelector);
 
 		Map<String, Object> selector = new HashMap<String, Object>(this.config.getSolutionsSelectorDefaults());
 		if (theSelector != null)
@@ -89,7 +92,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 		//it is essential that this gets done at the end as to force all baseSelector criteria (otherwise a submitted accessTypeCode
 		//could overwrite the basic one end expose non public solutions ..).
 		selector.putAll(this.config.getSolutionsSelector());
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions with full selector {}", selector);
+		log.debug("getSolutions with full selector {}", selector);
 
 		RestPageRequest pageRequest = new RestPageRequest(0, this.cdsConfig.getPageSize());
 		RestPageResponse<MLPSolution> pageResponse = null;
@@ -98,25 +101,22 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 		ICommonDataServiceRestClient cdsClient = getClient(theContext);
 		try {
 			do {
-				log.debug(EELFLoggerDelegate.debugLogger, "getSolutions page {}", pageResponse);
+				log.debug("getSolutions page {}", pageResponse);
 				pageResponse =
 					cdsClient.findSolutionsByDate(
 						(Boolean)selector.getOrDefault(Solution.Fields.active, Boolean.TRUE),
 						selector.containsKey(Solution.Fields.accessTypeCode) ?
 							new String[] {selector.get(Solution.Fields.accessTypeCode).toString()} :
 							Arrays.stream(AccessType.values()).map(at -> at.code()).toArray(String[]::new),
-						selector.containsKey(Solution.Fields.validationStatusCode) ?
-							new String[] {selector.get(Solution.Fields.validationStatusCode).toString()} :
-							Arrays.stream(ValidationStatus.values()).map(vs -> vs.code()).toArray(String[]::new),
-						new Date((Long)selector.get(Solution.Fields.modified)),
+						Instant.ofEpochSecond ((Long)selector.get(Solution.Fields.modified)),
 						pageRequest);
 			
-				log.debug(EELFLoggerDelegate.debugLogger, "getSolutions page response {}", pageResponse);
+				log.debug("getSolutions page response {}", pageResponse);
 				//we need to post-process all other selection criteria
 				pageSolutions = pageResponse.getContent().stream()
 													.filter(solution -> ServiceImpl.isSelectable(solution, selector))
 													.collect(Collectors.toList());
-				log.debug(EELFLoggerDelegate.debugLogger, "getSolutions page selection {}", pageSolutions);
+				log.debug("getSolutions page selection {}", pageSolutions);
 		
 				pageRequest.setPage(pageResponse.getNumber() + 1);
 				solutions.addAll(pageSolutions);
@@ -127,19 +127,19 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 			if (Errors.isCDSNotFound(restx))
 				return Collections.EMPTY_LIST;
 			else {
-				log.debug(EELFLoggerDelegate.debugLogger, "getSolutions failed {}: {}", restx, restx.getResponseBodyAsString());
+				log.debug("getSolutions failed {}: {}", restx, restx.getResponseBodyAsString());
 				throw new ServiceException("Failed to retrieve solutions", restx);
 			}
 		}
 
-		log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: solutions count {}", solutions.size());
+		log.debug("getSolutions: solutions count {}", solutions.size());
 		return solutions;
 	}
 
 	@Override
 	public Solution getSolution(String theSolutionId, ServiceContext theContext) throws ServiceException {
 
-		log.trace(EELFLoggerDelegate.debugLogger, "getSolution {}", theSolutionId);
+		log.trace("getSolution {}", theSolutionId);
 		ICommonDataServiceRestClient cdsClient = getClient(theContext, true);
 		try {
 			Solution solution = (Solution)cdsClient.getSolution(theSolutionId);
@@ -163,96 +163,66 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	@Override	
 	public Solution putSolution(Solution theSolution, ServiceContext theContext) throws ServiceException {
 		
-		log.trace(EELFLoggerDelegate.debugLogger, "putSolution {}", theSolution);
+		log.trace("putSolution {}", theSolution);
 		ICommonDataServiceRestClient cdsClient = getClient(theContext, true);
-
-		MLPSolution catalogSolution = null;
-		try {
-			catalogSolution = cdsClient.getSolution(theSolution.getSolutionId());
-		}
-		catch (HttpStatusCodeException scx) {
-			if (!Errors.isCDSNotFound(scx)) {
-				log.error(EELFLoggerDelegate.errorLogger, "Failed to check if solution " + theSolution.getSolutionId() + " exists in catalog. CDS says " + scx.getResponseBodyAsString(), scx);
-       	throw new ServiceException("Failed to check if solution " + theSolution.getSolutionId() + " exists in catalog", scx);
-			}
-		}
 
 		//we handle tags separately
 		Set<MLPTag> tags = theSolution.getTags();
 		theSolution.setTags(Collections.EMPTY_SET);
-		//reset the web stats
-		theSolution.setWebStats(null);
 
 		try {
-			if (catalogSolution == null) {
-	 			log.info(EELFLoggerDelegate.debugLogger, "Solution {} does not exists in catalog, adding", theSolution.getSolutionId());
-				catalogSolution = cdsClient.createSolution(theSolution);	
-    	}
+			if (theSolution.getCreated() == TimestampedEntity.ORIGIN) {
+				theSolution = (Solution)cdsClient.createSolution(theSolution);	
+			}
 			else {
-	 			log.info(EELFLoggerDelegate.debugLogger, "Solution {} exists in catalog, updating", theSolution.getSolutionId());
-				//some basic warnings
-				if (!catalogSolution.getUserId().equals(theSolution.getUserId())) {
-					// is this solution being updated as part of different/new subscription?
-					log.warn(EELFLoggerDelegate.errorLogger, "Updating solution {} triggers a user change", catalogSolution.getSolutionId());
-				}
-
-				if (catalogSolution.getSourceId() == null) {
-					//this is a local solution that made its way back
-					log.info(EELFLoggerDelegate.debugLogger, "Solution {} was originally provisioned locally", catalogSolution.getSolutionId());
-					//make sure not to update the user if the solution is local
-					theSolution.setUserId(catalogSolution.getUserId());
-				}
-				else {
-					if (!theSolution.getSourceId().equals(catalogSolution.getSourceId())) {
-						// we will see this if a solution is available in more than one peer
-						log.warn(EELFLoggerDelegate.errorLogger, "Solution {} triggers a source change", catalogSolution.getSolutionId());
-					}
-				}
 				cdsClient.updateSolution(theSolution);
-				catalogSolution = theSolution;
 			}
 		}
 		catch (HttpStatusCodeException scx) {
-			log.error(EELFLoggerDelegate.errorLogger,	"CDS solution call failed. CDS says " + scx.getResponseBodyAsString(), scx);
+			log.error("CDS solution call failed. CDS says " + scx.getResponseBodyAsString(), scx);
 			throw new ServiceException("CDS solution call failed. CDS says " + scx.getResponseBodyAsString(), scx);
+		}
+		catch (Exception x) {
+			log.error("Solution handling unexpected failure", x);
+			throw new ServiceException("Solution handling unexpected failure", x);
 		}
 
 		//tags: best effort approach
 		for (MLPTag tag: tags) {
 			try {
-				cdsClient.addSolutionTag(catalogSolution.getSolutionId(), tag.getTag());
+				cdsClient.addSolutionTag(theSolution.getSolutionId(), tag.getTag());
 			}
 			catch (HttpStatusCodeException scx) {
 				//we ignore and keep trying
-				log.error(EELFLoggerDelegate.errorLogger,	"CDS solution add tag call failed. CDS says " + scx.getResponseBodyAsString(), scx);
+				log.error("CDS solution add tag call failed. CDS says " + scx.getResponseBodyAsString(), scx);
 			}
 		}
-	
-		return Solution.buildFrom(catalogSolution)
-									 .withTags(tags) //this is not accurate as somem might have failed
-									 .withWebStats(null)
-									 .build();
+
+		//set back the tags; should we only set back those that succeded ?
+		theSolution.setTags(tags);
+
+		return theSolution;
 	}
 
 	@Override
 	public List<MLPSolutionRevision> getSolutionRevisions(String theSolutionId, ServiceContext theContext) throws ServiceException {
 
-		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisions {}", theSolutionId);
+		log.trace("getSolutionRevisions {}", theSolutionId);
 		try {
 			List<MLPSolutionRevision> revisions = getClient(theContext).getSolutionRevisions(theSolutionId);
 			//make sure we only expose revisions according to the filter
 			if (revisions != null) {
-				log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisions {}: got {} revisions", theSolutionId, revisions.size());
+				log.trace("getSolutionRevisions {}: got {} revisions", theSolutionId, revisions.size());
 				revisions = 
 					revisions.stream()
 									 .filter(revision -> this.config.getSolutionRevisionsSelector().entrySet().stream()
 																				.allMatch(s -> {
 																					try {
-																						log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisions verifying filter: revision property value {} vs filter value {}", PropertyUtils.getProperty(revision, s.getKey()), s.getValue());
+																						log.trace("getSolutionRevisions verifying filter: revision property value {} vs filter value {}", PropertyUtils.getProperty(revision, s.getKey()), s.getValue());
 																						return PropertyUtils.getProperty(revision, s.getKey()).equals(s.getValue());
 																					} 
 																					catch (Exception x) { 
-																						log.trace(EELFLoggerDelegate.errorLogger, "getSolutionRevisions failed to verify filter", x);
+																						log.trace("getSolutionRevisions failed to verify filter", x);
 																						return false;
 																					}
 																				})
@@ -274,7 +244,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	public SolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
 			ServiceContext theContext) throws ServiceException {
 
-		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevision");
+		log.trace("getSolutionRevision");
 		ICommonDataServiceRestClient cdsClient = getClient(theContext, true);
 		try {
 			SolutionRevision revision =
@@ -302,29 +272,33 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	@Override
   public SolutionRevision putSolutionRevision(SolutionRevision theRevision, ServiceContext theContext)
 																																																				throws ServiceException {
-		log.trace(EELFLoggerDelegate.debugLogger, "putSolutionRevision {}", theRevision);
+		log.trace("putSolutionRevision {}", theRevision);
 	
-		MLPSolutionRevision catalogRevision = getSolutionRevision(theRevision.getSolutionId(), theRevision.getRevisionId(), theContext);
 		try {
-			if (catalogRevision == null) {
-	 			log.info(EELFLoggerDelegate.debugLogger, "Revision {}/{} does not exists in catalog, adding", theRevision.getSolutionId(), theRevision.getRevisionId());
-				catalogRevision = SolutionRevision.buildFrom(getClient(theContext).createSolutionRevision(theRevision))
-																					.build();	
+			if (theRevision.getCreated() == TimestampedEntity.ORIGIN) {
+				theRevision = (SolutionRevision)getClient(theContext).createSolutionRevision(theRevision);
     	}
+			else {
+				getClient(theContext).updateSolutionRevision(theRevision);
+			}
 		}
 		catch (HttpStatusCodeException scx) {
-			log.error(EELFLoggerDelegate.errorLogger,	"CDS solution revision call failed. CDS says " + scx.getResponseBodyAsString(), scx);
+			log.error("CDS solution revision call failed. CDS says " + scx.getResponseBodyAsString(), scx);
 			throw new ServiceException("CDS solution revision call failed. CDS says " + scx.getResponseBodyAsString(), scx);
 		}
+		catch (Exception x) {
+			log.error("Solution revision handling unexpected failure", x);
+			throw new ServiceException("Solution revision handling unexpected failure", x);
+		}
 
-		return (SolutionRevision)catalogRevision;
+		return theRevision;
 	}
 
 	@Override
 	public List<MLPArtifact> getSolutionRevisionArtifacts(String theSolutionId, String theRevisionId,
 			ServiceContext theContext) throws ServiceException {
 
-		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts");
+		log.trace("getSolutionRevisionArtifacts");
 		try {
 			return getClient(theContext).getSolutionRevisionArtifacts(theSolutionId, theRevisionId);
 		}
@@ -343,7 +317,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	@Override
 	public Artifact getSolutionRevisionArtifact(String theArtifactId, ServiceContext theContext) throws ServiceException {
 
-		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifact");
+		log.trace("getSolutionRevisionArtifact");
 		try {
 			//one should check that this belongs to at least one public revision of some solution accessible within the given context ..
 			return (Artifact)getClient(theContext).getArtifact(theArtifactId);
@@ -358,7 +332,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 
 	@Override
 	public List<MLPDocument> getSolutionRevisionDocuments(String theSolutionId, String theRevisionId, ServiceContext theContext) throws ServiceException {
-		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisionDocuments");
+		log.trace("getSolutionRevisionDocuments");
 		try {
 			return getClient(theContext).getSolutionRevisionDocuments(theRevisionId, AccessTypeCode.PB.name());
 		}
@@ -372,7 +346,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 
 	@Override
 	public Document getSolutionRevisionDocument(String theDocumentId, ServiceContext theContext) throws ServiceException {
-		log.trace(EELFLoggerDelegate.debugLogger, "getSolutionRevisionDocument");
+		log.trace("getSolutionRevisionDocument");
 		try {
 			//one should check that this has a public visibility within at least one revision of some solution accessible within the given context ..
 			return (Document)getClient(theContext).getDocument(theDocumentId);

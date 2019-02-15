@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.cds.PeerStatus;
+import org.acumos.federation.gateway.cds.PeerStatuses;
 
 /**
  * Defines the interface of a service providing local peer information.
@@ -135,18 +136,18 @@ public interface PeerService {
 		if (thePeer == null)
 			return;
 			
-		PeerStatus status = PeerStatus.forCode(thePeer.getStatusCode());
+		PeerStatus status = PeerStatuses.forCode(thePeer.getStatusCode());
 		if (null == status) {
 			throw new ServiceException("Invalid peer status found: " + thePeer.getStatusCode());
 		}
 
-		if (status == PeerStatus.Requested) {
+		if (status == PeerStatuses.Requested) {
 			throw new ServiceException("Peer registration request is pending");
 		}
-		else if (status == PeerStatus.Declined) {
+		else if (status == PeerStatuses.Declined) {
 			throw new ServiceException("Peer registration request was declined");
 		}
-		else if (status == PeerStatus.Renounced) {
+		else if (status == PeerStatuses.Renounced) {
 			throw new ServiceException("Peer unregistration request is pending");
 		}
 		else { //if (status == PeerStatus.Active || status == PeerStatus.Inactive) {
@@ -180,24 +181,25 @@ public interface PeerService {
 		if (thePeer == null)
 			throw new ServiceException("No such peer");
 
-		PeerStatus status = PeerStatus.forCode(thePeer.getStatusCode());
+		PeerStatus status = PeerStatuses.forCode(thePeer.getStatusCode());
 		if (null == status) {
 			throw new ServiceException("Invalid peer status found: " + thePeer.getStatusCode());
 		}
 
-		if (status == PeerStatus.Requested) {
+		if (status == PeerStatuses.Requested) {
 			throw new ServiceException("Peer registration request is pending");
 		}
-		else if (status == PeerStatus.Declined) {
+		else if (status == PeerStatuses.Declined) {
 			throw new ServiceException("Peer registration request was declined");
 		}
-		else if (status == PeerStatus.Renounced) {
+		else if (status == PeerStatuses.Renounced) {
 			throw new ServiceException("Peer unregistration request is pending");
 		}
 	}
 
 	/**
 	 * Provide a context for self service calls, ie calls made on the behalf of the gateway itself.
+	 * @return ServiceContext
 	 */
 	public ServiceContext selfService();
 

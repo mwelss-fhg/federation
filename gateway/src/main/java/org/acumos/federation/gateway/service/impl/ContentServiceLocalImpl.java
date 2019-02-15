@@ -26,7 +26,8 @@ import java.net.URI;
 
 import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.Document;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
@@ -43,7 +44,7 @@ import org.springframework.stereotype.Service;
 public class ContentServiceLocalImpl extends AbstractServiceImpl
 																	implements ContentService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	/**
 	 * @return a resource containing the content or null if the artifact has no content
@@ -61,7 +62,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 			return new InputStreamResource(new URI(theArtifact.getUri()).toURL().openStream());
 		}
 		catch (Exception x) {
-			log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve artifact content for artifact " + theArtifact, x);
+			log.error("Failed to retrieve artifact content for artifact " + theArtifact, x);
 			throw new ServiceException("Failed to retrieve artifact content for artifact " + theArtifact, x);
 		}
 	}
@@ -79,7 +80,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 			FileUtils.copyInputStreamToFile(theResource.getInputStream(), target);
 		}
 		catch (IOException iox) {
-			log.error(EELFLoggerDelegate.errorLogger, "Failed to write artifact content for artifact " + theArtifact, iox);
+			log.error("Failed to write artifact content for artifact " + theArtifact, iox);
 			throw new ServiceException("Failed to write artifact content for artifact " + theArtifact, iox);
 		}
 
@@ -98,7 +99,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 			return new InputStreamResource(new URI(theDocument.getUri()).toURL().openStream());
 		}
 		catch (Exception x) {
-			log.error(EELFLoggerDelegate.errorLogger, "Failed to retrieve document content for document " + theDocument, x);
+			log.error("Failed to retrieve document content for document " + theDocument, x);
 			throw new ServiceException("Failed to retrieve document content for document " + theDocument, x);
 		}
 	}
@@ -113,7 +114,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 			FileUtils.copyInputStreamToFile(theResource.getInputStream(), target);
 		}
 		catch (IOException iox) {
-			log.error(EELFLoggerDelegate.errorLogger, "Failed to write document content for document " + theDocument, iox);
+			log.error("Failed to write document content for document " + theDocument, iox);
 			throw new ServiceException("Failed to write document content for document " + theDocument, iox);
 		}
 

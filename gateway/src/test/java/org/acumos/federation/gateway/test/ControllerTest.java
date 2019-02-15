@@ -2,15 +2,16 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017 - 2019 AT&T Intellectual Property & Tech
+ * 						Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * This file is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
@@ -19,8 +20,10 @@
  */
 package org.acumos.federation.gateway.test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -29,16 +32,18 @@ import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.federation.gateway.common.JsonResponse;
-/* this is not good for unit testing .. */
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
 import org.apache.http.client.HttpClient;
+import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -54,10 +59,6 @@ import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.junit4.SpringRunner;
 
 
-
-/**
- */
-
 //@RunWith(SpringJUnit4ClassRunner.class)
 @RunWith(SpringRunner.class)
 @ContextHierarchy({
@@ -67,11 +68,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = org.acumos.federation.gateway.Application.class,
 								webEnvironment = WebEnvironment.RANDOM_PORT,
 								properties = {
+									"spring.main.allow-bean-definition-overriding=true",
 									"federation.instance=adapter",
 									"federation.instance.name=test",
 									"federation.operator=admin",
-									"peersLocal.source=classpath:test-peers.json",
-									"catalogLocal.source=classpath:test-catalog.json",
+									"codes-local.source=classpath:test-codes.json",
+									"peers-local.source=classpath:test-peers.json",
+									"catalog-local.source=classpath:test-catalog.json",
 									"federation.ssl.key-store=classpath:acumosa.pkcs12",
 									"federation.ssl.key-store-password=acumosa",
 									"federation.ssl.key-store-type=PKCS12",
@@ -84,9 +87,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ControllerTest {
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+	private final Logger log = LoggerFactory.getLogger(getClass().getName());
 	@Autowired
 	private TestRestTemplate restTemplate;
+	@Value("${local.server.port}")
+	int port;
 
 	@Test
 	public void testSolutions() {
@@ -96,16 +101,16 @@ public class ControllerTest {
 				.setHttpClient(prepareHttpClient());
 		
 		ResponseEntity<JsonResponse<List<MLPSolution>>> response =
-			this.restTemplate.exchange("/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
+			this.restTemplate.exchange("https://localhost:" + this.port + "/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 		
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutions: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutions: {}", response);
+			log.info("testSolutions: {}", response.getBody());
+			log.info("testSolutions: {}", response);
 		}
 		
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getContent().size() == 1);
+		assertNotNull(response);
+		assertEquals(200, response.getStatusCodeValue());
+		assertEquals(1, response.getBody().getContent().size());
 	}
 
 
@@ -117,16 +122,16 @@ public class ControllerTest {
 				.setHttpClient(prepareHttpClient());
 
 		ResponseEntity<JsonResponse<MLPSolution>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
+			this.restTemplate.exchange("https://localhost:" + this.port + "/solutions/00000000-0000-0000-0000-000000000000", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
 	
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testSolution: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testSolution: {}", response);
+			log.info("testSolution: {}", response.getBody());
+			log.info("testSolution: {}", response);
 		}
 
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getContent().getModelTypeCode().equals("CL")); //no errors
+		assertNotNull(response);
+		assertEquals(200, response.getStatusCodeValue());
+		assertEquals("CL", response.getBody().getContent().getModelTypeCode()); //no errors
 	}
 
 	@Test
@@ -137,16 +142,16 @@ public class ControllerTest {
 				.setHttpClient(prepareHttpClient());
 
 		ResponseEntity<JsonResponse<List<MLPSolutionRevision>>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {});
+			this.restTemplate.exchange("https://localhost:" + this.port + "/solutions/00000000-0000-0000-0000-000000000000/revisions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {});
 		
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisions: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisions: {}", response);
+			log.info("testSolutionRevisions: {}", response.getBody());
+			log.info("testSolutionRevisions: {}", response);
 		}
 
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getContent().size() == 1); //no errors
+		assertNotNull(response);
+		assertEquals(200, response.getStatusCodeValue());
+		assertEquals(1, response.getBody().getContent().size()); //no errors
 	}
 
 	@Test
@@ -157,16 +162,16 @@ public class ControllerTest {
 				.setHttpClient(prepareHttpClient());
 
 		ResponseEntity<JsonResponse<MLPSolution>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
+			this.restTemplate.exchange("https://localhost:" + this.port + "/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
 	
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevision: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevision: {}", response);
+			log.info("testSolutionRevision: {}", response.getBody());
+			log.info("testSolutionRevision: {}", response);
 		}
 
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getContent().getUserId().equals("admin")); //no errors
+		assertNotNull(response);
+		assertEquals(200, response.getStatusCodeValue());
+		assertEquals("admin", response.getBody().getContent().getUserId()); //no errors
 	}
 
 	@Test
@@ -177,16 +182,16 @@ public class ControllerTest {
 				.setHttpClient(prepareHttpClient());
 
 		ResponseEntity<JsonResponse<List<MLPArtifact>>> response =
-			this.restTemplate.exchange("/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101/artifacts", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {});
+			this.restTemplate.exchange("https://localhost:" + this.port + "/solutions/00000000-0000-0000-0000-000000000000/revisions/01010101-0101-0101-0101-010101010101/artifacts", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {});
 		
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisionArtifacts: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testSolutionRevisionArtifacts: {}", response);
+			log.info("testSolutionRevisionArtifacts: {}", response.getBody());
+			log.info("testSolutionRevisionArtifacts: {}", response);
 		}
 
-		assertTrue(response != null);
-		assertTrue(response.getStatusCodeValue() == 200);
-		assertTrue(response.getBody().getContent().size() == 1); //no errors
+		Assert.assertNotNull(response);
+		Assert.assertEquals(200, response.getStatusCodeValue());
+		Assert.assertEquals(1, response.getBody().getContent().size()); //no errors
 	}
 	
 	@Test
@@ -197,25 +202,25 @@ public class ControllerTest {
 				.setHttpClient(prepareHttpClient("acumosc"));
 
 		ResponseEntity<JsonResponse<MLPPeer>> response =
-			this.restTemplate.exchange("/peer/register", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
+			this.restTemplate.exchange("https://localhost:" + this.port + "/peer/register", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testRegister: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testRegister: {}", response);
+			log.info("testRegister: {}", response.getBody());
+			log.info("testRegister: {}", response);
 		}
 	
-		assertTrue(response != null);
-		assertTrue("Expected 202 status code, got " + response.getStatusCodeValue(), response.getStatusCodeValue() == 202);
+		assertNotNull(response);
+		assertEquals("Expected 202 status code, got " + response.getStatusCodeValue(), 202, response.getStatusCodeValue());
 
 		//an attempt to re-register should trigger an error
 		response =
-			this.restTemplate.exchange("/peer/register", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
+			this.restTemplate.exchange("https://localhost:" + this.port + "/peer/register", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "test(re)Register: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "test(re)Register: {}", response);
+			log.info("test(re)Register: {}", response.getBody());
+			log.info("test(re)Register: {}", response);
 		}
 	
-		assertTrue(response != null);
-		assertTrue("Expected 400 status code, got " + response.getStatusCodeValue(), response.getStatusCodeValue() == 400);
+		assertNotNull(response);
+		assertEquals("Expected 400 status code, got " + response.getStatusCodeValue(), 400, response.getStatusCodeValue());
 	}
 
 	@Test
@@ -226,14 +231,14 @@ public class ControllerTest {
 				.setHttpClient(prepareHttpClient("acumosb"));
 
 		ResponseEntity<JsonResponse<MLPPeer>> response =
-			this.restTemplate.exchange("/peer/unregister", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
+			this.restTemplate.exchange("https://localhost:" + this.port + "/peer/unregister", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testUnregister: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testUnregister: {}", response);
+			log.info("testUnregister: {}", response.getBody());
+			log.info("testUnregister: {}", response);
 		}
 	
-		assertTrue(response != null);
-		assertTrue("Expected 202 status code, got " + response.getStatusCodeValue(), response.getStatusCodeValue() == 202);
+		assertNotNull(response);
+		assertEquals("Expected 202 status code, got " + response.getStatusCodeValue(), 202, response.getStatusCodeValue());
 	}
 
 	@Test
@@ -244,14 +249,14 @@ public class ControllerTest {
 				.setHttpClient(prepareHttpClient("acumosc"));
 
 		ResponseEntity<JsonResponse<MLPPeer>> response =
-			this.restTemplate.exchange("/peer/unregister", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
+			this.restTemplate.exchange("https://localhost:" + this.port + "/peer/unregister", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {} );
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testUnregisterNonExistent: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testUnregisterNonExistent: {}", response);
+			log.info("testUnregisterNonExistent: {}", response.getBody());
+			log.info("testUnregisterNonExistent: {}", response);
 		}
 	
-		assertTrue(response != null);
-		assertTrue("Expected 400 status code, got " + response.getStatusCodeValue(), response.getStatusCodeValue() == 400);
+		assertNotNull(response);
+		assertEquals("Expected 401 status code, got " + response.getStatusCodeValue(), 401, response.getStatusCodeValue());
 	}
 
 
@@ -263,16 +268,14 @@ public class ControllerTest {
 				.setHttpClient(prepareHttpClient());
 
 		ResponseEntity<JsonResponse<List<MLPPeer>>> response =
-			this.restTemplate.exchange("/peers", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {} );
+			this.restTemplate.exchange("https://localhost:" + this.port + "/peers", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {} );
 	
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "testPeers: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "testPeers: {}", response);
-			System.out.println("testPeers: " + response.getBody());
-			System.out.println("testPeers: " + response);
+			log.info("testPeers: {}", response.getBody());
+			log.info("testPeers: {}", response);
 		}
 
-		assertTrue(response.getStatusCodeValue() == 401);
+		assertEquals(401, response.getStatusCodeValue());
 	}
 
 	private HttpEntity prepareRequest(String theResourceName) {
@@ -281,12 +284,14 @@ public class ControllerTest {
 											.useDelimiter("\\Z").next();
 
 		HttpHeaders headers = new HttpHeaders();
+ 		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
  		headers.setContentType(MediaType.APPLICATION_JSON);
  		return new HttpEntity<String>(content, headers);
 	}
 	
 	private HttpEntity prepareRequest() {
 		HttpHeaders headers = new HttpHeaders();
+ 		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
  		headers.setContentType(MediaType.APPLICATION_JSON);
  		return new HttpEntity<String>(headers);
 	}

@@ -26,7 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -34,7 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Utils {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private static ObjectMapper objectMapper = new ObjectMapper();
 

@@ -21,6 +21,7 @@
 package org.acumos.federation.gateway.util;
 
 /**
+ * @param <T> Type
  */
 @FunctionalInterface
 public interface FutureHandler<T> {

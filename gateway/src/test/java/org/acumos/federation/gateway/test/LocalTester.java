@@ -44,9 +44,6 @@ import org.springframework.web.client.RestTemplate;
  */
 public class LocalTester {
 
-
-	/**
-	 */
 	public static void main(String[] theArgs) throws Exception {
 
 		RestTemplate template = new RestTemplate(

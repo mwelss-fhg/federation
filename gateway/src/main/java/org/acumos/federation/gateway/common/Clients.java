@@ -26,7 +26,8 @@ import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.federation.gateway.cds.Mapper;
 import org.acumos.federation.gateway.config.CDMSClientConfiguration;
 import org.acumos.federation.gateway.config.DockerConfiguration;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.config.FederationInterfaceConfiguration;
 import org.acumos.federation.gateway.config.LocalInterfaceConfiguration;
 import org.acumos.federation.gateway.config.NexusConfiguration;
@@ -55,7 +56,7 @@ public class Clients {
 	@Autowired
 	private CDMSClientConfiguration cdmsConfig = null;
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	public Clients() {
 	}
@@ -69,17 +70,17 @@ public class Clients {
 
 	/**
 	 * Build a client for the given peer uri
+	 * @param thePeerURI URI
+	 * @return Client
 	 */
 	public FederationClient getFederationClient(String thePeerURI) {
 		return new FederationClient(thePeerURI, federationConfig.buildClient(), Mapper.build());
 	}
 
-	/** */
 	public RestTemplate getNexusClient() {
 		return nexusConfig.getNexusClient();
 	}
 
-	/** */
 	public DockerClient	getDockerClient() {
     return dockerConfig.getDockerClient();
 	}

@@ -5,7 +5,6 @@
       "modified": 1529664053000,
       "solutionId": "c8618ba1-3ae3-4d0e-a7df-bd32277e7dcb",
       "name": "Test_934_220618",
-      "description": "Test",
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
@@ -18,22 +17,18 @@
           "tag": "Test_934_22062018"
         }
       ],
-      "webStats": {
-        "solutionId": "c8618ba1-3ae3-4d0e-a7df-bd32277e7dcb",
-        "viewCount": 2,
-        "downloadCount": 0,
-        "lastDownload": 1529913566000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 2,
+      "downloadCount": 0,
+      "lastDownload": 1529913566000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1528441761000,
       "modified": 1528441940000,
       "solutionId": "cd253df2-2368-4ae0-b8ea-529533845435",
       "name": "Test_934",
-      "description": "Test",
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
@@ -46,22 +41,18 @@
           "tag": "TestTag"
         }
       ],
-      "webStats": {
-        "solutionId": "cd253df2-2368-4ae0-b8ea-529533845435",
-        "viewCount": 7,
-        "downloadCount": 0,
-        "lastDownload": 1528456195000,
-        "ratingCount": 1,
-        "ratingAverageTenths": 40,
-        "featured": false
-      }
+      "viewCount": 7,
+      "downloadCount": 0,
+      "lastDownload": 1528456195000,
+      "ratingCount": 1,
+      "ratingAverageTenths": 40,
+      "featured": false
     },
     {
       "created": 1528830995000,
       "modified": 1528833238000,
       "solutionId": "d8e96d4e-ade7-432c-a8ed-335627364fca",
       "name": "ATT-Face_Privacy_Filter",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "CL",
@@ -70,22 +61,18 @@
       "userId": "1ccb5226-8b0c-4050-bb3c-64b75d17c6b1",
       "sourceId": null,
       "tags": [],
-      "webStats": {
-        "solutionId": "d8e96d4e-ade7-432c-a8ed-335627364fca",
-        "viewCount": 8,
-        "downloadCount": 17,
-        "lastDownload": 1530645811000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 8,
+      "downloadCount": 17,
+      "lastDownload": 1530645811000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+   	  "featured": false
     },
     {
       "created": 1520850318000,
       "modified": 1520850571000,
       "solutionId": "d9f4470f-d663-4888-93ce-40585977b225",
       "name": "Web_VM_Predictor_12032018",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
@@ -98,22 +85,18 @@
           "tag": "VM_Predictor"
         }
       ],
-      "webStats": {
-        "solutionId": "d9f4470f-d663-4888-93ce-40585977b225",
-        "viewCount": 10,
-        "downloadCount": 11,
-        "lastDownload": 1531476705000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 10,
+      "downloadCount": 11,
+      "lastDownload": 1531476705000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1531127757000,
       "modified": 1531129406000,
       "solutionId": "dc5bd274-73e0-4d22-a50d-c9b846d43758",
       "name": "Web_2Crosssell_Analytics_09072018",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
@@ -126,22 +109,18 @@
           "tag": "tag_cs"
         }
       ],
-      "webStats": {
-        "solutionId": "dc5bd274-73e0-4d22-a50d-c9b846d43758",
-        "viewCount": 1,
-        "downloadCount": 0,
-        "lastDownload": 1531129377000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 1,
+      "downloadCount": 0,
+      "lastDownload": 1531129377000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1526460981000,
       "modified": 1526461307000,
       "solutionId": "dc9238ed-6894-4883-9f38-9df45829c97a",
       "name": "SolDeployToAzure",
-      "description": "Test",
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
@@ -154,22 +133,18 @@
           "tag": "SolDeployToAzure"
         }
       ],
-      "webStats": {
-        "solutionId": "dc9238ed-6894-4883-9f38-9df45829c97a",
-        "viewCount": 3,
-        "downloadCount": 0,
-        "lastDownload": 1526648038000,
-        "ratingCount": 1,
-        "ratingAverageTenths": 30,
-        "featured": false
-      }
+      "viewCount": 3,
+      "downloadCount": 0,
+      "lastDownload": 1526648038000,
+      "ratingCount": 1,
+      "ratingAverageTenths": 30,
+      "featured": false
     },
     {
       "created": 1531382611000,
       "modified": 1531390148000,
       "solutionId": "e1d28090-08cb-423c-872b-61ea9eb9c378",
       "name": "output",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "RG",
@@ -178,22 +153,18 @@
       "userId": "fea37214-e7ef-4ec7-8c12-b10f88669a28",
       "sourceId": null,
       "tags": [],
-      "webStats": {
-        "solutionId": "e1d28090-08cb-423c-872b-61ea9eb9c378",
-        "viewCount": 1,
-        "downloadCount": 0,
-        "lastDownload": 1531390116000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 1,
+      "downloadCount": 0,
+      "lastDownload": 1531390116000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1524562221000,
       "modified": 1524562369000,
       "solutionId": "e5594e6a-153a-4d5d-924c-ea6cc353c001",
       "name": "Aggregator",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "DT",
@@ -206,22 +177,18 @@
           "tag": "Aggregator_IST2_24042018"
         }
       ],
-      "webStats": {
-        "solutionId": "e5594e6a-153a-4d5d-924c-ea6cc353c001",
-        "viewCount": 2,
-        "downloadCount": 0,
-        "lastDownload": 1525276675000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 2,
+      "downloadCount": 0,
+      "lastDownload": 1525276675000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1531382291000,
       "modified": 1531390216000,
       "solutionId": "e65a9ec8-2da4-418a-a4f5-d26343789ac0",
       "name": "multiply",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "RG",
@@ -234,22 +201,18 @@
           "tag": "multiply"
         }
       ],
-      "webStats": {
-        "solutionId": "e65a9ec8-2da4-418a-a4f5-d26343789ac0",
-        "viewCount": 1,
-        "downloadCount": 0,
-        "lastDownload": 1531390184000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 1,
+      "downloadCount": 0,
+      "lastDownload": 1531390184000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1521233744000,
       "modified": 1521238208000,
       "solutionId": "eb86a965-5163-4abf-ab14-59c3b12cf805",
       "name": "face_privacy_filter_detect",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "DT",
@@ -268,22 +231,18 @@
           "tag": "opencv"
         }
       ],
-      "webStats": {
-        "solutionId": "eb86a965-5163-4abf-ab14-59c3b12cf805",
-        "viewCount": 5,
-        "downloadCount": 2,
-        "lastDownload": 1522244471000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 5,
+      "downloadCount": 2,
+      "lastDownload": 1522244471000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1530611519000,
       "modified": 1530696648000,
       "solutionId": "ed83b658-68b9-4297-aab2-c3bada538fb0",
       "name": "ONAP_vm_predictor_03072018",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "DT",
@@ -296,22 +255,18 @@
           "tag": "ONAP_model_publish_04072018"
         }
       ],
-      "webStats": {
-        "solutionId": "ed83b658-68b9-4297-aab2-c3bada538fb0",
-        "viewCount": 10,
-        "downloadCount": 11,
-        "lastDownload": 1530787710000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 10,
+      "downloadCount": 11,
+      "lastDownload": 1530787710000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1531129611000,
       "modified": 1531130043000,
       "solutionId": "ed9079a3-543e-47e8-a9a1-2cb7b34f4c77",
       "name": "ONAP_Image_Classification_CLI_09072018",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "CL",
@@ -324,22 +279,18 @@
           "tag": "tag_09072018"
         }
       ],
-      "webStats": {
-        "solutionId": "ed9079a3-543e-47e8-a9a1-2cb7b34f4c77",
-        "viewCount": 5,
-        "downloadCount": 11,
-        "lastDownload": 1531215432000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 5,
+      "downloadCount": 11,
+      "lastDownload": 1531215432000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1528317616000,
       "modified": 1529073941000,
       "solutionId": "ed9df521-0010-4ab0-8019-795b999469a2",
       "name": "iB9",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "CL",
@@ -352,22 +303,18 @@
           "tag": "tag"
         }
       ],
-      "webStats": {
-        "solutionId": "ed9df521-0010-4ab0-8019-795b999469a2",
-        "viewCount": 2,
-        "downloadCount": 0,
-        "lastDownload": 1529317706000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 2,
+      "downloadCount": 0,
+      "lastDownload": 1529317706000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1524660769000,
       "modified": 1524734111000,
       "solutionId": "f0424d94-1bc1-47f9-86b2-13d41e0f3374",
       "name": "akash",
-      "description": "test",
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
@@ -380,22 +327,18 @@
           "tag": "testPubTag"
         }
       ],
-      "webStats": {
-        "solutionId": "f0424d94-1bc1-47f9-86b2-13d41e0f3374",
-        "viewCount": 4,
-        "downloadCount": 0,
-        "lastDownload": 1525254094000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 4,
+      "downloadCount": 0,
+      "lastDownload": 1525254094000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1527154384000,
       "modified": 1527154610000,
       "solutionId": "f14db7a1-b4cd-4404-b636-82c5392a3e0e",
       "name": "AzureTest_240520",
-      "description": "Test",
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
@@ -408,22 +351,18 @@
           "tag": "TestTag"
         }
       ],
-      "webStats": {
-        "solutionId": "f14db7a1-b4cd-4404-b636-82c5392a3e0e",
-        "viewCount": 10,
-        "downloadCount": 14,
-        "lastDownload": 1527161658000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 10,
+      "downloadCount": 14,
+      "lastDownload": 1527161658000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1520958197000,
       "modified": 1520958927000,
       "solutionId": "f23973e3-f22d-4f92-a3d1-3c1ceaf9b62a",
       "name": "ist-to-dev-federation-test",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "CL",
@@ -432,22 +371,18 @@
       "userId": "4265e711-ea85-4131-bcfa-d7817c4472e5",
       "sourceId": null,
       "tags": [],
-      "webStats": {
-        "solutionId": "f23973e3-f22d-4f92-a3d1-3c1ceaf9b62a",
-        "viewCount": 10,
-        "downloadCount": 1,
-        "lastDownload": 1525961070000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 10,
+      "downloadCount": 1,
+      "lastDownload": 1525961070000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1524581009000,
       "modified": 1524641638000,
       "solutionId": "f509964b-9b11-4ab8-82ca-3a2bf009027c",
       "name": "composite Sol",
-      "description": "Test Solution",
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
@@ -460,22 +395,18 @@
           "tag": "Test_Sol"
         }
       ],
-      "webStats": {
-        "solutionId": "f509964b-9b11-4ab8-82ca-3a2bf009027c",
-        "viewCount": 2,
-        "downloadCount": 0,
-        "lastDownload": 1525213181000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 2,
+      "downloadCount": 0,
+      "lastDownload": 1525213181000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1531386310000,
       "modified": 1531389410000,
       "solutionId": "f8253166-c440-4d17-abb9-0ae5c17e33d7",
       "name": "psubtract",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "RG",
@@ -488,22 +419,18 @@
           "tag": "psubtract"
         }
       ],
-      "webStats": {
-        "solutionId": "f8253166-c440-4d17-abb9-0ae5c17e33d7",
-        "viewCount": 1,
-        "downloadCount": 0,
-        "lastDownload": 1531389370000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 1,
+      "downloadCount": 0,
+      "lastDownload": 1531389370000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1528835556000,
       "modified": 1528836476000,
       "solutionId": "fb6d09b5-b9f6-48e4-b5a3-19c365410c64",
       "name": "ATT-Image Classification",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "CL",
@@ -516,22 +443,18 @@
           "tag": "Sample"
         }
       ],
-      "webStats": {
-        "solutionId": "fb6d09b5-b9f6-48e4-b5a3-19c365410c64",
-        "viewCount": 5,
-        "downloadCount": 10,
-        "lastDownload": 1529046133000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 5,
+      "downloadCount": 10,
+      "lastDownload": 1529046133000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1531385731000,
       "modified": 1531389702000,
       "solutionId": "fb72cb59-3c11-4e01-b5ce-1eb1dcc19ec8",
       "name": "pmultiply",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "RG",
@@ -544,22 +467,18 @@
           "tag": "pmultiply"
         }
       ],
-      "webStats": {
-        "solutionId": "fb72cb59-3c11-4e01-b5ce-1eb1dcc19ec8",
-        "viewCount": 1,
-        "downloadCount": 0,
-        "lastDownload": 1531389665000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 1,
+      "downloadCount": 0,
+      "lastDownload": 1531389665000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1522246409000,
       "modified": 1522246581000,
       "solutionId": "fb7a2559-5037-4ec4-862d-28b11b333dd6",
       "name": "AlarmGenerator",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "DT",
@@ -572,15 +491,12 @@
           "tag": "AlarmGenerator"
         }
       ],
-      "webStats": {
-        "solutionId": "fb7a2559-5037-4ec4-862d-82b11b333dd6",
-        "viewCount": 3,
-        "downloadCount": 4,
-        "lastDownload": 1522663515000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 3,
+      "downloadCount": 4,
+      "lastDownload": 1522663515000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     }
   ],
   "totalElements": 71,

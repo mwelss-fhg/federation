@@ -4,24 +4,21 @@
  "content": {
   "solutionId":"6793411f-c7a1-4e93-85bc-f91d267541d8",
   "name":"mock model",
-  "description":"Test mock model",
   "userId":"admin",
   "active":"true",
   "modelTypeCode":"CL",
   "toolkitTypeCode":"",
   "metadata":"acumosa",
-  "created":"2017-08-10",
-  "modified":"2017-08-11",
+  "created":"1550012925",
+  "modified":"1550012925",
 	"revisions":[{
 	  "revisionId":"2c7e4481-6e6f-47d9-b7a4-c4e674d2b341",
   	"solutionId":"6793411f-c7a1-4e93-85bc-f91d267541d8",
-	  "description":"First attempt",
 	  "version":"1.0",
 	  "metadata":"acumosa",
 	  "userId":"admin",
 	  "accessTypeCode": "PB",
-		"validationStatusCode": "PS",
-		"created":"2017-08-10",
-		"modified":"2017-08-11"}]
+		"created":"1550012925",
+		"modified":"1550012925"}]
  }
 }

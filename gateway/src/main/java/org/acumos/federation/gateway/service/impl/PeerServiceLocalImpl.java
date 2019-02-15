@@ -33,7 +33,8 @@ import javax.annotation.PreDestroy;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.federation.gateway.cds.PeerSubscription;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.ServiceContext;
@@ -46,42 +47,44 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @Service
-@ConfigurationProperties(prefix = "peersLocal")
+@ConfigurationProperties(prefix = "peers-local")
 public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements PeerService, PeerSubscriptionService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private List<FLPPeer> peers;
 
 	@PostConstruct
 	public void initPeerService() {
-		log.debug(EELFLoggerDelegate.debugLogger, "init local peer info service");
+		log.debug("init local peer info service");
 		checkResource();
 		try {
 			watcher.watchOn(this.resource.getURL().toURI(), (uri) -> {
 				loadPeersSubscriptionsInfo();
 			});
 		} catch (IOException | URISyntaxException iox) {
-			log.info(EELFLoggerDelegate.errorLogger,
-					"Peers subscriptions watcher registration failed for " + this.resource, iox);
+			log.info("Peers subscriptions watcher registration failed for " + this.resource, iox);
 		}
 
 		loadPeersSubscriptionsInfo();
 
 		// Done
-		log.debug(EELFLoggerDelegate.debugLogger, "Local PeerService available");
+		log.debug("Local PeerService available");
 	}
 
 	private void loadPeersSubscriptionsInfo() {
-		log.info(EELFLoggerDelegate.debugLogger, "Loading peers subscriptions from " + this.resource);
+		log.info("Loading peers subscriptions from " + this.resource);
 		synchronized (this) {
 			try {
-				ObjectReader objectReader = new ObjectMapper().reader(FLPPeer.class);
+				ObjectReader objectReader = new ObjectMapper()
+																					.registerModule(new JavaTimeModule())
+																					.reader(FLPPeer.class);
 				MappingIterator objectIterator = objectReader.readValues(this.resource.getURL());
 				this.peers = objectIterator.readAll();
-				log.info(EELFLoggerDelegate.debugLogger, "loaded " + this.peers.size() + " peers");
+				log.info("loaded " + this.peers.size() + " peers");
 			}
 			catch (Exception x) {
 				throw new BeanInitializationException("Failed to load solutions catalog from " + this.resource, x);
@@ -91,7 +94,7 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 
 	@PreDestroy
 	public void cleanupPeerService() {
-		log.debug(EELFLoggerDelegate.debugLogger, "Local peer info service destroyed");
+		log.debug("Local peer info service destroyed");
 	}
 
 	/** */
@@ -114,9 +117,9 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	/** */
 	@Override
 	public List<MLPPeer> getPeerBySubjectName(final String theSubjectName, ServiceContext theContext) {
-		log.info(EELFLoggerDelegate.debugLogger, "Looking for peer " + theSubjectName);
+		log.info("Looking for peer " + theSubjectName);
 		return this.peers.stream().filter(peer -> {
-			log.info(EELFLoggerDelegate.debugLogger, "Found peer " + peer.getSubjectName());
+			log.info("Found peer " + peer.getSubjectName());
 			return theSubjectName.equals(peer.getSubjectName());
 		}).collect(Collectors.toList());
 	}
@@ -125,14 +128,14 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	@Override
 	public MLPPeer getPeerById(final String thePeerId, ServiceContext theContext) {
 		MLPPeer apeer = this.peers.stream().filter(peer -> thePeerId.equals(peer.getPeerId())).findFirst().orElse(null);
-		log.info(EELFLoggerDelegate.debugLogger, "Local peer info, one peer: " + apeer);
+		log.info("Local peer info, one peer: " + apeer);
 		return apeer;
 	}
 
 	/** */
 	@Override
 	public void registerPeer(MLPPeer thePeer) throws ServiceException {
-		log.info(EELFLoggerDelegate.debugLogger, "Registered peer {}", thePeer);
+		log.info("Registered peer {}", thePeer);
 		List<MLPPeer> peers = getPeerBySubjectName(thePeer.getSubjectName());
 		if (peers.size() > 0) {
 			assertPeerRegistration(peers.get(0));
@@ -143,7 +146,7 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	/** */
 	@Override
 	public void unregisterPeer(MLPPeer thePeer) throws ServiceException {
-		log.info(EELFLoggerDelegate.debugLogger, "Unregistered peer {}", thePeer);
+		log.info("Unregistered peer {}", thePeer);
 		List<MLPPeer> peers = getPeerBySubjectName(thePeer.getSubjectName());
 		if (peers.size() > 0) {
 			assertPeerUnregistration(peers.get(0));
@@ -156,10 +159,11 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	/** */
 	@Override
 	public List<MLPPeerSubscription> getPeerSubscriptions(final String thePeerId) {
+		if (this.peers == null)
+			return Collections.EMPTY_LIST;
 		FLPPeer peer = this.peers.stream().filter(entry -> thePeerId.equals(entry.getPeerId())).findFirst()
 				.orElse(null);
-		log.info(EELFLoggerDelegate.debugLogger,
-				"Peer " + thePeerId + " subs:" + (peer == null ? "none" : peer.getSubscriptions()));
+		log.info("Peer " + thePeerId + " subs:" + (peer == null ? "none" : peer.getSubscriptions()));
 		return peer == null ? Collections.EMPTY_LIST : (List)peer.getSubscriptions();
 	}
 

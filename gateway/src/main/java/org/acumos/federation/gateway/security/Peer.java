@@ -22,7 +22,7 @@ package org.acumos.federation.gateway.security;
 import java.util.Collection;
 
 import org.acumos.cds.domain.MLPPeer;
-import org.acumos.federation.gateway.cds.PeerStatus;
+import org.acumos.federation.gateway.cds.PeerStatuses;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -47,6 +47,10 @@ public class Peer extends User {
 	}
 
 	public boolean isActive() {
-		return PeerStatus.Active.equals(PeerStatus.forCode(this.peerInfo.getStatusCode()));
+		return PeerStatuses.Active.equals(PeerStatuses.forCode(this.peerInfo.getStatusCode()));
+	}
+	
+	public boolean isKnown() {
+		return this.peerInfo.getPeerId() != null;
 	}
 }

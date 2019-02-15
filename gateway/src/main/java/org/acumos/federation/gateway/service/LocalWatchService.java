@@ -21,6 +21,7 @@
 package org.acumos.federation.gateway.service;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -36,7 +37,8 @@ import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +52,7 @@ public class LocalWatchService {
 	private Map<URI, Consumer<URI>> sources = new HashMap<URI, Consumer<URI>>();
 	private WatchService sourceWatcher = null;
 
-	private final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(LocalWatchService.class);
+	private final static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	public void watchOn(URI theUri, Consumer<URI> theHandler) {
 		this.sources.put(theUri, theHandler);
@@ -60,7 +62,7 @@ public class LocalWatchService {
 	protected void setupSourceWatcher(URI theSource) {
 
 		if (this.sourceWatcher == null)
-			logger.warn(EELFLoggerDelegate.errorLogger, "source watcher not available ");
+			log.warn("source watcher not available ");
 
 		if ("file".equals(theSource.getScheme())) {
 			// we can only watch directories ..
@@ -68,24 +70,24 @@ public class LocalWatchService {
 			try {
 				sourcePath.register(this.sourceWatcher, StandardWatchEventKinds.ENTRY_MODIFY);
 			} catch (IOException iox) {
-				logger.warn(EELFLoggerDelegate.errorLogger, "Failed to setup source watcher for " + theSource, iox);
+				log.warn("Failed to setup source watcher for " + theSource, iox);
 			}
 		}
 	}
 
 	@PostConstruct
 	public void initLocalService() {
-		logger.debug(EELFLoggerDelegate.debugLogger, "init local service");
+		log.debug("init local service");
 
 		try {
 			this.sourceWatcher = FileSystems.getDefault().newWatchService();
 		} catch (IOException iox) {
-			logger.warn(EELFLoggerDelegate.debugLogger, "Failed to setup source watcher: " + iox);
+			log.warn("Failed to setup source watcher: " + iox);
 			this.sourceWatcher = null;
 		}
 
 		// Done
-		logger.debug(EELFLoggerDelegate.debugLogger, "local service available");
+		log.debug("local service available");
 	}
 
 	@PreDestroy
@@ -100,9 +102,9 @@ public class LocalWatchService {
 
 	@Scheduled(fixedRateString = "${peer.local.interval:60}000")
 	protected void updateInfo() {
-		logger.info(EELFLoggerDelegate.debugLogger, "ckecking for updates");
+		log.info("ckecking for updates");
 		if (this.sourceWatcher == null) {
-			logger.debug(EELFLoggerDelegate.debugLogger, "source watcher not in place");
+			log.debug("source watcher not in place");
 			return;
 		}
 
@@ -116,7 +118,7 @@ public class LocalWatchService {
 			for (WatchEvent<?> event : key.pollEvents()) {
 				final Path changedPath = (Path) event.context();
 				URI uri = changedPath.toUri();
-				logger.info(EELFLoggerDelegate.debugLogger, "Local update: " + uri);
+				log.info("Local update: " + uri);
 				Consumer c = sources.get(uri);
 				if (c != null)
 					c.accept(uri);

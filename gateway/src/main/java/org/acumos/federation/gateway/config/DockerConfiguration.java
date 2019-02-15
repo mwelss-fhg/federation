@@ -22,6 +22,9 @@ package org.acumos.federation.gateway.config;
 
 import java.lang.invoke.MethodHandles;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -38,7 +41,7 @@ import com.github.dockerjava.core.DockerClientConfig;
 @ConfigurationProperties(prefix = "docker")
 public class DockerConfiguration {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	private DefaultDockerClientConfig.Builder builder;
 	// need to repeat as the builder does not expose it and it avoids building a config object every time ..
 	private String registryUrl;
@@ -108,14 +111,12 @@ public class DockerConfiguration {
 		return this.builder.build();
 	}
 
-	/** */
 	public DockerClient	getDockerClient() {
     return DockerClientBuilder.getInstance(buildConfig())
         		.withDockerCmdExecFactory(DockerClientBuilder.getDefaultDockerCmdExecFactory())
         		.build();
 	}
 
-	/** */
 	public AuthConfig getAuthConfig() {
 		DockerClientConfig config = buildConfig();
 		return new AuthConfig()

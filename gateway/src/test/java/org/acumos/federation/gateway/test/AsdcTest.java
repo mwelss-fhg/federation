@@ -25,7 +25,8 @@ import java.nio.charset.Charset;
 
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDC;
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDCException;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 public class AsdcTest {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Test
 	public void testASDC() throws Exception {

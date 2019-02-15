@@ -1,7 +1,6 @@
 [{
   "solutionId":"9d7973ac-2b19-439f-9753-e83a77ea6b6e",
   "name":"traffic-jam",
-  "description":"Jam traffic model",
   "userId":"ak1234",
   "active":"true",
   "modelTypeCode":"RT",
@@ -13,10 +12,8 @@
    {
     "revisionId":"4145a175-05a0-44d8-bcfd-1627b0e97e81",
     "solutionId":"9d7973ac-2b19-439f-9753-e83a77ea6b6e",
-    "description":"First attempt",
     "version":"1.0",
     "metadata":"acumosb",
-  	"validationStatusCode":"PS",
   	"accessTypeCode":"PB",
     "userId":"ak1234",
   	"created":"2017-09-10",

@@ -19,10 +19,10 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import java.util.Date;
+import java.time.Instant;
+
 import java.util.Set;
 
-import org.acumos.cds.domain.MLPSolutionWeb;
 import org.acumos.cds.domain.MLPTag;
 
 /**
@@ -41,13 +41,13 @@ public class SolutionBuilder {
 		return this.solution;
 	} 
 
-	public SolutionBuilder withCreatedDate(Date theDate) {
-		this.solution.setCreated(theDate);
+	public SolutionBuilder withCreated(Instant theInstant) {
+		this.solution.setCreated(theInstant);
 		return this;
 	}
 
-	public SolutionBuilder withModifiedDate(Date theDate) {
-		this.solution.setModified(theDate);
+	public SolutionBuilder withModified(Instant theInstant) {
+		this.solution.setModified(theInstant);
 		return this;
 	}
 
@@ -63,11 +63,6 @@ public class SolutionBuilder {
 
 	public SolutionBuilder withMetadata(String theMetadata) {
 		this.solution.setMetadata(theMetadata);
-		return this;
-	}
-
-	public SolutionBuilder withDescription(String theDesc) {
-		this.solution.setDescription(theDesc);
 		return this;
 	}
 
@@ -120,8 +115,13 @@ public class SolutionBuilder {
 		return this;
 	}
 
-	public SolutionBuilder withWebStats(MLPSolutionWeb theStats) {
-		this.solution.setWebStats(theStats);
+	public SolutionBuilder resetStats() {
+		this.solution.setViewCount(0L);
+		this.solution.setDownloadCount(0L);
+		this.solution.setLastDownload(null);
+		this.solution.setRatingCount(0L);
+		this.solution.setRatingAverageTenths(0L);
+		this.solution.setFeatured(false);
 		return this;
 	}
 }

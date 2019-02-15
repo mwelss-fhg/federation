@@ -22,10 +22,12 @@ package org.acumos.federation.gateway;
 
 import java.io.IOException;
 
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.config.FederationConfiguration;
 import org.acumos.federation.gateway.config.LocalConfiguration;
 import org.springframework.boot.Banner;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -54,7 +56,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 																							 org.acumos.federation.gateway.config.AdapterConfiguration.class}))
 public class Application {
 
-	private static final EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(Application.class);
+	private static final Logger log = LoggerFactory.getLogger(Application.class);
 
 	/**
 	 * We should be able to swap the LocalConfiguration in the case of adapters.
@@ -69,14 +71,14 @@ public class Application {
 		SpringApplicationBuilder gatewayBuilder =
 			new SpringApplicationBuilder(Application.class)
 											.bannerMode(Banner.Mode.OFF)
-											.web(false);
+											.web(WebApplicationType.NONE);
 		gatewayBuilder.child(FederationConfiguration.class)
 											.bannerMode(Banner.Mode.OFF)
-											.web(true)
+											.web(WebApplicationType.SERVLET)
 											.run(args);
 		gatewayBuilder.child(LocalConfiguration.class)
 											.bannerMode(Banner.Mode.OFF)
-											.web(true)
+											.web(WebApplicationType.SERVLET)
 											.run(args);
 
 	}
@@ -89,9 +91,9 @@ public class Application {
 			final ObjectMapper mapper = new ObjectMapper();
 			// ensure it's valid
 			mapper.readTree(springApplicationJson);
-			logger.info("main: successfully parsed configuration from environment {}", CONFIG_ENV_VAR_NAME);
+			log.info("main: successfully parsed configuration from environment {}", CONFIG_ENV_VAR_NAME);
 		} else {
-			logger.warn("main: no configuration found in environment {}", CONFIG_ENV_VAR_NAME);
+			log.warn("main: no configuration found in environment {}", CONFIG_ENV_VAR_NAME);
 		}
 	}
 }

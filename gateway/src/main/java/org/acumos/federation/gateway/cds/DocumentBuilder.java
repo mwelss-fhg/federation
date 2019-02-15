@@ -19,7 +19,8 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import java.util.Date;
+import java.net.URISyntaxException;
+import java.time.Instant;
 
 /**
  */
@@ -35,23 +36,23 @@ public class DocumentBuilder {
 		return this.document;
 	} 
 
-	public DocumentBuilder withCreatedDate(Date theDate) {
-		this.document.setCreated(theDate);
+	public DocumentBuilder withCreated(Instant theInstant) {
+		this.document.setCreated(theInstant);
 		return this;
 	}
 
-	public DocumentBuilder withCreated(long theDate) {
-		this.document.setCreated(new Date(theDate));
+	public DocumentBuilder withCreated(long theEpoch) {
+		this.document.setCreated(Instant.ofEpochSecond(theEpoch));
 		return this;
 	}
 
-	public DocumentBuilder withModifiedDate(Date theDate) {
-		this.document.setModified(theDate);
+	public DocumentBuilder withModified(Instant theInstant) {
+		this.document.setModified(theInstant);
 		return this;
 	}
 
-	public DocumentBuilder withModified(long theDate) {
-		this.document.setModified(new Date(theDate));
+	public DocumentBuilder withModified(long theEpoch) {
+		this.document.setModified(Instant.ofEpochSecond(theEpoch));
 		return this;
 	}
 
@@ -75,7 +76,7 @@ public class DocumentBuilder {
 		return this;
 	}
 
-	public DocumentBuilder withUri(String theUri) {
+	public DocumentBuilder withUri(String theUri) throws URISyntaxException {
 		this.document.setUri(theUri);
 		return this;
 	}

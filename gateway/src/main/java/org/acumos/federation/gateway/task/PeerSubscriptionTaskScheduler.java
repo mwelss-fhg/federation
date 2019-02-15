@@ -32,9 +32,10 @@ import javax.annotation.PreDestroy;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
-import org.acumos.federation.gateway.cds.PeerStatus;
+import org.acumos.federation.gateway.cds.PeerStatuses;
 import org.acumos.federation.gateway.cds.PeerSubscription;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.util.Utils;
@@ -59,7 +60,7 @@ import com.google.common.collect.Table;
 @EnableScheduling
 public class PeerSubscriptionTaskScheduler {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private Environment env;
@@ -78,20 +79,19 @@ public class PeerSubscriptionTaskScheduler {
 
 	@PreDestroy
 	public void cleanUpTasks() {
-		log.debug(EELFLoggerDelegate.debugLogger, "cleanUpTasks");
+		log.debug("cleanUpTasks");
 		try {
-			log.debug(EELFLoggerDelegate.debugLogger, "cleanUpTasks: " + this.peersSubsTask.size() + " tasks");
+			log.debug("cleanUpTasks: " + this.peersSubsTask.size() + " tasks");
 			//this.taskScheduler.shutdown();
 
 		}
 		catch (Exception e) {
-			log.error(EELFLoggerDelegate.errorLogger, "Exception occurred while cleanUpTasks: ", e);
+			log.error("Exception occurred while cleanUpTasks: ", e);
 		}
 	}
 
 	protected boolean same(MLPPeerSubscription theFirstSub, MLPPeerSubscription theSecondSub) {
-		log.debug(EELFLoggerDelegate.debugLogger,
-				"comparing subs : [" + theFirstSub.getSubId() + "," + theFirstSub.getCreated() + ","
+		log.debug("comparing subs : [" + theFirstSub.getSubId() + "," + theFirstSub.getCreated() + ","
 						+ theFirstSub.getModified() + "] vs. [" + theSecondSub.getSubId() + ","
 						+ theSecondSub.getCreated() + "," + theSecondSub.getModified() + "]");
 		return theFirstSub.getSubId() == theSecondSub.getSubId()
@@ -103,6 +103,8 @@ public class PeerSubscriptionTaskScheduler {
 
 	/**
 	 * Schedule a one time execution of the subscription. The scheduler will not track the execution of suck a task.
+	 * @param thePeer Peer
+	 * @param theSub Sub
 	 */
 	public void runOnce(MLPPeer thePeer, MLPPeerSubscription theSub) {
 		new PeerTaskHandler().runTask(thePeer, theSub);
@@ -135,8 +137,7 @@ public class PeerSubscriptionTaskScheduler {
 			for (Map.Entry<Long, PeerTaskHandler> subTaskEntry : subsTask.entrySet()) {
 				subTaskEntry.getValue().stopTask();
 				subsToTerminate.add(subTaskEntry.getKey());
-				log.debug(EELFLoggerDelegate.debugLogger,	"Terminated task for peer {} subscription {}",
-									thePeerId, subTaskEntry.getKey());
+				log.debug("Terminated task for peer {} subscription {}", thePeerId, subTaskEntry.getKey());
 			}
 		}
 
@@ -147,11 +148,11 @@ public class PeerSubscriptionTaskScheduler {
 
 	@Scheduled(initialDelay = 5000, fixedRateString = "${peer.jobchecker.interval:400}000")
 	public void checkPeerJobs() {
-		log.debug(EELFLoggerDelegate.debugLogger, "checkPeerSubscriptionJobs");
+		log.debug("checkPeerSubscriptionJobs");
 		// Get the List of MLP Peers
 		List<MLPPeer> peers = peerService.getPeers();
 		if (Utils.isEmptyList(peers)) {
-			log.info(EELFLoggerDelegate.debugLogger, "no peers from " + peerService);
+			log.info("no peers from " + peerService);
 			return;
 		}
 
@@ -171,17 +172,16 @@ public class PeerSubscriptionTaskScheduler {
 
 		//for each existing peer
 		for (MLPPeer peer : peers) {
-			log.info(EELFLoggerDelegate.debugLogger, "check peer {}", peer);
+			log.info("check peer {}", peer);
 
 			if (peer.isSelf())
 				continue;
 
-			log.debug(EELFLoggerDelegate.debugLogger,	"processing peer {}", peer.getPeerId());
+			log.debug("processing peer {}", peer.getPeerId());
 			// terminate peer tasks for non-active peers
-			if (PeerStatus.Active != PeerStatus.forCode(peer.getStatusCode())) {
+			if (!PeerStatuses.Active.getCode().equals(peer.getStatusCode())) {
 				// cancel all peer sub tasks for this peer
-				log.debug(EELFLoggerDelegate.debugLogger,
-						"peer {} no longer active, terminating active tasks", peer);
+				log.debug("peer {} no longer active, terminating active tasks", peer);
 				terminatePeerSubsTask(peer.getPeerId());
 				continue;
 			}
@@ -200,8 +200,7 @@ public class PeerSubscriptionTaskScheduler {
 								.filter(peerSub -> peerSub.getSubId().equals(peerSubTaskEntry.getKey())).findAny().isPresent()) {
 						peerSubTaskEntry.getValue().stopTask();
 						subsToTerminate.add(peerSubTaskEntry.getKey());
-						log.debug(EELFLoggerDelegate.debugLogger,	"Terminated task for peer {} subscription {}",
-											peer.getPeerId(), peerSubTaskEntry.getKey());
+						log.debug("Terminated task for peer {} subscription {}", peer.getPeerId(), peerSubTaskEntry.getKey());
 					}
 				}
 
@@ -212,14 +211,13 @@ public class PeerSubscriptionTaskScheduler {
 
 			//start/update tasks for all current subscriptions
 			for (MLPPeerSubscription peerSub : peerSubs) {
-				log.info(EELFLoggerDelegate.debugLogger, "checkSub " + peerSub);
+				log.info("checkSub " + peerSub);
 				PeerTaskHandler peerSubTask = this.peersSubsTask.get(peer.getPeerId(), peerSub.getSubId());
 				if (peerSubTask != null) {
 					MLPPeerSubscription taskSub = peerSubTask.getSubscription();
 					// was the subscription updated? if yes, cancel current task.
 					if (PeerSubscription.isModified(peerSub, taskSub)) {
-						log.debug(EELFLoggerDelegate.debugLogger,
-								"peer {} subscription {} was updated, terminating current task", peer.getPeerId(), peerSub.getSubId());
+						log.debug("peer {} subscription {} was updated, terminating current task", peer.getPeerId(), peerSub.getSubId());
 						peerSubTask.stopTask();
 						peerSubTask = null;
 						//this remove can be inlines as we are iterating over peersSubsTasks at this time
@@ -228,7 +226,7 @@ public class PeerSubscriptionTaskScheduler {
 				}
 
 				if (peerSubTask == null && shouldRun(peerSub)) {
-					log.info(EELFLoggerDelegate.debugLogger, "Scheduling peer sub task for peer {}, subscription {}", peer.getName(), peerSub.getSubId());
+					log.info("Scheduling peer sub task for peer {}, subscription {}", peer.getName(), peerSub.getSubId());
 					PeerTaskHandler hnd = new PeerTaskHandler().startTask(peer, peerSub);
 					if (hnd != null) {
 						this.peersSubsTask.put(peer.getPeerId(), peerSub.getSubId(), hnd);

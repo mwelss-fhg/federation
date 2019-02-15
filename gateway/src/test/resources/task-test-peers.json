@@ -23,9 +23,7 @@
 				"peerId":"11111111-1111-1111-1111-111111111111",
 				"selector":"{\"modelTypeCode\":\"CL,PR\"}",
 				"refreshInterval":"2000",
-				"maxArtifactSize":"2048",
-				"created":"2017-08-12",
-				"modified":"2017-08-12"
+				"maxArtifactSize":"2048"
 			}
 		]
 	}

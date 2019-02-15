@@ -22,6 +22,9 @@ package org.acumos.federation.gateway.config;
 
 import java.lang.invoke.MethodHandles;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.acumos.federation.gateway.controller.PeerCatalogController;
 import org.acumos.federation.gateway.controller.PeerPeersController;
 import org.acumos.federation.gateway.controller.PeerPingController;
@@ -30,8 +33,8 @@ import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -45,7 +48,7 @@ public class LocalConfiguration {
 
 	@Autowired
 	private LocalInterfaceConfiguration interfaceConfig;
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	public LocalConfiguration() {
 	}
@@ -77,27 +80,29 @@ public class LocalConfiguration {
 	 * roles when interacting with peers: we'll assume the same identity, use the
 	 * same network interface, etc. If this ever needs to change we can pick
 	 * the values from a separate configuration properties set.
+	 * @return Client
 	 */
 	@Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public HttpClient localClient() {
-		log.debug(EELFLoggerDelegate.debugLogger, this + "::localClient from " + this.interfaceConfig);
+		log.debug(this + "::localClient from " + this.interfaceConfig);
 		return interfaceConfig.buildClient();
 	}
 
 	/**
 	 * Build a servlet container running on the local interface for serving
 	 * local interface requests (see controllers built here).
+	 * @return Server customizer
 	 */
 	@Bean
-	public EmbeddedServletContainerCustomizer localServer() {
-		log.debug(EELFLoggerDelegate.debugLogger, this + "::localServer from " + this.interfaceConfig);
-		return new EmbeddedServletContainerCustomizer() {
+	public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> localServer() {
+		log.debug(this + "::localServer from " + this.interfaceConfig);
+		return new WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>() {
 			@Override
-			public void customize(ConfigurableEmbeddedServletContainer theContainer) {
-				LocalConfiguration.this.interfaceConfig.configureContainer(theContainer);
+			public void customize(ConfigurableServletWebServerFactory theServer) {
+				LocalConfiguration.this.interfaceConfig.configureWebServer(theServer);
 			}
-		};
-	} 
+		}; 
+	}
 	
 }

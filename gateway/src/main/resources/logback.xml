@@ -130,11 +130,11 @@
   <!-- ============================================================================ -->
   <!--  EELF loggers -->
   <!-- ============================================================================ -->
-  <logger name="com.att.eelf" level="info" additivity="false">
+  <logger name="com.att.eelf" level="debug" additivity="false">
     <appender-ref ref="asyncEELF" />
   </logger>
   
-  <logger name="com.att.eelf.error" level="info" additivity="false">
+  <logger name="com.att.eelf.error" level="debug" additivity="false">
   	<appender-ref ref="asyncEELFError" />
   </logger>
   

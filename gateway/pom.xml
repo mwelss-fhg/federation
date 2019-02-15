@@ -1,15 +1,23 @@
 <?xml version="1.0"?>
-<!-- ===============LICENSE_START======================================================= 
-	Acumos Apache-2.0 =================================================================================== 
-	Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights 
-	reserved. =================================================================================== 
-	This Acumos software file is distributed by AT&T and Tech Mahindra under 
-	the Apache License, Version 2.0 (the "License"); you may not use this file 
-	except in compliance with the License. You may obtain a copy of the License 
-	at http://www.apache.org/licenses/LICENSE-2.0 This file is distributed on 
-	an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express 
-	or implied. See the License for the specific language governing permissions 
-	and limitations under the License. ===============LICENSE_END========================================================= -->
+	<!--
+	===============LICENSE_START=======================================================
+	Acumos
+	===================================================================================
+	Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+	===================================================================================
+	This Acumos software file is distributed by AT&T and Tech Mahindra
+	under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+	This file is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+	===============LICENSE_END=========================================================
+	-->
 <project
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 	xmlns="http://maven.apache.org/POM/4.0.0"
@@ -17,14 +25,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.acumos.federation</groupId>
 	<artifactId>gateway</artifactId>
-	<version>1.18.7-SNAPSHOT</version>
+	<version>2.0.0-SNAPSHOT</version>
 	<name>Federation Gateway</name>
 	<description>Federated Acumos Interface for inter-acumos and ONAP communication</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.16.RELEASE</version>
+		<version>2.1.2.RELEASE</version>
 		<!-- silence warning about parent relative path -->
 		<relativePath />
 	</parent>
@@ -61,13 +69,13 @@
 		<dependency>
 			<groupId>org.acumos.common-dataservice</groupId>
 			<artifactId>cmn-data-svc-client</artifactId>
-			<version>1.18.2</version>
+			<version>2.0.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<!-- Override Spring-boot choice -->
-			<version>20160212</version><!--$NO-MVN-MAN-VER$-->
+			<version>20160212</version><!--$NO-MVN-MAN-VER$ -->
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -126,11 +134,6 @@
 			<version>${springfox.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.att.eelf</groupId>
-			<artifactId>eelf-core</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
 			<groupId>javax.inject</groupId>
 			<artifactId>javax.inject</artifactId>
 			<version>1</version>
@@ -146,6 +149,16 @@
 			<version>2.7.1-rc3</version>
 		</dependency>
 		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<!-- spring sets the <version>2.9.7</version> -->
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<!-- spring sets the <version>3.8.1</version> -->
@@ -159,7 +172,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.6</version>
+			<!-- spring sets the <version>3.6</version> -->
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -170,7 +183,7 @@
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
-			<!-- spring sets the <version>1.9.3</version> -->
+			<version>1.9.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
@@ -189,9 +202,22 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<!-- spring sets the <version>2.21.0</version> -->
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<!-- spring sets the <version>1.5.3.RELEASE</version> -->
+			<!-- spring sets the <version>2.1.2.RELEASE</version> -->
+			<exclusions>
+				<!-- silence warning about duplicate JSON class -->
+				<exclusion>
+					<groupId>com.vaadin.external.google</groupId>
+					<artifactId>android-json</artifactId>
+				</exclusion>
+			</exclusions>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -263,7 +289,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- No need to deploy Spring super-boot -->
+			<!-- No need to deploy Spring super-jar -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
@@ -289,7 +315,7 @@
 							<!-- Specify a tag to avoid default tag "latest" -->
 							<name>federation-gateway:${project.version}</name>
 							<build>
-								<from>frolvlad/alpine-oraclejdk8:slim</from>
+								<from>openjdk:8-jre-slim</from>
 								<tags>
 									<!-- Add tag with build number -->
 									<tag>${project.version}-b${build.number}</tag>
@@ -314,7 +340,7 @@
 						<image>
 							<name>federation-gateway-test:${project.version}</name>
 							<build>
-								<from>frolvlad/alpine-oraclejdk8:slim</from>
+								<from>openjdk:8-jre-slim</from>
 								<tags>
 									<tag>${project.version}-b${build.number}</tag>
 								</tags>
@@ -363,6 +389,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!--
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>license-maven-plugin</artifactId>
@@ -375,7 +402,8 @@
 					<processEndTag>===============LICENSE_END=========================================================</processEndTag>
 					<sectionDelimiter>===================================================================================</sectionDelimiter>
 					<inceptionYear>2017</inceptionYear>
-					<organizationName>AT&amp;T Intellectual Property &amp; Tech Mahindra. All rights reserved.</organizationName>
+					<organizationName>AT&amp;T Intellectual Property &amp; Tech
+						Mahindra. All rights reserved.</organizationName>
 					<projectName>Acumos</projectName>
 					<canUpdateCopyright>true</canUpdateCopyright>
 					<canUpdateDescription>true</canUpdateDescription>
@@ -385,9 +413,17 @@
 						<include>**/*.java</include>
 					</includes>
 				</configuration>
-				<!-- <executions> <execution> <id>first</id> <goals> <goal>update-file-header</goal> 
-					</goals> <phase>process-sources</phase> </execution> </executions> -->
+				<executions>
+					<execution>
+						<id>first</id>
+						<goals>
+							<goal>update-file-header</goal>
+						</goals>
+						<phase>process-sources</phase>
+					</execution>
+				</executions>
 			</plugin>
+			-->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -408,7 +444,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 		</plugins>
 	</build>
 </project>

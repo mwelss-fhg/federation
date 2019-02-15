@@ -28,7 +28,9 @@ import javax.naming.ldap.Rdn;
 import javax.servlet.http.HttpServletResponse;
 
 import org.acumos.cds.domain.MLPPeer;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.cds.PeerStatuses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.util.Utils;
 import org.springframework.beans.factory.BeanCreationException;
@@ -59,7 +61,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+	private final Logger log = LoggerFactory.getLogger(getClass().getName());
 
 	@Autowired
 	private PeerService peerService;
@@ -103,11 +105,10 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 							.userDetailsService(userDetailsService());
 	}
 
-	/** */
 	@Bean
 	public AccessDeniedHandler accessDeniedHandler() {
 		return ((request, response, exception) -> {
-			log.info(EELFLoggerDelegate.debugLogger, "accessDeniedHandler : " + exception);
+			log.info("accessDeniedHandler : " + exception);
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		});
 	}
@@ -121,17 +122,16 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 		return new Peer(self, Role.SELF.priviledges());
 	}
 
-	/** */
 	@Bean
 	public UserDetailsService userDetailsService() {
 		return (subject -> {
-			log.info(EELFLoggerDelegate.debugLogger, " X509 subject {}", subject);
+			log.info(" X509 subject {}", subject);
 			LdapName x500subject = null;
 			try {
 				x500subject = new LdapName(subject);
 			}
 			catch (InvalidNameException inx) {
-				log.warn(EELFLoggerDelegate.errorLogger, "Failed to parse subject information {}", subject);
+				log.warn("Failed to parse subject information {}", subject);
 				return new Peer(new MLPPeer(), Role.ANY);
 			}
 
@@ -160,7 +160,7 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 			}
 
 			List<MLPPeer> mlpPeers = peerService.getPeerBySubjectName(cn);
-			log.info(EELFLoggerDelegate.debugLogger, "Peers matching X509 subject {}", mlpPeers);
+			log.info("Peers matching X509 subject {}", mlpPeers);
 			if (!Utils.isEmptyList(mlpPeers)) {
 				MLPPeer mlpPeer = mlpPeers.get(0);
 				//!!here we create other instances of 'self'
@@ -179,6 +179,7 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 				unknown.setContact1(email);
 				unknown.setLocal(false);
 				unknown.setSelf(false);
+				unknown.setStatusCode(PeerStatuses.Unknown.getCode());
 
 				return new Peer(unknown, Role.ANY);
 			}

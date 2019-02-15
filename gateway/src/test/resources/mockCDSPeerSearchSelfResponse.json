@@ -11,7 +11,6 @@
       "webUrl": "https://gateway.acumosa.org:9084",
       "contact1": "admin@acumosa.org",
       "statusCode": "AC",
-      "validationStatusCode": "PS",
       "local": false,
       "self": true
     }

@@ -28,8 +28,9 @@ import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.transport.RestPageRequest;
 import org.acumos.cds.transport.RestPageResponse;
-import org.acumos.federation.gateway.cds.PeerStatus;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.acumos.federation.gateway.cds.PeerStatuses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.config.FederationInterfaceConfiguration;
 import org.acumos.federation.gateway.security.Tools;
 import org.acumos.federation.gateway.service.PeerService;
@@ -45,7 +46,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PeerServiceImpl extends AbstractServiceImpl implements PeerService {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private FederationInterfaceConfiguration fedIfConfig;
@@ -66,19 +67,19 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 			selfName = Tools.getNameParts(fedIfConfig.getSubjectName(), "CN").get("CN").toString();
 		}
 		catch(Exception x) {
-			log.warn(EELFLoggerDelegate.errorLogger, "Cannot obtain 'self' name from interface config " + x);
+			log.warn("Cannot obtain 'self' name from interface config " + x);
 			return null;
 		}
 		final String subjectName = selfName;
-		log.debug(EELFLoggerDelegate.debugLogger, "Expecting 'self' name '{}'", subjectName);
+		log.debug("Expecting 'self' name '{}'", subjectName);
 
 		List<MLPPeer> selfPeers = new ArrayList<MLPPeer>();
 		RestPageRequest pageRequest = new RestPageRequest(0, 100);
 		RestPageResponse<MLPPeer> pageResponse = null;
 		do {
 			pageResponse =
-				getClient().searchPeers(new MapBuilder().put("isSelf", Boolean.TRUE).build(), false, pageRequest);
-			log.debug(EELFLoggerDelegate.errorLogger, "Peers representing 'self': " + pageResponse.getContent());
+				getClient().searchPeers(new MapBuilder().put("self", Boolean.TRUE).build(), false, pageRequest);
+			log.debug("Peers representing 'self': " + pageResponse.getContent());
 
 			selfPeers.addAll(
 				pageResponse.getContent().stream()
@@ -90,7 +91,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 		while (!pageResponse.isLast());
 
 		if (selfPeers.size() != 1) {
-			log.warn(EELFLoggerDelegate.errorLogger, "Number of peers representing 'self', i.e. '{}', not 1. Found {}.", subjectName, selfPeers);
+			log.warn("Number of peers representing 'self', i.e. '{}', not 1. Found {}.", subjectName, selfPeers);
 			return null;
 		}
 		return selfPeers.get(0);
@@ -101,7 +102,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	 */
 	@Override
 	public List<MLPPeer> getPeers(ServiceContext theContext) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeers");
+		log.debug("getPeers");
 
 		RestPageRequest pageRequest = new RestPageRequest(0, 100);
 		RestPageResponse<MLPPeer> pageResponse = null;
@@ -122,28 +123,28 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 
 	@Override
 	public List<MLPPeer> getPeerBySubjectName(String theSubjectName, ServiceContext theContext) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerBySubjectName");
+		log.debug("getPeerBySubjectName");
 		RestPageResponse<MLPPeer> response = 
 			getClient().searchPeers(new MapBuilder().put("subjectName", theSubjectName).build(), false, null);
 		if (response.getNumberOfElements() != 1) {
-			log.warn(EELFLoggerDelegate.errorLogger, "getPeerBySubjectName returned more then one peer: {}", response.getNumberOfElements());
+			log.warn("getPeerBySubjectName returned more then one peer: {}", response.getNumberOfElements());
 		}
 		return response.getContent();
 	}
 
 	@Override
 	public MLPPeer getPeerById(String thePeerId, ServiceContext theContext) {
-		log.debug(EELFLoggerDelegate.debugLogger, "getPeerById: {}", thePeerId);
+		log.debug("getPeerById: {}", thePeerId);
 		MLPPeer mlpPeer = getClient().getPeer(thePeerId);
 		if (mlpPeer != null) {
-			log.error(EELFLoggerDelegate.debugLogger, "getPeerById: {}", mlpPeer.toString());
+			log.error("getPeerById: {}", mlpPeer.toString());
 		}
 		return mlpPeer;
 	}
 
 	@Override
 	public void registerPeer(MLPPeer thePeer) throws ServiceException {
-		log.debug(EELFLoggerDelegate.debugLogger, "registerPeer");
+		log.debug("registerPeer");
 
 		String subjectName = thePeer.getSubjectName();
 		if (subjectName == null)
@@ -157,10 +158,10 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 			assertPeerRegistration(response.getContent().get(0));
 		}
 
-		log.info(EELFLoggerDelegate.debugLogger, "registerPeer: new peer with subjectName {}, create CDS record",
+		log.info("registerPeer: new peer with subjectName {}, create CDS record",
 				thePeer.getSubjectName());
 		//enforce
-		thePeer.setStatusCode(PeerStatus.Requested.code());
+		thePeer.setStatusCode(PeerStatuses.Requested.getCode());
 
 		try {
 			cdsClient.createPeer(thePeer);
@@ -172,7 +173,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 
 	@Override
 	public void unregisterPeer(MLPPeer thePeer) throws ServiceException {
-		log.debug(EELFLoggerDelegate.debugLogger, "unregisterPeer");
+		log.debug("unregisterPeer");
 
 		String subjectName = thePeer.getSubjectName();
 		if (subjectName == null)
@@ -190,9 +191,9 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 		assertPeerUnregistration(peer);
 
 		//active/inactive peers moved to renounced
-		log.info(EELFLoggerDelegate.debugLogger, "unregisterPeer: peer with subjectName {}, update CDS record",
+		log.info("unregisterPeer: peer with subjectName {}, update CDS record",
 				thePeer.getSubjectName());
-		thePeer.setStatusCode(PeerStatus.Renounced.code());
+		thePeer.setStatusCode(PeerStatuses.Renounced.getCode());
 
 		try {
 			cdsClient.updatePeer(thePeer);

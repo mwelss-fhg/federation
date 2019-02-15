@@ -19,48 +19,16 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import java.util.EnumSet;
 
-import org.acumos.cds.ArtifactTypeCode;
+import org.acumos.cds.CodeNameType;
 
 /**
- * Supplements the CDS representation of artifact type information.
+ * A particular class of codes used to encode artifact types.
  */
-public enum ArtifactType {
+public interface ArtifactType extends CodeName {
 
-
-  Blueprint(ArtifactTypeCode.BP.name()), //
-  Cdump(ArtifactTypeCode.CD.name()), //
-  DockerImage(ArtifactTypeCode.DI.name()), //
-  DataSource(ArtifactTypeCode.DS.name()), //
-  Metadata(ArtifactTypeCode.MD.name()), //
-  ModelH2O(ArtifactTypeCode.MH.name()), //
-  ModelImage(ArtifactTypeCode.MI.name()), //
-  ModelR(ArtifactTypeCode.MR.name()), //
-  ModelScikit(ArtifactTypeCode.MS.name()), //
-  ModelTensorflow(ArtifactTypeCode.MT.name()), //
-  ToscaTemplate(ArtifactTypeCode.TE.name()), //
-  ToscaGenerator(ArtifactTypeCode.TG.name()), //
-  ToscaSchema(ArtifactTypeCode.TS.name()), //
-  ToscaTranslate(ArtifactTypeCode.TT.name()), //
-  ProtobufFile(ArtifactTypeCode.PJ.name());
-
-	private String 				code;
-
-	private ArtifactType(String theCode) {
-		this.code = theCode;
-	}
-
-	public String code() {
-		return this.code;
-	}
-
-	public static ArtifactType forCode(final String theCode) {
-		return EnumSet.allOf(ArtifactType.class)
-						.stream()
-						.filter(status -> status.code().equals(theCode))
-						.findFirst()
-						.orElse(null);
+	public default CodeNameType getType() {
+		return CodeNameType.ARTIFACT_TYPE;
 	}
 }
 

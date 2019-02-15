@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 /**
  * Defines a specific external configuration prefix for the local interface.
  */
-@Component
+@Component("localInterface")
 @ConfigurationProperties(prefix = "local")
 public class LocalInterfaceConfiguration extends InterfaceConfiguration {
 

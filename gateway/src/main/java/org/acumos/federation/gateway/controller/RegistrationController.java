@@ -27,7 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping(API.Roots.FEDERATION)
 public class RegistrationController extends AbstractController {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private PeerService peerService;
@@ -66,7 +67,7 @@ public class RegistrationController extends AbstractController {
 			/* HttpServletRequest theHttpRequest, */
 			HttpServletResponse theHttpResponse) {
 
-		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.PEER_REGISTER);
+		log.debug(API.Paths.PEER_REGISTER);
 		JsonResponse<MLPPeer> response = null;
 		ControllerContext context = new ControllerContext();
 		try {
@@ -79,29 +80,27 @@ public class RegistrationController extends AbstractController {
 									.build();
 									
 			theHttpResponse.setStatus(HttpServletResponse.SC_ACCEPTED);
-			log.debug(EELFLoggerDelegate.debugLogger, "peer registration request " + peer + " was accepted");
+			log.debug("peer registration request " + peer + " was accepted");
 		}
 		catch (ServiceException sx) {
 			response = JsonResponse.<MLPPeer> buildErrorResponse()
 									.withMessage(sx.getMessage())
 									.build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			log.error(EELFLoggerDelegate.errorLogger, "A service error occured during peer registration", sx);
+			log.error("A service error occured during peer registration", sx);
 		}
 		catch (Exception x) {
 			response = JsonResponse.<MLPPeer> buildErrorResponse()
 									.withError(x)
 									.build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "An unexpected error occured during peer registration", x);
+			log.error("An unexpected error occured during peer registration", x);
 		}
 		return response;
 	}
 
-	/**
-	 */
 	@CrossOrigin
-	@PreAuthorize("hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).REGISTRATION_ACCESS)")
+	@PreAuthorize("isKnown && hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).REGISTRATION_ACCESS)")
 	@ApiOperation(value = "Invoked by another Acumos Instance to request federation termination.", response = MLPPeer.class)
 	@RequestMapping(value = { API.Paths.PEER_UNREGISTER }, method = RequestMethod.POST, produces = APPLICATION_JSON)
 	@ResponseBody
@@ -109,7 +108,7 @@ public class RegistrationController extends AbstractController {
 			/* HttpServletRequest theHttpRequest, */
 			HttpServletResponse theHttpResponse) {
 
-		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.PEER_REGISTER);
+		log.debug(API.Paths.PEER_REGISTER);
 		JsonResponse<MLPPeer> response = null;
 		ControllerContext context = new ControllerContext();
 		try {
@@ -122,21 +121,21 @@ public class RegistrationController extends AbstractController {
 									.build();
 									
 			theHttpResponse.setStatus(HttpServletResponse.SC_ACCEPTED);
-			log.debug(EELFLoggerDelegate.debugLogger, "federation termination request from " + peer + " was registered");
+			log.debug("federation termination request from " + peer + " was registered");
 		}
 		catch (ServiceException sx) {
 			response = JsonResponse.<MLPPeer> buildErrorResponse()
 									.withMessage(sx.getMessage())
 									.build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			log.error(EELFLoggerDelegate.errorLogger, "A service error occured during peer unregister", sx);
+			log.error("A service error occured during peer unregister", sx);
 		}
 		catch (Exception x) {
 			response = JsonResponse.<MLPPeer> buildErrorResponse()
 									.withError(x)
 									.build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "An unexpected error occured during peer register", x);
+			log.error("An unexpected error occured during peer register", x);
 		}
 		return response;
 	}

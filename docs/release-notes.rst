@@ -23,6 +23,13 @@ Federation Gateway Release Notes
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 
 --------------------------
+Version 2.0.0, 2019-02-20
+--------------------------
+* Fix repeated update of metadata (`ACUMOS-2399 <https://jira.acumos.org/browse/ACUMOS-2399>`_)
+* Remove EELF
+* Update to CDS 2.x
+
+--------------------------
 Version 1.18.7, 2018-10-30
 --------------------------
 

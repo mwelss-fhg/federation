@@ -28,7 +28,8 @@ import java.util.Map;
 import org.acumos.cds.AccessTypeCode;
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.stereotype.Component;
@@ -42,7 +43,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "catalog")
 public class CatalogServiceConfiguration {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private Map<String, Object>	solutionsSelector;
 	private Map<String, Object>	solutionsSelectorDefaults;

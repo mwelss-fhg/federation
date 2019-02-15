@@ -28,7 +28,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.PeerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,7 +45,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping(API.Roots.FEDERATION)
 public class PeersController extends AbstractController {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	PeerService peerService;
@@ -66,7 +67,7 @@ public class PeersController extends AbstractController {
 
 		JsonResponse<List<MLPPeer>> response = null;
 		List<MLPPeer> peers = null;
-		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.PEERS);
+		log.debug(API.Paths.PEERS);
 		try {
 			peers = peerService.getPeers(new ControllerContext());
 			response = JsonResponse.<List<MLPPeer>> buildResponse()
@@ -74,14 +75,14 @@ public class PeersController extends AbstractController {
 														 .withContent(peers)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-			log.debug(EELFLoggerDelegate.debugLogger, "peers request provided {} peers.", peers == null ? 0 : peers.size());
+			log.debug("peers request provided {} peers.", peers == null ? 0 : peers.size());
 		} 
 		catch (Exception x) {
 			response = JsonResponse.<List<MLPPeer>> buildErrorResponse()
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "An error ooccured while fetching local peers", x);
+			log.error("An error ooccured while fetching local peers", x);
 		}
 		return response;
 	}

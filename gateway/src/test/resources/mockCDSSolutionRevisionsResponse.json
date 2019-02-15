@@ -4,11 +4,9 @@
     "modified": 1524661041000,
     "revisionId": "a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0",
     "version": "1.1",
-    "description": "test 1",
     "metadata": null,
     "origin": null,
     "accessTypeCode": "PB",
-    "validationStatusCode": "PS",
     "solutionId": "10101010-1010-1010-1010-101010101010",
     "userId": "d1e838c8-d8be-4ca4-968c-2ba5c6c04e55",
     "sourceId": null
@@ -18,11 +16,9 @@
     "modified": 1524660932000,
     "revisionId": "971f15d7-6a4d-4cb7-a1eb-ce58eba03fd9",
     "version": "1",
-    "description": "test 2",
     "metadata": null,
     "origin": null,
     "accessTypeCode": "OR",
-    "validationStatusCode": "NV",
     "solutionId": "10101010-1010-1010-1010-101010101010",
     "userId": "d1e838c8-d8be-4ca4-968c-2ba5c6c04e55",
     "sourceId": null

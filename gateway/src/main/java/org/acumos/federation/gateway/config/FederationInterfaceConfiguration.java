@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 /**
  * Defines a specific external configuration prefix for the federation interface.
  */
-@Component
+@Component("federationInterface")
 @ConfigurationProperties(prefix = "federation")
 public class FederationInterfaceConfiguration extends InterfaceConfiguration {
 

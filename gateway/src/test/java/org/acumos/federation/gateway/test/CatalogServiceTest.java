@@ -53,6 +53,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = org.acumos.federation.gateway.Application.class,
 								webEnvironment = WebEnvironment.RANDOM_PORT,
 								properties = {
+									"spring.main.allow-bean-definition-overriding=true",
 									"federation.instance=gateway",
 									"federation.instance.name=test",
 									"federation.operator=admin",
@@ -82,9 +83,9 @@ public class CatalogServiceTest extends ServiceTest {
 
 	protected void initMockResponses() {
 
-		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1&vsc=PS&vsc=NV&active=true&page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
-		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&vsc=PS&active=true&page=0&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage0.json"));
-		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&vsc=PS&active=true&page=1&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage1.json"));
+		registerMockResponse("GET /ccds/solution/search/date?atc=PB&inst=1000&active=true&page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
+		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&active=true&page=0&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage0.json"));
+		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&active=true&page=1&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage1.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010", MockResponse.success("mockCDSSolutionResponse.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/revision", MockResponse.success("mockCDSSolutionRevisionsResponse.json"));
 		registerMockResponse("GET /ccds/revision/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
@@ -94,7 +95,7 @@ public class CatalogServiceTest extends ServiceTest {
 		registerMockResponse("GET /ccds/solution/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
 		registerMockResponse("GET /ccds/solution/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/revision", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
 		registerMockResponse("GET /ccds/revision/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/artifact", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
-		registerMockResponse("GET /ccds/peer/search?isSelf=true&_j=a&page=0&size=100", MockResponse.success("mockCDSPeerSearchSelfResponse.json"));
+		registerMockResponse("GET /ccds/peer/search?self=true&_j=a&page=0&size=100", MockResponse.success("mockCDSPeerSearchSelfResponse.json"));
 	}
 
 	/**
@@ -106,7 +107,7 @@ public class CatalogServiceTest extends ServiceTest {
 
 		try {
 			ServiceContext selfService = 
-				ServiceContext.forPeer(new Peer(new MLPPeer("acumosa", "gateway.acumosa.org", "https://gateway.acumosa.org:9084", false, false, "admin@acumosa.org", "AC", "PS"), Role.SELF));
+				ServiceContext.forPeer(new Peer(new MLPPeer("acumosa", "gateway.acumosa.org", "https://gateway.acumosa.org:9084", false, false, "admin@acumosa.org", "AC"), Role.SELF));
 
 			List<MLPSolution> solutions = catalog.getSolutions(Collections.EMPTY_MAP, selfService);
 			assertTrue("Unexpected solutions count: " + solutions.size(), solutions.size() == 5);
@@ -118,7 +119,7 @@ public class CatalogServiceTest extends ServiceTest {
 			if (revisions != null && !revisions.isEmpty()) {
 				assertTrue("Unexpected revisions count: " + revisions.size(), revisions.size() == 1);
 				for (MLPSolutionRevision revision: revisions) {
-					assertTrue("Unexpected revision info", revision.getDescription().startsWith("test"));
+					assertTrue("Unexpected revision info", revision.getVersion().startsWith("1"));
 					List<MLPArtifact> artifacts = catalog.getSolutionRevisionArtifacts(solution.getSolutionId(), revision.getRevisionId());
 					assertTrue("Unexpected artifacts count: " + artifacts.size(), artifacts.size() == 1);
 						//catalog.getSolutionRevisionArtifact();

@@ -23,12 +23,14 @@ import java.lang.invoke.MethodHandles;
 import java.util.Date;
 import java.util.Set;
 
-import org.acumos.cds.domain.MLPSolutionWeb;
+import java.time.Instant;
+
 import org.acumos.cds.domain.MLPTag;
 import org.acumos.federation.gateway.cds.AccessType;
 import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.ArtifactBuilder;
 import org.acumos.federation.gateway.cds.ArtifactType;
+import org.acumos.federation.gateway.cds.ArtifactTypes;
 import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.DocumentBuilder;
 import org.acumos.federation.gateway.cds.Solution;
@@ -36,18 +38,19 @@ import org.acumos.federation.gateway.cds.SolutionBuilder;
 import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.cds.SolutionRevisionBuilder;
 import org.acumos.federation.gateway.cds.Updater;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class CdsTest {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private final boolean active = true;
 	private final String atc = "PR";
-	private final Date date1 = new Date();
-	private final Date date2 = new Date();
+	private final Instant date1 = Instant.now();
+	private final Instant date2 = Instant.now();
 	private final String desc = "desc";
 	private final String id1 = "id1";
 	private final String id2 = "id2";
@@ -61,7 +64,6 @@ public class CdsTest {
 	private final String user = "user";
 	private final String version = "ver";
 	private final Integer size = 42;
-	private final String vsc = "YZ";
 
 	// Trivial implementation just returns first argument
 	private final Updater<String, Object> theUpdater = new Updater<String, Object>() {
@@ -80,18 +82,10 @@ public class CdsTest {
 	}
 	
 	@Test
-	public void testArtifactType() throws Exception {
-		for (ArtifactType e : ArtifactType.values()) {
-			log.info("artifact type {}, code {}", e, e.code());
-			ArtifactType.forCode(e.code());
-		}
-	}
-
-	@Test
 	public void testArtifactBuilder() throws Exception {
 		ArtifactBuilder bldr = Artifact.build();
-		bldr.withCreated(date1.getTime()).withCreatedDate(date1).withDescription(desc).withId(id1).withMetadata(meta)
-				.withModifiedDate(date2).withName(name).withSize(size).withTypeCode(mtc).withVersion(version)
+		bldr.withCreated(date1).withDescription(desc).withId(id1).withMetadata(meta)
+				.withModified(date2).withName(name).withSize(size).withTypeCode(mtc).withVersion(version)
 				.withUri(uri).withUser(user);
 		Artifact a = bldr.build();
 		Assert.assertNotNull(a);
@@ -111,8 +105,8 @@ public class CdsTest {
 	@Test
 	public void testDocumentBuilder() throws Exception {
 		DocumentBuilder bldr = Document.build();
-		bldr.withCreated(date1.getTime()).withCreatedDate(date1).withId(id1).withModified(date2.getTime())
-				.withModifiedDate(date2).withName(name).withSize(size).withUri(uri).withUser(user).withVersion(version);
+		bldr.withCreated(date1).withId(id1).withModified(date2)
+				.withModified(date2).withName(name).withSize(size).withUri(uri).withUser(user).withVersion(version);
 		Document d = bldr.build();
 		Assert.assertNotNull(d);
 		Assert.assertEquals(date1, d.getCreated());
@@ -129,20 +123,17 @@ public class CdsTest {
 	@Test
 	public void testSolutionBuilder() throws Exception {
 		final Set<MLPTag> tags = null;
-		final MLPSolutionWeb theStats = null;
 		SolutionBuilder bldr = Solution.build();
-		bldr.withActive(active).withCreatedDate(date1).withDescription(desc).withId(id1).withMetadata(meta)
-				.withModelTypeCode(mtc).withModifiedDate(date2).withName(name).withOrigin(origin).withSource(source)
+		bldr.withActive(active).withCreated(date1).withId(id1).withMetadata(meta)
+				.withModelTypeCode(mtc).withModified(date2).withName(name).withOrigin(origin).withSource(source)
 				.withToolkitTypeCode(ttc).withUser(user);
 		bldr.withSource(theUpdater, source);
 		bldr.withTags(tags);
 		bldr.withUser(theUpdater, user);
-		bldr.withWebStats(theStats);
 		Solution s = bldr.build();
 		Assert.assertNotNull(s);
 		Assert.assertEquals(active, s.isActive());
 		Assert.assertEquals(date1, s.getCreated());
-		Assert.assertEquals(desc, s.getDescription());
 		Assert.assertEquals(id1, s.getSolutionId());
 		Assert.assertEquals(meta, s.getMetadata());
 		Assert.assertEquals(mtc, s.getModelTypeCode());
@@ -153,22 +144,20 @@ public class CdsTest {
 		Assert.assertEquals(ttc, s.getToolkitTypeCode());
 		Assert.assertEquals(user, s.getUserId());
 		Assert.assertNull(s.getTags());
-		Assert.assertNull(s.getWebStats());
 	}
 
 	@SuppressWarnings("deprecation")
 	@Test
 	public void testSolutionRevisionBuilder() throws Exception {
 		SolutionRevisionBuilder bldr = SolutionRevision.build();
-		bldr.forSolution(id1).withAccessTypeCode(atc).withCreatedDate(date1).withDescription(desc).withMetadata(meta)
-				.withModifiedDate(date2).withOrigin(origin).withRevisionId(id2).withSource(source).withVersion(version)
-				.withUser(user).withValidationStatusCode(vsc);
+		bldr.forSolution(id1).withAccessTypeCode(atc).withCreated(date1).withMetadata(meta)
+				.withModified(date2).withOrigin(origin).withRevisionId(id2).withSource(source).withVersion(version)
+				.withUser(user);
 		SolutionRevision r = bldr.build();
 		Assert.assertNotNull(r);
 		Assert.assertEquals(id1, r.getSolutionId());
 		Assert.assertEquals(atc, r.getAccessTypeCode());
 		Assert.assertEquals(date1, r.getCreated());
-		Assert.assertEquals(desc, r.getDescription());
 		Assert.assertEquals(meta, r.getMetadata());
 		Assert.assertEquals(date2, r.getModified());
 		Assert.assertEquals(origin, r.getOrigin());
@@ -176,7 +165,6 @@ public class CdsTest {
 		Assert.assertEquals(source, r.getSourceId());
 		Assert.assertEquals(version, r.getVersion());
 		Assert.assertEquals(user, r.getUserId());
-		Assert.assertEquals(vsc, r.getValidationStatusCode());
 	}
 
 }

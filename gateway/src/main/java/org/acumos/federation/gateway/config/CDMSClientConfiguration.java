@@ -22,6 +22,9 @@ package org.acumos.federation.gateway.config;
 
 import java.lang.invoke.MethodHandles;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.acumos.cds.client.CommonDataServiceRestClientImpl;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.federation.gateway.cds.Mapper;
@@ -42,7 +45,7 @@ public class CDMSClientConfiguration {
 
 	public static final int	DEFAULT_PAGE_SIZE = 100;
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	private String		url;
 	private String		username;
 	private String		password;
@@ -97,6 +100,7 @@ public class CDMSClientConfiguration {
 
 	/**
 	 * CDS traffic is always routed through the local interface;
+	 * @return Client
 	 */
 	public ICommonDataServiceRestClient getCDSClient() {
 
@@ -105,12 +109,11 @@ public class CDMSClientConfiguration {
 
 		RestTemplateBuilder builder =
 			new RestTemplateBuilder()
-				.requestFactory(new HttpComponentsClientHttpRequestFactory( 
-													this.localIfConfig.buildClient()))
+				.requestFactory(
+					() -> new HttpComponentsClientHttpRequestFactory(this.localIfConfig.buildClient()))
 				//.rootUri(env.getProperty("cdms.client.url"))
-				.basicAuthorization(this.username, this.password)
-				.messageConverters(cdsMessageConverter)
-				;
+					.basicAuthorization(this.username, this.password)
+					.messageConverters(cdsMessageConverter);
 
 		return new CommonDataServiceRestClientImpl(this.url, builder.build());
 	}

@@ -26,6 +26,9 @@ import java.net.MalformedURLException;
 
 import java.lang.invoke.MethodHandles;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.http.HttpHost;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -56,7 +59,7 @@ import org.springframework.web.client.RestTemplate;
 @ConfigurationProperties(prefix = "nexus")
 public class NexusConfiguration {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private String		proxy;
 	private String	  groupId;
@@ -122,13 +125,14 @@ public class NexusConfiguration {
 
 	/**
 	 * Prepare a RestTemplate fitted for Nexus interactions, in particular ready to perform preemptive basic authentication.
+	 * @return RestTemplate
 	 */
 	public RestTemplate getNexusClient() {
 
 		RestTemplateBuilder builder =
 			new RestTemplateBuilder()
 				.requestFactory(
-					new HttpComponentsClientHttpRequestFactory(this.localIfConfig.buildClient()) {
+					() -> new HttpComponentsClientHttpRequestFactory(this.localIfConfig.buildClient()) {
 
 						protected HttpContext createHttpContext(HttpMethod theMethod, URI theUri) {
 							HttpHost nexusHost = new HttpHost(NexusConfiguration.this.url.getHost(), NexusConfiguration.this.url.getPort());

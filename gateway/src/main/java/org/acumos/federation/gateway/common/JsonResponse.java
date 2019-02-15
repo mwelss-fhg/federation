@@ -88,8 +88,6 @@ public class JsonResponse<T> implements Serializable {
 								.toString();
 	}
 
-	/**
-	 */
 	public static class JsonResponseBuilder<T> {
 
 		private JsonResponse<T> response = new JsonResponse();
@@ -113,13 +111,10 @@ public class JsonResponse<T> implements Serializable {
 		}
 	}
 
-	/** */
 	public static <T> JsonResponseBuilder<T> buildResponse() {
 		return new JsonResponseBuilder<T>();
 	}
 
-	/**
-	 */
 	public static class JsonErrorResponseBuilder<T> {
 
 		private JsonResponse<T> response = new JsonResponse();
@@ -144,7 +139,6 @@ public class JsonResponse<T> implements Serializable {
 		}
 	}
 	
-	/** */
 	public static <T> JsonErrorResponseBuilder<T> buildErrorResponse() {
 		return new JsonErrorResponseBuilder<T>();
 	}

@@ -19,7 +19,7 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import java.util.Date;
+import java.time.Instant;
 
 /**
  */
@@ -35,23 +35,18 @@ public class SolutionRevisionBuilder {
 		return this.revision;
 	} 
 
-	public SolutionRevisionBuilder withCreatedDate(Date theDate) {
-		this.revision.setCreated(theDate);
+	public SolutionRevisionBuilder withCreated(Instant theInstant) {
+		this.revision.setCreated(theInstant);
 		return this;
 	}
 
-	public SolutionRevisionBuilder withModifiedDate(Date theDate) {
-		this.revision.setModified(theDate);
+	public SolutionRevisionBuilder withModified(Instant theInstant) {
+		this.revision.setModified(theInstant);
 		return this;
 	}
 
 	public SolutionRevisionBuilder withRevisionId(String theRevisionId) {
 		this.revision.setRevisionId(theRevisionId);
-		return this;
-	}
-
-	public SolutionRevisionBuilder withDescription(String theDesc) {
-		this.revision.setDescription(theDesc);
 		return this;
 	}
 
@@ -65,8 +60,13 @@ public class SolutionRevisionBuilder {
 		return this;
 	}
 
-	public SolutionRevisionBuilder withValidationStatusCode(String theCode) {
-		this.revision.setValidationStatusCode(theCode);
+	public SolutionRevisionBuilder withVerifiedLicense(String theCode) {
+		this.revision.setVerifiedLicense(theCode);
+		return this;
+	}
+	
+	public SolutionRevisionBuilder withVerifiedVulnerability(String theCode) {
+		this.revision.setVerifiedVulnerability(theCode);
 		return this;
 	}
 

@@ -499,8 +499,9 @@ public class ASDC {
 	protected static final String[] artifactMandatoryEntries = new String[] {};
 
 	/**
-	 * We use teh same API to operate on artifacts attached to assets or to their
+	 * We use the same API to operate on artifacts attached to assets or to their
 	 * instances
+	 * @param <A> Action
 	 */
 	public abstract class ASDCArtifactAction<A extends ASDCArtifactAction<A>> extends ASDCAction<A, JSONObject> {
 

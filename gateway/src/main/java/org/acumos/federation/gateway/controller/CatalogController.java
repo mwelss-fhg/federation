@@ -35,12 +35,13 @@ import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.federation.gateway.cds.Artifact;
-import org.acumos.federation.gateway.cds.ArtifactType;
+import org.acumos.federation.gateway.cds.ArtifactTypes;
 import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.util.Utils;
@@ -67,7 +68,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping(API.Roots.FEDERATION)
 public class CatalogController extends AbstractController {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private CatalogService catalogService;
@@ -75,6 +76,7 @@ public class CatalogController extends AbstractController {
 	private ContentService contentService;
 
 	/**
+	 * @param theHttpRequest Request
 	 * @param theHttpResponse
 	 *            HttpServletResponse
 	 * @param theSelector
@@ -85,7 +87,7 @@ public class CatalogController extends AbstractController {
 	// @PreAuthorize("hasAuthority('PEER')"
 	@PreAuthorize("isActive && hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).CATALOG_ACCESS)")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of Published Solutions from the Catalog of the local Acumos Instance .", response = MLPSolution.class, responseContainer = "List")
-	@RequestMapping(value = { API.Paths.SOLUTIONS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@RequestMapping(value = { API.Paths.SOLUTIONS }, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ResponseBody
 	public JsonResponse<List<MLPSolution>> getSolutions(
 			HttpServletRequest theHttpRequest,
@@ -93,9 +95,9 @@ public class CatalogController extends AbstractController {
 			@RequestParam(value = API.QueryParameters.SOLUTIONS_SELECTOR, required = false) String theSelector) {
 		JsonResponse<List<MLPSolution>> response = null;
 		List<MLPSolution> solutions = null;
-		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTIONS);
+		log.debug(API.Paths.SOLUTIONS);
 		try {
-			log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: selector " + theSelector);
+			log.debug("getSolutions: selector " + theSelector);
 			Map<String, ?> selector = null;
 			if (theSelector != null)
 				selector = Utils.jsonStringToMap(new String(Base64Utils.decodeFromString(theSelector), "UTF-8"));
@@ -112,14 +114,14 @@ public class CatalogController extends AbstractController {
 														.withContent(solutions)
 														.build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-			log.debug(EELFLoggerDelegate.debugLogger, "getSolutions: provided {} solutions", solutions == null ? 0 : solutions.size());
+			log.debug("getSolutions: provided {} solutions", solutions == null ? 0 : solutions.size());
 		}
-		catch (Exception x) {
+		catch (/*Exception*/Throwable x) {
 			response = JsonResponse.<List<MLPSolution>> buildErrorResponse()
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "Exception occurred while fetching solutions", x);
+			log.error("Exception occurred while fetching solutions", x);
 		}
 		return response;
 	}
@@ -135,7 +137,7 @@ public class CatalogController extends AbstractController {
 			@PathVariable(value = "solutionId") String theSolutionId) {
 		JsonResponse<MLPSolution> response = null;
 		MLPSolution solution = null;
-		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTION_DETAILS + ": " + theSolutionId);
+		log.debug(API.Paths.SOLUTION_DETAILS + ": " + theSolutionId);
 		try {
 			solution = catalogService.getSolution(theSolutionId, new ControllerContext());
 			if (null == solution) {
@@ -158,7 +160,7 @@ public class CatalogController extends AbstractController {
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "An error occurred while fetching solution " + theSolutionId, x);
+			log.error("An error occurred while fetching solution " + theSolutionId, x);
 		}
 		return response;
 	}
@@ -179,7 +181,7 @@ public class CatalogController extends AbstractController {
 			@PathVariable("solutionId") String theSolutionId) {
 		JsonResponse<List<MLPSolutionRevision>> response = null;
 		List<MLPSolutionRevision> solutionRevisions = null;
-		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.SOLUTION_REVISIONS);
+		log.debug(API.Paths.SOLUTION_REVISIONS);
 		try {
 			solutionRevisions = catalogService.getSolutionRevisions(theSolutionId, new ControllerContext());
 			if (null == solutionRevisions) {
@@ -194,7 +196,7 @@ public class CatalogController extends AbstractController {
 															.withContent(solutionRevisions)
 															.build();
 				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-				log.debug(EELFLoggerDelegate.debugLogger, "getSolutionsRevisions for solution {} provided {} revisions",
+				log.debug("getSolutionsRevisions for solution {} provided {} revisions",
 						theSolutionId, solutionRevisions.size());
 			}
 		}
@@ -203,13 +205,14 @@ public class CatalogController extends AbstractController {
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "An error occured while fetching solution " + theSolutionId + " revisions", x);
+			log.error("An error occured while fetching solution " + theSolutionId + " revisions", x);
 		}
 		return response;
 	}
 
 	/**
 	 * 
+	 * @param theHttpRequest Request
 	 * @param theSolutionId
 	 *            Solution ID
 	 * @param theRevisionId
@@ -221,8 +224,7 @@ public class CatalogController extends AbstractController {
 	@CrossOrigin
 	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by peer Acumos to get solution revision details from the local Acumos Instance .", response = MLPSolutionRevision.class)
-	@RequestMapping(value = {
-			API.Paths.SOLUTION_REVISION_DETAILS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@RequestMapping(value = {	API.Paths.SOLUTION_REVISION_DETAILS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<MLPSolutionRevision> getSolutionRevisionDetails(
 			HttpServletRequest theHttpRequest, HttpServletResponse theHttpResponse,
@@ -230,8 +232,7 @@ public class CatalogController extends AbstractController {
 		ControllerContext context = new ControllerContext();
 		JsonResponse<MLPSolutionRevision> response = null;
 		SolutionRevision solutionRevision = null;
-		log.debug(EELFLoggerDelegate.debugLogger,
-				API.Paths.SOLUTION_REVISION_DETAILS + "(" + theSolutionId + "," + theRevisionId + ")");
+		log.debug(API.Paths.SOLUTION_REVISION_DETAILS + "(" + theSolutionId + "," + theRevisionId + ")");
 		try {
 			solutionRevision = catalogService.getSolutionRevision(theSolutionId, theRevisionId, context);
 			if (null == solutionRevision) {
@@ -264,7 +265,7 @@ public class CatalogController extends AbstractController {
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "An error occured while fetching solution " + theSolutionId + " revision " + theRevisionId + " details", x);
+			log.error("An error occured while fetching solution " + theSolutionId + " revision " + theRevisionId + " details", x);
 		}
 		return response;
 	}
@@ -292,8 +293,7 @@ public class CatalogController extends AbstractController {
 		JsonResponse<List<MLPArtifact>> response = null;
 		List<MLPArtifact> solutionRevisionArtifacts = null;
 		ControllerContext context = new ControllerContext();
-		log.debug(EELFLoggerDelegate.debugLogger,
-				API.Paths.SOLUTION_REVISION_ARTIFACTS + "(" + theSolutionId + "," + theRevisionId + ")");
+		log.debug(API.Paths.SOLUTION_REVISION_ARTIFACTS + "(" + theSolutionId + "," + theRevisionId + ")");
 		try {
 			solutionRevisionArtifacts = catalogService.getSolutionRevisionArtifacts(theSolutionId, theRevisionId, context);
 			if (null == solutionRevisionArtifacts) {
@@ -313,7 +313,7 @@ public class CatalogController extends AbstractController {
 														.withContent(solutionRevisionArtifacts)
 														.build();
 				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-				log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionArtifacts provided {} artifacts",
+				log.debug("getSolutionRevisionArtifacts provided {} artifacts",
 							solutionRevisionArtifacts.size());
 			}
 		} 
@@ -322,7 +322,7 @@ public class CatalogController extends AbstractController {
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "An error occured while fetching solution " + theSolutionId + " revision " + theRevisionId + " artifacts", x);
+			log.error("An error occured while fetching solution " + theSolutionId + " revision " + theRevisionId + " artifacts", x);
 		}
 		return response;
 	}
@@ -350,8 +350,7 @@ public class CatalogController extends AbstractController {
 		JsonResponse<List<MLPDocument>> response = null;
 		List<MLPDocument> solutionRevisionDocuments = null;
 		ControllerContext context = new ControllerContext();
-		log.debug(EELFLoggerDelegate.debugLogger,
-				API.Paths.SOLUTION_REVISION_DOCUMENTS + "(" + theSolutionId + "," + theRevisionId + ")");
+		log.debug(API.Paths.SOLUTION_REVISION_DOCUMENTS + "(" + theSolutionId + "," + theRevisionId + ")");
 		try {
 			solutionRevisionDocuments = catalogService.getSolutionRevisionDocuments(theSolutionId, theRevisionId, context);
 			if (null == solutionRevisionDocuments) {
@@ -371,7 +370,7 @@ public class CatalogController extends AbstractController {
 														.withContent(solutionRevisionDocuments)
 														.build();
 				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-				log.debug(EELFLoggerDelegate.debugLogger, "getSolutionRevisionDocuments provided {} documents",
+				log.debug("getSolutionRevisionDocuments provided {} documents",
 							solutionRevisionDocuments.size());
 			}
 		} 
@@ -380,7 +379,7 @@ public class CatalogController extends AbstractController {
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "An error occured while fetching solution " + theSolutionId + " revision " + theRevisionId + " documents", x);
+			log.error("An error occured while fetching solution " + theSolutionId + " revision " + theRevisionId + " documents", x);
 		}
 		return response;
 	}
@@ -422,8 +421,7 @@ public class CatalogController extends AbstractController {
 						theSolutionId, theRevisionId, catalogService.getSolutionRevisionArtifact(theArtifactId, ctx), ctx);
 				} 
 				catch (Exception x) {
-					log.error(EELFLoggerDelegate.errorLogger,
-						"An error occurred while retrieving artifact content " + theArtifactId, x);
+					log.error("An error occurred while retrieving artifact content " + theArtifactId, x);
 					throw x;
 				}
 			}
@@ -466,8 +464,7 @@ public class CatalogController extends AbstractController {
 									theSolutionId, theRevisionId, catalogService.getSolutionRevisionDocument(theDocumentId, ctx), ctx);
 				} 
 				catch (Exception x) {
-					log.error(EELFLoggerDelegate.errorLogger,
-						"An error occurred while retrieving artifact content " + theDocumentId, x);
+					log.error("An error occurred while retrieving artifact content " + theDocumentId, x);
 					throw x;
 				}
 			}
@@ -504,11 +501,11 @@ public class CatalogController extends AbstractController {
 													new URI(requestUri.getScheme(), null, requestUri.getHost(),
 																	requestUri.getPort(), null, null, null).toString(),
 													theSolutionId, theRevisionId, theArtifact.getArtifactId());
-			log.debug(EELFLoggerDelegate.debugLogger,	"encodeArtifact: redirected artifact uri " + redirectUri);
+			log.debug("encodeArtifact: redirected artifact uri " + redirectUri);
 			theArtifact.setUri(redirectUri.toString());
 		}
 		
-		if (ArtifactType.DockerImage == ArtifactType.forCode(theArtifact.getArtifactTypeCode())) {
+		if (ArtifactTypes.DockerImage.getCode().equals(theArtifact.getArtifactTypeCode())) {
 			if (artifactUri != null) {
 				//ugly but avoids parsing the manifest on the receiving side
 				//this seems to be what on-boarding is doing anyway, otherwise this would amount to information loss
@@ -533,7 +530,7 @@ public class CatalogController extends AbstractController {
 													new URI(requestUri.getScheme(), null, requestUri.getHost(),
 																	requestUri.getPort(), null, null, null).toString(),
 													theSolutionId, theRevisionId, theDocument.getDocumentId());
-			log.debug(EELFLoggerDelegate.debugLogger,	"encodeDocument: redirected document uri " + redirectUri);
+			log.debug("encodeDocument: redirected document uri " + redirectUri);
 			theDocument.setUri(redirectUri.toString());
 		}
 	}

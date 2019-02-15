@@ -22,14 +22,17 @@ package org.acumos.federation.gateway.config;
 
 import org.acumos.federation.gateway.adapter.PeerGateway;
 import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.cds.CodeNamesConfiguration;
 import org.acumos.federation.gateway.security.AuthenticationConfiguration;
 import org.acumos.federation.gateway.security.FederationMethodSecurityConfiguration;
 import org.acumos.federation.gateway.service.CatalogService;
+import org.acumos.federation.gateway.service.CodeNamesService;
 import org.acumos.federation.gateway.service.CatalogServiceConfiguration;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.service.impl.CatalogServiceImpl;
+import org.acumos.federation.gateway.service.impl.CodeNamesServiceImpl;
 import org.acumos.federation.gateway.service.impl.ContentServiceImpl;
 import org.acumos.federation.gateway.service.impl.ContentServiceLocalImpl;
 import org.acumos.federation.gateway.service.impl.PeerServiceImpl;
@@ -52,7 +55,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Configuration
 @Import({TaskConfiguration.class,
 				 AuthenticationConfiguration.class,
-				 FederationMethodSecurityConfiguration.class})
+				 FederationMethodSecurityConfiguration.class,
+				 CodeNamesConfiguration.class})
 @EnableConfigurationProperties({FederationInterfaceConfiguration.class,
 																LocalInterfaceConfiguration.class,
 																CDMSClientConfiguration.class,
@@ -83,9 +87,14 @@ public class GatewayConfiguration {
 		return new PeerSubscriptionServiceImpl();
 	}
 
+	@Bean
+	public CodeNamesService codeNamesService() {
+		return new CodeNamesServiceImpl();
+	}
+
 	/**
 	 * The 'local' profile allows us to run a gateway based on a local artifact supplier, for testing purposes.
-
+	 * @return ContentService
 	 */
 	@Bean
 	@Profile({"!local"})

@@ -23,12 +23,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.Collections;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.federation.gateway.common.JsonResponse;
 /* this is not good for unit testing .. */
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
 import org.apache.http.client.HttpClient;
@@ -37,6 +39,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -65,12 +68,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = org.acumos.federation.gateway.Application.class,
 								webEnvironment = WebEnvironment.RANDOM_PORT,
 								properties = {
+									"spring.main.allow-bean-definition-overriding=true",
 									"federation.instance=adapter",
 									"federation.instance.name=test",
 									"federation.operator=admin",
 									"federation.registration.enabled=true",
-									"peersLocal.source=classpath:test-peers.json",
-									"catalogLocal.source=classpath:test-catalog.json",
+									"codes-local.source=classpath:test-codes.json",
+									"peers-local.source=classpath:test-peers.json",
+									"catalog-local.source=classpath:test-catalog.json",
 									"federation.ssl.key-store=classpath:acumosa.pkcs12",
 									"federation.ssl.key-store-password=acumosa",
 									"federation.ssl.key-store-type=PKCS12",
@@ -82,9 +87,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AuthorizationTest {
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+	private final Logger log = LoggerFactory.getLogger(getClass().getName());
 	@Autowired
 	private TestRestTemplate restTemplate;
+	@Value("${local.server.port}")
+	int port;
 
 	@Test
 	public void testUnknownPeerSolutionsAccess() {
@@ -92,13 +99,13 @@ public class AuthorizationTest {
     ((HttpComponentsClientHttpRequestFactory)
 			this.restTemplate.getRestTemplate().getRequestFactory())
 				.setHttpClient(prepareUnknownHttpClient());
-		
+
 		ResponseEntity<JsonResponse<List<MLPSolution>>> response =
-			this.restTemplate.exchange("/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
-		
+			this.restTemplate.exchange("https://localhost:" + this.port + "/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
+
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "test unknown peer access: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "test unknown peer access: {}", response);
+			log.info("test unknown peer access: {}", response.getBody());
+			log.info("test unknown peer access: {}", response);
 		}
 		
 		assertTrue(response != null);
@@ -113,11 +120,11 @@ public class AuthorizationTest {
 				.setHttpClient(prepareKnownHttpClient());
 
 		ResponseEntity<JsonResponse<List<MLPSolution>>> response =
-			this.restTemplate.exchange("/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
+			this.restTemplate.exchange("https://localhost:" + this.port + "/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 		
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "test known peer access: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "test known peer access: {}", response);
+			log.info("test known peer access: {}", response.getBody());
+			log.info("test known peer access: {}", response);
 		}
 		
 		assertTrue(response != null);
@@ -134,11 +141,11 @@ public class AuthorizationTest {
 				.setHttpClient(prepareUnknownHttpClient());
 		
 		ResponseEntity<JsonResponse<MLPPeer>> response =
-			this.restTemplate.exchange("/peer/register", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {});
+			this.restTemplate.exchange("https://localhost:" + this.port + "/peer/register", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {});
 		
 		if (response != null)	{
-			log.info(EELFLoggerDelegate.debugLogger, "test unknown peer access to register: {}", response.getBody());
-			log.info(EELFLoggerDelegate.debugLogger, "test unknown peer access to register: {}", response);
+			log.info("test unknown peer access to register: {}", response.getBody());
+			log.info("test unknown peer access to register: {}", response);
 		}
 		
 		assertTrue(response != null);
@@ -152,12 +159,14 @@ public class AuthorizationTest {
 											.useDelimiter("\\Z").next();
 
 		HttpHeaders headers = new HttpHeaders();
+ 		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
  		headers.setContentType(MediaType.APPLICATION_JSON);
  		return new HttpEntity<String>(content, headers);
 	}
 	
 	private HttpEntity prepareRequest() {
 		HttpHeaders headers = new HttpHeaders();
+ 		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
  		headers.setContentType(MediaType.APPLICATION_JSON);
  		return new HttpEntity<String>(headers);
 	}

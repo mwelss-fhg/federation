@@ -23,7 +23,8 @@ import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.io.FilenameUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,11 +35,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public interface Reference {
 
-	public static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	public static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	public String getUri();
 
-	public void setUri(String theUri);
+	public void setUri(String theUri) throws URISyntaxException;
 
 	public String getVersion();
 
@@ -66,7 +67,7 @@ public interface Reference {
 					 basename = FilenameUtils.getBaseName(filename),
 					 extension = FilenameUtils.getExtension(filename);
 
-		log.debug(EELFLoggerDelegate.debugLogger, "filename: {}, basename: {}, extension: {}", filename, basename, extension);
+		log.debug("filename: {}, basename: {}, extension: {}", filename, basename, extension);
 
 		if (basename != null && basename.endsWith("-" + getVersion())) {
 			return basename.substring(0, basename.lastIndexOf('-')) + (extension != null ? ("." + extension) : "");

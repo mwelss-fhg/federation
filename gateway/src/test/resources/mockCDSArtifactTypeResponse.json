@@ -1,0 +1,22 @@
+[
+  {
+		"code": "BP",
+    "name": "Blueprint"
+  },
+  {
+		"code": "CD",
+    "name": "Cdump"
+  },
+  {
+		"code": "DI",
+    "name": "DockerImage"
+  },
+  {
+		"code": "DS",
+    "name": "DataSource"
+  },
+  {
+		"code": "MD",
+    "name": "Metadata"
+  }
+]

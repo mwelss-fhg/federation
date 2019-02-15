@@ -19,7 +19,8 @@
  */
 package org.acumos.federation.gateway.security;
 
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.core.Authentication;
@@ -30,15 +31,17 @@ public class FederationMethodSecurityExpressionRoot
   																extends SecurityExpressionRoot 
 																	implements MethodSecurityExpressionOperations {
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+	private final Logger log = LoggerFactory.getLogger(getClass().getName());
 
 	private Object filterObject;
 	private Object returnObject;
 	public  boolean	isActive = false;
+	public  boolean	isKnown = false;
  
 	public FederationMethodSecurityExpressionRoot(Authentication theAuthentication) {
 		super(theAuthentication);
-		log.info(EELFLoggerDelegate.debugLogger, "built with {}", theAuthentication);
+		log.info("built with {}", theAuthentication);
+		this.isKnown = ((Peer) this.getPrincipal()).isKnown();
 		this.isActive = ((Peer) this.getPrincipal()).isActive();	
 	}
 

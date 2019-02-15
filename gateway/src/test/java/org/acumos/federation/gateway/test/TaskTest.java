@@ -33,7 +33,8 @@ import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.common.JsonResponse;
 /* this is not good for unit testing .. */
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.event.PeerSubscriptionEvent;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -80,6 +81,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = org.acumos.federation.gateway.Application.class,
 								webEnvironment = WebEnvironment.RANDOM_PORT,
 								properties = {
+									"spring.main.allow-bean-definition-overriding=true",
 									"federation.instance=adapter",
 									"federation.instance.name=test",
 									"federation.ssl.key-store=classpath:acumosa.pkcs12",
@@ -89,13 +91,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 									"federation.ssl.trust-store=classpath:acumosTrustStore.jks",
 									"federation.ssl.trust-store-password=acumos",
 									"federation.ssl.client-auth=need",
-									"peersLocal.source=classpath:/task-test-peers.json",
-									"catalogLocal.source=classpath:/task-test-catalog.json"
+									"codes-local.source=classpath:/test-codes.json",
+									"peers-local.source=classpath:/task-test-peers.json",
+									"catalog-local.source=classpath:/task-test-catalog.json"
 								})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TaskTest {
 
-	private final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(getClass().getName());
+	private final Logger log = LoggerFactory.getLogger(getClass().getName());
 	@Autowired
 	private ApplicationContext context;
 
@@ -112,7 +115,7 @@ public class TaskTest {
 
 		try {
 			boolean complete = listener.peerEventLatch.await(10, TimeUnit.SECONDS);
-			log.info(EELFLoggerDelegate.debugLogger, "event: " + complete + "/" + listener.peerEventLatch.getCount());
+			log.info("event: " + complete + "/" + listener.peerEventLatch.getCount());
 			assertTrue("All expected events have occured in the test interval",
 								 complete);
 		}

@@ -19,26 +19,26 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import java.util.Date;
+import java.time.Instant;
 
 
 /**
  */
 public interface TimestampedEntity {
 
-	public static final Date ORIGIN = new Date(0);
+	public static final Instant ORIGIN = Instant.MIN;
 
-	public Date getCreated();
+	public Instant getCreated();
 
-	public void setCreated(Date created); 
+	public void setCreated(Instant created); 
 
 	public default void resetCreated() {
 		setCreated(ORIGIN);
 	}
 
-	public Date getModified(); 
+	public Instant getModified(); 
 
-	public void setModified(Date modified); 
+	public void setModified(Instant modified); 
 
 	public default void resetModified() {
 		setModified(ORIGIN);

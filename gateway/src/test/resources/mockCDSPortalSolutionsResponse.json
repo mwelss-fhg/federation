@@ -5,7 +5,6 @@
       "modified": 1531390016000,
       "solutionId": "26cc5a84-b888-40ff-92aa-989c4972390a",
       "name": "subtract",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "RG",
@@ -18,22 +17,18 @@
           "tag": "subtract"
         }
       ],
-      "webStats": {
-        "solutionId": "26cc5a84-b888-40ff-92aa-989c4972390a",
-        "viewCount": 2,
-        "downloadCount": 0,
-        "lastDownload": 1531402967000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 2,
+      "downloadCount": 0,
+      "lastDownload": 1531402967000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1528270856000,
       "modified": 1528279075000,
       "solutionId": "26cd2116-c1e1-49a7-9b2e-2200eaaf379a",
       "name": "TestClear",
-      "description": "Test",
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
@@ -46,22 +41,18 @@
           "tag": "TestClear"
         }
       ],
-      "webStats": {
-        "solutionId": "26cd2116-c1e1-49a7-9b2e-2200eaaf379a",
-        "viewCount": 1,
-        "downloadCount": 0,
-        "lastDownload": 1528270991000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 1,
+      "downloadCount": 0,
+      "lastDownload": 1528270991000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1529064502000,
       "modified": 1529064807000,
       "solutionId": "26d4ed7e-3bef-49d7-9a6a-84f131d8b3b7",
       "name": "Sanity_15062018",
-      "description": "Test",
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
@@ -74,22 +65,18 @@
           "tag": "Sanity_15062018"
         }
       ],
-      "webStats": {
-        "solutionId": "26d4ed7e-3bef-49d7-9a6a-84f131d8b3b7",
-        "viewCount": 1,
-        "downloadCount": 0,
-        "lastDownload": 1529064739000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 1,
+      "downloadCount": 0,
+      "lastDownload": 1529064739000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1531386258000,
       "modified": 1531389628000,
       "solutionId": "34cc31da-491a-4f52-99b8-475d82e9268a",
       "name": "poutput",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "RG",
@@ -102,22 +89,18 @@
           "tag": "poutput"
         }
       ],
-      "webStats": {
-        "solutionId": "34cc31da-491a-4f52-99b8-475d82e9268a",
-        "viewCount": 1,
-        "downloadCount": 0,
-        "lastDownload": 1531389592000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 1,
+      "downloadCount": 0,
+      "lastDownload": 1531389592000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     },
     {
       "created": 1524561563000,
       "modified": 1524561790000,
       "solutionId": "38efeef1-e4f4-4298-9f68-6f0052d6ade9",
       "name": "Predictor",
-      "description": null,
       "metadata": null,
       "active": true,
       "modelTypeCode": "PR",
@@ -130,15 +113,12 @@
           "tag": "Predictor_IST2_24042018"
         }
       ],
-      "webStats": {
-        "solutionId": "38efeef1-e4f4-4298-9f68-6f0052d6ade9",
-        "viewCount": 1,
-        "downloadCount": 5,
-        "lastDownload": 1524665872000,
-        "ratingCount": 0,
-        "ratingAverageTenths": 0,
-        "featured": false
-      }
+      "viewCount": 1,
+      "downloadCount": 5,
+      "lastDownload": 1524665872000,
+      "ratingCount": 0,
+      "ratingAverageTenths": 0,
+      "featured": false
     }
   ],
   "last": true,

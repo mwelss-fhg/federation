@@ -42,6 +42,7 @@ public interface ContentService {
 	 * @param theContext
 	 *            the execution context
 	 * @return resource containing access to the actual artifact content
+	 * @throws ServiceException On failure
 	 */
 	public Resource getArtifactContent(
 			String theSolutionId, String theRevisionId, Artifact theArtifact, ServiceContext theContext)
@@ -55,6 +56,7 @@ public interface ContentService {
 	 * @param theArtifact
 	 *            The CDS representation of artifact metadata
 	 * @return resource containing access to the actual artifact content
+	 * @throws ServiceException On failure
 	 */
 	public default Resource getArtifactContent(
 			String theSolutionId, String theRevisionId, Artifact theArtifact)					throws ServiceException {
@@ -73,6 +75,7 @@ public interface ContentService {
 	 *            the resource providing the artifact content
 	 * @param theContext
 	 *            the service execution context
+	 * @throws ServiceException On failure
 	 */
 	public void putArtifactContent(
 		String theSolutionId, String theRevisionId, Artifact theArtifact, Resource theResource, ServiceContext theContext)
@@ -87,6 +90,7 @@ public interface ContentService {
 	 *            The CDS representation of artifact metadata
 	 * @param theResource
 	 *            the resource providing the artifact content
+	 * @throws ServiceException On failure
 	 */
 	public default void putArtifactContent(
 		String theSolutionId, String theRevisionId, Artifact theArtifact, Resource theResource)
@@ -104,6 +108,7 @@ public interface ContentService {
 	 * @param theContext
 	 *            the execution context
 	 * @return resource containing access to the actual document content
+	 * @throws ServiceException On failure
 	 */
 	public Resource getDocumentContent(
 		String theSolutionId, String theRevisionId, Document theDocument, ServiceContext theContext)
@@ -117,6 +122,7 @@ public interface ContentService {
 	 * @param theDocument
 	 *            The CDS representation of document metadata
 	 * @return resource containing access to the actual document content
+	 * @throws ServiceException On failure
 	 */
 	public default Resource getDocumentContent(
 		String theSolutionId, String theRevisionId, Document theDocument) throws ServiceException {
@@ -125,7 +131,7 @@ public interface ContentService {
 	}
 
 	/**
-	 * If the call is succesful the document information is updated with the content uri.
+	 * If the call is successful the document information is updated with the content uri.
 	 * @param theSolutionId
 	 *						The solution the revision belongs to
 	 * @param theRevisionId
@@ -136,13 +142,14 @@ public interface ContentService {
 	 *            the resource providing the document content
 	 * @param theContext
 	 *            the execution context
+	 * @throws ServiceException On failure
 	 */
 	public void putDocumentContent(
 		String theSolutionId, String theRevisionId, Document theDocument, Resource theResource, ServiceContext theContext)
 																																										throws ServiceException;
 
 	/**
-	 * If the call is succesful the document information is updated with the content uri.
+	 * If the call is successful the document information is updated with the content uri.
 	 * @param theSolutionId
 	 *						The solution the revision belongs to
 	 * @param theRevisionId
@@ -151,6 +158,7 @@ public interface ContentService {
 	 *            The CDS representation of document metadata
 	 * @param theResource
 	 *            the resource providing the document content
+	 * @throws ServiceException On failure
 	 */
 	public default void putDocumentContent(
 		String theSolutionId, String theRevisionId, Document theDocument, Resource theResource)
@@ -161,6 +169,7 @@ public interface ContentService {
 
 	/**
 	 * Provide a self service execution context.
+	 * @return Context
 	 */
 	public ServiceContext selfService();
 }

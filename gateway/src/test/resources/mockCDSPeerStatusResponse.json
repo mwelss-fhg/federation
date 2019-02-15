@@ -1,0 +1,26 @@
+[
+  {
+		"code": "AC",
+    "name": "Active"
+  },
+  {
+		"code": "IN",
+    "name": "Inactive"
+  },
+  {
+		"code": "RQ",
+    "name": "Requested"
+  },
+  {
+		"code": "RN",
+    "name": "Renounced"
+  },
+  {
+		"code": "DC",
+    "name": "Declined"
+  },
+  {
+		"code": "UK",
+    "name": "Unknown"
+  }
+]

@@ -19,46 +19,14 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import java.util.EnumSet;
-
-import org.acumos.cds.PeerStatusCode;
+import org.acumos.cds.CodeNameType;
 
 /**
- * Supplements the CDS representation of a peer status information.
- * Not needed but I did not notice the equivalent class in CDS .. To be removed once the set of
- * values in CDS is updated.
  */
-public enum PeerStatus {
+public interface PeerStatus extends CodeName {
 
-	Active(PeerStatusCode.AC.name()),
-	Inactive(PeerStatusCode.IN.name()),
-	Requested(PeerStatusCode.RQ.name()),/* the 'peer' has made a request to be registered with this Acumos instance (pending active)  */
-	Renounced(PeerStatusCode.RN.name()),  /* the peer has made a request to be unregistered as a peer of this Acumos instance (pending remove) */
-	Declined(PeerStatusCode.DC.name()) /* (removed) */
-	;
-
-	private String 				code;
-	//private MLPPeerStatus	mlp;
-
-	private PeerStatus(String theCode) {
-		this.code = theCode;
-		//mlp = new MLPPeerStatus(theCode, name());
-	}
-
-	public String code() {
-		return this.code;
-	}
-
-	//public MLPPeerStatus mlp() {
-	//	return this.mlp;
-	//}
-
-	public static PeerStatus forCode(final String theCode) {
-		return EnumSet.allOf(PeerStatus.class)
-						.stream()
-						.filter(status -> status.code().equals(theCode))
-						.findFirst()
-						.orElse(null);
+	public default CodeNameType getType() {
+		return CodeNameType.PEER_STATUS;
 	}
 }
 

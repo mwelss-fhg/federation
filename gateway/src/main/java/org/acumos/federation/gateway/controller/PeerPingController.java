@@ -28,7 +28,8 @@ import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.PeerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,7 +46,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping(API.Roots.LOCAL)
 public class PeerPingController extends AbstractController {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private Clients	clients;
@@ -57,6 +58,7 @@ public class PeerPingController extends AbstractController {
 	 * Allows local components to ping a peer.
 	 * @param theHttpResponse
 	 *            HttpServletResponse
+	 * @param thePeerId Peer ID
 	 * @return The remote peer information
 	 */
 	@CrossOrigin
@@ -70,7 +72,7 @@ public class PeerPingController extends AbstractController {
 			@PathVariable("peerId") String thePeerId) {
 
 		JsonResponse<MLPPeer> response = new JsonResponse<MLPPeer>();
-		log.debug(EELFLoggerDelegate.debugLogger, API.Roots.LOCAL + "" + API.Paths.PING);
+		log.debug(API.Roots.LOCAL + "" + API.Paths.PING);
 		try {
 			MLPPeer peer = this.peerService.getPeerById(thePeerId);
 			if (peer == null) {
@@ -89,7 +91,7 @@ public class PeerPingController extends AbstractController {
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "Exception occurred during peer ping", x);
+			log.error("Exception occurred during peer ping", x);
 		}
 		return response;
 	}

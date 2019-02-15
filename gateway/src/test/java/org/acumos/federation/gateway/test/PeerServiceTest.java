@@ -48,6 +48,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = org.acumos.federation.gateway.Application.class,
 								webEnvironment = WebEnvironment.RANDOM_PORT,
 								properties = {
+									"spring.main.allow-bean-definition-overriding=true",
 									"federation.instance=gateway",
 									"federation.instance.name=test",
 									"federation.operator=admin",
@@ -75,7 +76,7 @@ public class PeerServiceTest extends ServiceTest {
 	private PeerService peerService;
 
 	protected void initMockResponses() {
-		registerMockResponse("GET /ccds/peer/search?isSelf=true&_j=a&page=0&size=100", MockResponse.success("mockCDSPeerSearchSelfResponse.json"));
+		registerMockResponse("GET /ccds/peer/search?self=true&_j=a&page=0&size=100", MockResponse.success("mockCDSPeerSearchSelfResponse.json"));
 		registerMockResponse("GET /ccds/peer?page=0&size=100", MockResponse.success("mockCDSPeerSearchAllResponse.json"));
 		registerMockResponse("GET /ccds/peer/search?subjectName=gateway.acumosb.org&_j=a", MockResponse.success("mockCDSPeerSearchResponse.json"));
 		registerMockResponse("GET /ccds/peer/search?subjectName=gateway.acumosc.org&_j=a", MockResponse.success("mockCDSSearchEmptyResponse.json"));
@@ -93,7 +94,7 @@ public class PeerServiceTest extends ServiceTest {
 
 		try {
 			ServiceContext selfService = 
-				ServiceContext.forPeer(new Peer(new MLPPeer("acumosb", "gateway.acumosb.org", "https://gateway.acumosb.org:9084", false, false, "admin@acumosab.org", "AC", "PS"), Role.SELF));
+				ServiceContext.forPeer(new Peer(new MLPPeer("acumosb", "gateway.acumosb.org", "https://gateway.acumosb.org:9084", false, false, "admin@acumosab.org", "AC"), Role.SELF));
 
 			List<MLPPeer> peers = peerService.getPeers(selfService);
 			assertTrue("Unexpected all peers response", peers.size() == 2);
@@ -102,7 +103,7 @@ public class PeerServiceTest extends ServiceTest {
 			assertTrue("Expected one peer to be found", peersn.size() == 1);
 
 			try {
-				peerService.registerPeer(new MLPPeer("acumosc", "gateway.acumosc.org", "https://gateway.acumosc.org:9084", false, false, "admin@acumosc.org", "AC", "PS"));
+				peerService.registerPeer(new MLPPeer("acumosc", "gateway.acumosc.org", "https://gateway.acumosc.org:9084", false, false, "admin@acumosc.org", "AC"));
 			}
 			catch(ServiceException sx) {
 				fail("Expected peer register to succeed: " + sx + "/" + sx.getCause());

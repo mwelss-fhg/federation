@@ -27,7 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.PeerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,7 +44,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping(API.Roots.FEDERATION)
 public class PingController extends AbstractController {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
 	private PeerService peerService;
@@ -64,7 +65,7 @@ public class PingController extends AbstractController {
 			HttpServletResponse theHttpResponse) {
 
 		JsonResponse<MLPPeer> response = new JsonResponse<MLPPeer>();
-		log.debug(EELFLoggerDelegate.debugLogger, API.Paths.PING);
+		log.debug(API.Paths.PING);
 		try {
 			MLPPeer self = peerService.getSelf();
 			response = JsonResponse.<MLPPeer> buildResponse()
@@ -78,7 +79,7 @@ public class PingController extends AbstractController {
 														 .withError(x)
 														 .build();
 			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error(EELFLoggerDelegate.errorLogger, "An error occurred while handling a ping request", x);
+			log.error("An error occurred while handling a ping request", x);
 		}
 		return response;
 	}

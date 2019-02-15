@@ -27,7 +27,8 @@ import java.util.Set;
 
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPTag;
-import org.acumos.federation.gateway.config.EELFLoggerDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Some basic tooling for service implementation.
@@ -35,36 +36,39 @@ import org.acumos.federation.gateway.config.EELFLoggerDelegate;
  */
 public abstract class ServiceImpl {
 
-	private static final EELFLoggerDelegate log = EELFLoggerDelegate.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private ServiceImpl() {
 	}
 
 	/**
 	 * Bit of a primitive implementation
+	 * @param theSolution solution
+	 * @param theSelector selector
+	 * @return Boolean
 	 */
 	public static boolean isSelectable(MLPSolution theSolution, Map<String, ?> theSelector) /*throws ServiceException*/ {
 		boolean res = true;
 
-		log.trace(EELFLoggerDelegate.debugLogger, "isSelectable {}", theSolution);
+		log.trace("isSelectable {}", theSolution);
 		if (theSelector == null || theSelector.isEmpty())
 			return true;
 
 		Object solutionId = theSelector.get("solutionId");
 		if (solutionId != null) {
-			log.trace(EELFLoggerDelegate.debugLogger, "using solutionId based selection {}", solutionId);
+			log.trace("using solutionId based selection {}", solutionId);
 			if (solutionId instanceof String) {
 				res &= theSolution.getSolutionId().equals(solutionId);
 			}
 			else {
-				log.debug(EELFLoggerDelegate.debugLogger, "unknown solutionId criteria representation {}", solutionId.getClass().getName());
+				log.debug("unknown solutionId criteria representation {}", solutionId.getClass().getName());
 				return false;
 			}
 		}
 
 		Object modelTypeCode = theSelector.get("modelTypeCode");
 		if (modelTypeCode != null) {
-			log.trace(EELFLoggerDelegate.debugLogger, "using modelTypeCode based selection {}", modelTypeCode);
+			log.trace("using modelTypeCode based selection {}", modelTypeCode);
 			String solutionModelTypeCode = theSolution.getModelTypeCode();
 			if (solutionModelTypeCode == null) {
 				return false;
@@ -77,7 +81,7 @@ public abstract class ServiceImpl {
 					res &= ((List)modelTypeCode).contains(solutionModelTypeCode);
 				}
 				else {
-					log.debug(EELFLoggerDelegate.debugLogger, "unknown modelTypeCode criteria representation {}", modelTypeCode.getClass().getName());
+					log.debug("unknown modelTypeCode criteria representation {}", modelTypeCode.getClass().getName());
 					return false;
 				}
 			}
@@ -85,7 +89,7 @@ public abstract class ServiceImpl {
 
 		Object toolkitTypeCode = theSelector.get("toolkitTypeCode");
 		if (toolkitTypeCode != null) {
-			log.trace(EELFLoggerDelegate.debugLogger, "using toolkitTypeCode based selection {}", toolkitTypeCode);
+			log.trace("using toolkitTypeCode based selection {}", toolkitTypeCode);
 			String solutionToolkitTypeCode = theSolution.getToolkitTypeCode();
 			if (solutionToolkitTypeCode == null) {
 				return false;
@@ -98,7 +102,7 @@ public abstract class ServiceImpl {
 					res &= ((List)toolkitTypeCode).contains(solutionToolkitTypeCode);
 				}
 				else {
-					log.debug(EELFLoggerDelegate.debugLogger, "unknown toolkitTypeCode criteria representation {}", toolkitTypeCode.getClass().getName());
+					log.debug("unknown toolkitTypeCode criteria representation {}", toolkitTypeCode.getClass().getName());
 					return false;
 				}
 			}
@@ -106,7 +110,7 @@ public abstract class ServiceImpl {
 
 		Object tags = theSelector.get("tags");
 		if (tags != null) {
-			log.trace(EELFLoggerDelegate.debugLogger, "using tags based selection {}", tags);
+			log.trace("using tags based selection {}", tags);
 			Set<MLPTag> solutionTags = theSolution.getTags();
 			if (solutionTags == null) {
 				return false;
@@ -119,7 +123,7 @@ public abstract class ServiceImpl {
 					res &= solutionTags.stream().filter(solutionTag -> ((List)tags).contains(solutionTag.getTag())).findAny().isPresent();
 				}
 				else {
-					log.debug(EELFLoggerDelegate.debugLogger, "unknown tags criteria representation {}", tags.getClass().getName());
+					log.debug("unknown tags criteria representation {}", tags.getClass().getName());
 					return false; 
 				}
 			}
@@ -127,25 +131,13 @@ public abstract class ServiceImpl {
 
 		Object name = theSelector.get("name");
 		if (name != null) {
-			log.debug(EELFLoggerDelegate.debugLogger, "using name based selection {}", name);
+			log.debug("using name based selection {}", name);
 			String solutionName = theSolution.getName();
 			if (solutionName == null) {
 				return false;
 			}
 			else {
 				res &= solutionName.contains(name.toString());
-			}
-		}
-
-		Object desc = theSelector.get("description");
-		if (desc != null) {
-			log.debug(EELFLoggerDelegate.debugLogger, "using description based selection {}", desc);
-			String solutionDesc = theSolution.getDescription();
-			if (solutionDesc == null) {
-				return false;
-			}
-			else {
-				res &= solutionDesc.contains(desc.toString());
 			}
 		}
 

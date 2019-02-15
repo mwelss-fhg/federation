@@ -19,7 +19,9 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import java.util.Date;
+import java.net.URISyntaxException;
+
+import java.time.Instant;
 
 /**
  */
@@ -35,23 +37,23 @@ public class ArtifactBuilder {
 		return this.artifact;
 	} 
 
-	public ArtifactBuilder withCreatedDate(Date theDate) {
-		this.artifact.setCreated(theDate);
+	public ArtifactBuilder withCreated(Instant theInstant) {
+		this.artifact.setCreated(theInstant);
 		return this;
 	}
 
-	public ArtifactBuilder withCreated(long theDate) {
-		this.artifact.setCreated(new Date(theDate));
+	public ArtifactBuilder withCreated(long theEpoch) {
+		this.artifact.setCreated(Instant.ofEpochSecond(theEpoch));
 		return this;
 	}
 
-	public ArtifactBuilder withModifiedDate(Date theDate) {
-		this.artifact.setModified(theDate);
+	public ArtifactBuilder withModified(Instant theInstant) {
+		this.artifact.setModified(theInstant);
 		return this;
 	}
 
-	public ArtifactBuilder withModified(long theDate) {
-		this.artifact.setModified(new Date(theDate));
+	public ArtifactBuilder withModified(long theEpoch) {
+		this.artifact.setModified(Instant.ofEpochSecond(theEpoch));
 		return this;
 	}
 
@@ -90,7 +92,7 @@ public class ArtifactBuilder {
 		return this;
 	}
 
-	public ArtifactBuilder withUri(String theUri) {
+	public ArtifactBuilder withUri(String theUri) throws URISyntaxException {
 		this.artifact.setUri(theUri);
 		return this;
 	}

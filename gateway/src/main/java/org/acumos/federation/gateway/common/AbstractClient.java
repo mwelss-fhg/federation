@@ -56,7 +56,7 @@ public abstract class AbstractClient {
 		setTarget(theTarget);
 		
 		this.restTemplate = new RestTemplateBuilder()
-													.requestFactory(new HttpComponentsClientHttpRequestFactory(theClient))
+													.requestFactory(() -> new HttpComponentsClientHttpRequestFactory(theClient))
 													.rootUri(this.baseUrl)
 													.build();
 	}
@@ -71,7 +71,7 @@ public abstract class AbstractClient {
 		contentConverter.setSupportedMediaTypes(Collections.singletonList(MediaType.APPLICATION_OCTET_STREAM));
 
 		this.restTemplate = new RestTemplateBuilder()
-													.requestFactory(new HttpComponentsClientHttpRequestFactory(theClient))
+													.requestFactory(() -> new HttpComponentsClientHttpRequestFactory(theClient))
 													.messageConverters(messageConverter, contentConverter)
 													.rootUri(this.baseUrl)
 													.build();
