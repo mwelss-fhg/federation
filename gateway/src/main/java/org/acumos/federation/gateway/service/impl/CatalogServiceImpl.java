@@ -24,16 +24,15 @@
 package org.acumos.federation.gateway.service.impl;
 
 import java.lang.invoke.MethodHandles;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.time.Instant;
 
 import javax.annotation.PostConstruct;
 
@@ -51,16 +50,15 @@ import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
-import org.acumos.federation.gateway.cds.ValidationStatus;
 import org.acumos.federation.gateway.cds.TimestampedEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.CatalogService;
 import org.acumos.federation.gateway.service.CatalogServiceConfiguration;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.acumos.federation.gateway.util.Errors;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;

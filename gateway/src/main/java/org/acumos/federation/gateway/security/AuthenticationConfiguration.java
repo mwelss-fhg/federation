@@ -29,10 +29,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.cds.PeerStatuses;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

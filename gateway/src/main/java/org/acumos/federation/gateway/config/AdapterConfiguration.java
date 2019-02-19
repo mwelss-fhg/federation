@@ -20,8 +20,8 @@
 
 package org.acumos.federation.gateway.config;
 
-import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.cds.CodeNamesConfiguration;
+import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.security.AuthenticationConfiguration;
 import org.acumos.federation.gateway.security.FederationMethodSecurityConfiguration;
 import org.acumos.federation.gateway.service.CatalogService;

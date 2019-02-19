@@ -20,7 +20,7 @@
 package org.acumos.federation.gateway.test;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -32,8 +32,6 @@ import org.acumos.cds.domain.MLPSolution;
 import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.FederationClient;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
 import org.apache.http.HttpResponse;
@@ -53,6 +51,8 @@ import org.junit.runners.MethodSorters;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;

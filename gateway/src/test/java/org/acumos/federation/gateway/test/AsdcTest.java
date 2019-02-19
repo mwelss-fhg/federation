@@ -25,10 +25,10 @@ import java.nio.charset.Charset;
 
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDC;
 import org.acumos.federation.gateway.adapter.onap.sdc.ASDCException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 

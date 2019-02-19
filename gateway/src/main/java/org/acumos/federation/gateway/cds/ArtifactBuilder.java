@@ -20,7 +20,6 @@
 package org.acumos.federation.gateway.cds;
 
 import java.net.URISyntaxException;
-
 import java.time.Instant;
 
 /**

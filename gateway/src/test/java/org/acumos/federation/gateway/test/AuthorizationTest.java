@@ -21,16 +21,13 @@ package org.acumos.federation.gateway.test;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Collections;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.federation.gateway.common.JsonResponse;
-/* this is not good for unit testing .. */
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
 import org.apache.http.client.HttpClient;
@@ -38,6 +35,9 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+/* this is not good for unit testing .. */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;

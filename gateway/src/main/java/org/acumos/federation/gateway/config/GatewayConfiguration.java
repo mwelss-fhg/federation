@@ -21,13 +21,13 @@
 package org.acumos.federation.gateway.config;
 
 import org.acumos.federation.gateway.adapter.PeerGateway;
-import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.cds.CodeNamesConfiguration;
+import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.security.AuthenticationConfiguration;
 import org.acumos.federation.gateway.security.FederationMethodSecurityConfiguration;
 import org.acumos.federation.gateway.service.CatalogService;
-import org.acumos.federation.gateway.service.CodeNamesService;
 import org.acumos.federation.gateway.service.CatalogServiceConfiguration;
+import org.acumos.federation.gateway.service.CodeNamesService;
 import org.acumos.federation.gateway.service.ContentService;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;

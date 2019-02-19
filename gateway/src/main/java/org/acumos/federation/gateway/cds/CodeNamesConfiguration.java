@@ -20,10 +20,8 @@
 
 package org.acumos.federation.gateway.cds;
 
-import org.acumos.federation.gateway.cds.ArtifactTypes;
-import org.acumos.federation.gateway.cds.PeerStatuses;
-import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 /**
  * I wish I knew a better place for these .. this is no actual configuration ..

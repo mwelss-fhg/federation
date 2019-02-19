@@ -21,7 +21,6 @@
 package org.acumos.federation.gateway.event;
 
 import java.util.EventObject;
-import java.util.List;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;

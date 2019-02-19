@@ -20,7 +20,6 @@
 package org.acumos.federation.gateway.cds;
 
 import java.time.Instant;
-
 import java.util.Set;
 
 import org.acumos.cds.domain.MLPTag;

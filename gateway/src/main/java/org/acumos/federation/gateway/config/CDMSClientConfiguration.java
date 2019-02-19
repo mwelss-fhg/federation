@@ -22,12 +22,11 @@ package org.acumos.federation.gateway.config;
 
 import java.lang.invoke.MethodHandles;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.acumos.cds.client.CommonDataServiceRestClientImpl;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.federation.gateway.cds.Mapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;

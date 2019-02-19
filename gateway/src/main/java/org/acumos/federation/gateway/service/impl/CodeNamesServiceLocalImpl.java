@@ -26,24 +26,22 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.acumos.cds.CodeNameType;
 import org.acumos.cds.domain.MLPCodeNamePair;
+import org.acumos.federation.gateway.service.CodeNamesService;
+import org.acumos.federation.gateway.service.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.acumos.federation.gateway.service.CodeNamesService;
-import org.acumos.federation.gateway.service.ServiceContext;
-import org.acumos.federation.gateway.service.ServiceException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**

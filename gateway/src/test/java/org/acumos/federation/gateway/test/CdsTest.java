@@ -20,17 +20,13 @@
 package org.acumos.federation.gateway.test;
 
 import java.lang.invoke.MethodHandles;
-import java.util.Date;
-import java.util.Set;
-
 import java.time.Instant;
+import java.util.Set;
 
 import org.acumos.cds.domain.MLPTag;
 import org.acumos.federation.gateway.cds.AccessType;
 import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.ArtifactBuilder;
-import org.acumos.federation.gateway.cds.ArtifactType;
-import org.acumos.federation.gateway.cds.ArtifactTypes;
 import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.DocumentBuilder;
 import org.acumos.federation.gateway.cds.Solution;
@@ -38,10 +34,10 @@ import org.acumos.federation.gateway.cds.SolutionBuilder;
 import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.cds.SolutionRevisionBuilder;
 import org.acumos.federation.gateway.cds.Updater;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CdsTest {
 

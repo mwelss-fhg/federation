@@ -22,20 +22,19 @@ package org.acumos.federation.gateway.config;
 
 import java.lang.invoke.MethodHandles;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.acumos.federation.gateway.controller.CatalogController;
 import org.acumos.federation.gateway.controller.PeersController;
 import org.acumos.federation.gateway.controller.PingController;
 import org.acumos.federation.gateway.controller.RegistrationController;
 import org.apache.http.client.HttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 //import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
