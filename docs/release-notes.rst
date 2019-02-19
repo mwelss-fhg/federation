@@ -25,8 +25,8 @@ This server is available as a Docker image in a Docker registry at the Linux Fou
 --------------------------
 Version 2.0.0, 2019-02-20
 --------------------------
+* Use Boreas log pattern; remove EELF (`ACUMOS-2329 <https://jira.acumos.org/browse/ACUMOS-2329>`_)
 * Fix repeated update of metadata (`ACUMOS-2399 <https://jira.acumos.org/browse/ACUMOS-2399>`_)
-* Remove EELF
 * Update to CDS 2.x
 
 --------------------------
