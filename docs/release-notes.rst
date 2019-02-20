@@ -21,29 +21,27 @@ Federation Gateway Release Notes
 ================================
 
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
+The image name is "federation-gateway" and the tag is a version string as shown below. 
 
---------------------------
 Version 2.0.0, 2019-02-20
---------------------------
+-------------------------
+
 * Use Boreas log pattern; remove EELF (`ACUMOS-2329 <https://jira.acumos.org/browse/ACUMOS-2329>`_)
 * Fix repeated update of metadata (`ACUMOS-2399 <https://jira.acumos.org/browse/ACUMOS-2399>`_)
-* Update to CDS 2.x
+* Update to CDS 2.0.7
 
---------------------------
 Version 1.18.7, 2018-10-30
 --------------------------
 
 * Fix the subscription task early cancellation (`ACUMOS-1937 <https://jira.acumos.org/browse/ACUMOS-1937>`_)
 * Fix the preemptive authentication (`ACUMOS-1952 <https://jira.acumos.org/browse/ACUMOS-1952>`_)
 
---------------------------
 Version 1.18.6, 2018-10-08
 --------------------------
 
 * Fix for the handling of mis-represented content uris (`ACUMOS-1780 <https://jira.acumos.org/browse/ACUMOS-1780>`_)
 * Adds subscription option directing the handling of error in content retrieval with respect to catalog updates
 
---------------------------
 Version 1.18.5, 2018-10-02
 --------------------------
 
@@ -52,7 +50,6 @@ Version 1.18.5, 2018-10-02
 * Add peer 'isActive' as controller calls pre-authorization check
 * Fix the artifact content processing condition in the gateway
 
---------------------------
 Version 1.18.4, 2018-09-21
 --------------------------
 
