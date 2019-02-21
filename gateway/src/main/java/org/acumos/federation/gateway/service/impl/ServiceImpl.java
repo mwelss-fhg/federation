@@ -21,12 +21,18 @@
 package org.acumos.federation.gateway.service.impl;
 
 import java.lang.invoke.MethodHandles;
+import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPTag;
+import org.acumos.federation.gateway.cds.Solution;
+import org.acumos.federation.gateway.service.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,108 +47,141 @@ public abstract class ServiceImpl {
 	private ServiceImpl() {
 	}
 
+
 	/**
-	 * Bit of a primitive implementation
-	 * @param theSolution solution
-	 * @param theSelector selector
-	 * @return Boolean
+	 * Returns a predicate equivalent to the logical AND of any non-null argument predicates.
+	 * @param preds predicates to combine
+	 * @return a predicate computing the logical AND of any non-null arguments or a predicate returning true, if there are none
 	 */
-	public static boolean isSelectable(MLPSolution theSolution, Map<String, ?> theSelector) /*throws ServiceException*/ {
-		boolean res = true;
-
-		log.trace("isSelectable {}", theSolution);
-		if (theSelector == null || theSelector.isEmpty())
-			return true;
-
-		Object solutionId = theSelector.get("solutionId");
-		if (solutionId != null) {
-			log.trace("using solutionId based selection {}", solutionId);
-			if (solutionId instanceof String) {
-				res &= theSolution.getSolutionId().equals(solutionId);
-			}
-			else {
-				log.debug("unknown solutionId criteria representation {}", solutionId.getClass().getName());
-				return false;
+	private static Predicate<MLPSolution> and(Predicate<MLPSolution> ... preds) {
+		Predicate<MLPSolution> ret = null;
+		for (Predicate<MLPSolution> x: preds) {
+			if (ret == null) {
+				ret = x;
+			} else if (x != null) {
+				ret = ret.and(x);
 			}
 		}
-
-		Object modelTypeCode = theSelector.get("modelTypeCode");
-		if (modelTypeCode != null) {
-			log.trace("using modelTypeCode based selection {}", modelTypeCode);
-			String solutionModelTypeCode = theSolution.getModelTypeCode();
-			if (solutionModelTypeCode == null) {
-				return false;
-			}
-			else {
-				if (modelTypeCode instanceof String) {
-					res &= solutionModelTypeCode.equals(modelTypeCode);
-				}
-				else if (modelTypeCode instanceof List) {
-					res &= ((List)modelTypeCode).contains(solutionModelTypeCode);
-				}
-				else {
-					log.debug("unknown modelTypeCode criteria representation {}", modelTypeCode.getClass().getName());
-					return false;
-				}
-			}
+		if (ret == null) {
+			ret = (arg) -> true;
 		}
-
-		Object toolkitTypeCode = theSelector.get("toolkitTypeCode");
-		if (toolkitTypeCode != null) {
-			log.trace("using toolkitTypeCode based selection {}", toolkitTypeCode);
-			String solutionToolkitTypeCode = theSolution.getToolkitTypeCode();
-			if (solutionToolkitTypeCode == null) {
-				return false;
-			}
-			else {
-				if (toolkitTypeCode instanceof String) {
-					res &= solutionToolkitTypeCode.equals(toolkitTypeCode);
-				}
-				else if (toolkitTypeCode instanceof List) {
-					res &= ((List)toolkitTypeCode).contains(solutionToolkitTypeCode);
-				}
-				else {
-					log.debug("unknown toolkitTypeCode criteria representation {}", toolkitTypeCode.getClass().getName());
-					return false;
-				}
-			}
-		}
-
-		Object tags = theSelector.get("tags");
-		if (tags != null) {
-			log.trace("using tags based selection {}", tags);
-			Set<MLPTag> solutionTags = theSolution.getTags();
-			if (solutionTags == null) {
-				return false;
-			}
-			else {
-				if (tags instanceof String) {
-					res &= solutionTags.stream().filter(solutionTag -> tags.equals(solutionTag.getTag())).findAny().isPresent();
-				}
-				else if (tags instanceof List) {
-					res &= solutionTags.stream().filter(solutionTag -> ((List)tags).contains(solutionTag.getTag())).findAny().isPresent();
-				}
-				else {
-					log.debug("unknown tags criteria representation {}", tags.getClass().getName());
-					return false; 
-				}
-			}
-		}
-
-		Object name = theSelector.get("name");
-		if (name != null) {
-			log.debug("using name based selection {}", name);
-			String solutionName = theSolution.getName();
-			if (solutionName == null) {
-				return false;
-			}
-			else {
-				res &= solutionName.contains(name.toString());
-			}
-		}
-
-		return res;
+		return(ret);
 	}
 
 
+	/**
+	 * Returns a predicate determining matching against a multi-valued field.
+	 * The returned predicate will be called with an MLPSolution.  The
+	 * Function specified by field will be invoked on it, to extract a Set
+	 * of Strings, which will be tested against the value, in theSelector,
+	 * corresponding to key.
+	 * If theSelector does not contain key, this just returns null.
+	 * Otherwise, if the value is a String, this returns a predicate
+	 * computing whether the value is in the extracted Set of Strings.
+	 * Otherwise, if the value is a List, this returns a predicate
+	 * computing whether any of the values in the List is contained in
+	 * the Set of Strings.
+	 * @param theSelector a map of field names to expected values
+	 * @param key the field name to be handled by this predicate
+	 * @param field the Function to extract the field value from the Solution
+	 * @param listok whether this field supports a list of values in the selector
+	 * @return the predicate for testing the field value
+	 * @throws ServiceException if the value of key, in theSelector is neither a String nor a List.
+	 */
+
+	private static Predicate<MLPSolution> contains(Map<String, ?> theSelector, String key, Function<MLPSolution, Set<String>> field, boolean listok) throws ServiceException {
+		Object o = theSelector.get(key);
+		if (o == null) {
+			return(null);
+		}
+		log.trace("using {} based selection {}", key, o);
+		if (o instanceof String) {
+			String s = (String)o;
+			return(arg-> field.apply(arg).contains(s));
+		}
+		if (listok && o instanceof List) {
+			List l = (List)o;
+			return(arg -> {
+				for (Object val: field.apply(arg)) {
+					if (l.contains(val)) {
+						return(true);
+					}
+				}
+				return(false);
+			});
+		}
+		log.debug("unknown {} criteria representation {}", key, o.getClass().getName());
+		throw new ServiceException("Invalid Selector");
+	}
+
+
+	/**
+	 * Returns a predicate determining matching against a field.
+	 * The returned predicate will be called with an MLPSolution.  The
+	 * Function specified by field will be invoked on it, to extract its
+	 * value, which will be tested against the value, in theSelector,
+	 * corresponding to key.
+	 * If theSelector does not contain key, this just returns null.
+	 * Otherwise, if theSelector contains a String, this returns a predicate
+	 * computing whether the value equals the extracted value.
+	 * Otherwise, if the value is a List, this returns a predicate
+	 * computing whether the extracted value is contained in the List.
+	 * @param theSelector a map of field names to expected values
+	 * @param key the field name to be handled by this predicate
+	 * @param field the Function to extract the field value from the Solution
+	 * @param listok whether this field supports a list of values in the selector
+	 * @return the predicate for testing the field value
+	 * @throws ServiceException if the value of key, in theSelector is neither a String nor a List.
+	 */
+
+	private static Predicate<MLPSolution> has(Map<String, ?> theSelector, String key, Function<MLPSolution, String> field, boolean listok) throws ServiceException {
+		Object o = theSelector.get(key);
+		if (o == null) {
+			return(null);
+		}
+		log.trace("using {} based selection {}", key, o);
+		if (o instanceof String) {
+			String s = (String)o;
+			return(arg -> s.equals(field.apply(arg)));
+		}
+		if (listok && o instanceof List) {
+			List l = (List)o;
+			return(arg -> l.contains(field.apply(arg)));
+		}
+		log.debug("unknown {} criteria representation {}", key, o.getClass().getName());
+		throw new ServiceException("Invalid Selector");
+	}
+
+
+	/**
+	 * Returns a predicate for testing an MLPSolution against a selector.
+	 * @param theSelector the criteria to be met in a matching solution
+	 * @return a predicate for checking for matching solutions
+	 * @throws ServiceException if theSelector is malformed
+	 */
+
+	public static Predicate<MLPSolution> compileSelector(Map<String, ?> theSelector) throws ServiceException {
+		if (theSelector == null) {
+			return(arg -> true);
+		}
+		log.trace("compileSelector {}", theSelector);
+		Boolean ao = (Boolean)theSelector.get(Solution.Fields.active);
+		boolean active = ao == null? true: ao.booleanValue();
+		Instant since = Instant.ofEpochSecond((Long)theSelector.get(Solution.Fields.modified));
+		return(and(
+			arg -> arg.isActive() == active,
+			arg -> arg.getModified().compareTo(since) >= 0,
+			has(theSelector, Solution.Fields.solutionId, arg -> arg.getSolutionId(), false),
+			has(theSelector, Solution.Fields.modelTypeCode, arg -> arg.getModelTypeCode(), true),
+			has(theSelector, Solution.Fields.toolkitTypeCode, arg -> arg.getToolkitTypeCode(), true),
+			contains(theSelector, Solution.Fields.tags, arg -> {
+				Set<String> ret = new HashSet<String>();
+				for (MLPTag tag: arg.getTags()) {
+					ret.add(tag.getTag());
+				}
+				return(ret);
+			}, true),
+			has(theSelector, Solution.Fields.name, arg ->arg.getName(), false)
+		));
+	}
 }

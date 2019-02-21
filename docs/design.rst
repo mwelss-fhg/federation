@@ -49,7 +49,7 @@ This interface assumes a pull-based mechanism.
 As such, only the ‘server’ side is defined by E5.
 
 The client side is based on a set of subscriptions, where each subscription defines a set of solutions
-the client is interested in  (through a selector), and employs periodic polling to detect new material.
+the client is interested in, through a selector (see :ref:`selecting`), and employs periodic polling to detect new material.
 This interface defines no shared state, nothing to synchronize; all responsibility resides with the interested party.
 Requires a pre-provisioned peer on the server side, and uses both client and server authentication (CA based),
 principal to certificate matching.

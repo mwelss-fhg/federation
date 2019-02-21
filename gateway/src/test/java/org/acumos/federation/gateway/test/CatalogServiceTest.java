@@ -22,7 +22,10 @@ package org.acumos.federation.gateway.test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 import org.acumos.cds.domain.MLPArtifact;
@@ -81,11 +84,20 @@ public class CatalogServiceTest extends ServiceTest {
 	@Autowired
 	private CatalogService catalog;
 
+	private static Map<String, Object> selector(Object... flds) {
+		Map<String, Object> ret = new HashMap<String, Object>();
+		for (int i = 0; i < flds.length; i += 2) {
+			ret.put((String)flds[i], flds[i + 1]);
+		}
+		return(ret);
+	}
+
 	protected void initMockResponses() {
 
+		registerMockResponse("GET /ccds/catalog/mycatalog/solution?page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
 		registerMockResponse("GET /ccds/solution/search/date?atc=PB&inst=1000&active=true&page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
-		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&active=true&page=0&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage0.json"));
-		registerMockResponse("GET /ccds/solution/search/date?atc=PB&datems=1531747662&active=true&page=1&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage1.json"));
+		registerMockResponse("GET /ccds/solution/search/date?atc=PB&inst=1531747662000&active=true&page=0&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage0.json"));
+		registerMockResponse("GET /ccds/solution/search/date?atc=PB&inst=1531747662000&active=true&page=1&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage1.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010", MockResponse.success("mockCDSSolutionResponse.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/revision", MockResponse.success("mockCDSSolutionRevisionsResponse.json"));
 		registerMockResponse("GET /ccds/revision/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
@@ -109,7 +121,37 @@ public class CatalogServiceTest extends ServiceTest {
 			ServiceContext selfService = 
 				ServiceContext.forPeer(new Peer(new MLPPeer("acumosa", "gateway.acumosa.org", "https://gateway.acumosa.org:9084", false, false, "admin@acumosa.org", "AC"), Role.SELF));
 
-			List<MLPSolution> solutions = catalog.getSolutions(Collections.EMPTY_MAP, selfService);
+			List<MLPSolution> solutions = catalog.getSolutions(selector("catalogId", "mycatalog"), selfService);
+			assertTrue("Unexpected solutions count: " + solutions.size(), solutions.size() == 5);
+			solutions = catalog.getSolutions(selector("catalogId", "mycatalog", "modelTypeCode", "RG"), selfService);
+			assertTrue("Unexpected solutions count: " + solutions.size(), solutions.size() == 2);
+			solutions = catalog.getSolutions(selector("catalogId", "mycatalog", "toolkitTypeCode", new CopyOnWriteArrayList(new String[] {"CP", "TF" })), selfService);
+			assertTrue("Unexpected solutions count: " + solutions.size(), solutions.size() == 3);
+			solutions = catalog.getSolutions(selector("catalogId", "mycatalog", "tags", "subtract"), selfService);
+			assertTrue("Unexpected solutions count: " + solutions.size(), solutions.size() == 1);
+			solutions = catalog.getSolutions(selector("catalogId", "mycatalog", "tags", new CopyOnWriteArrayList(new String[] { "subtract", "poutput"})), selfService);
+			assertTrue("Unexpected solutions count: " + solutions.size(), solutions.size() == 2);
+			solutions = catalog.getSolutions(selector("catalogId", "mycatalog", "solutionId", "38efeef1-e4f4-4298-9f68-6f0052d6ade9"), selfService);
+			assertTrue("Unexpected solutions count: " + solutions.size(), solutions.size() == 1);
+			try {
+				catalog.getSolutions(selector("catalogId", "mycatalog", "name", new CopyOnWriteArrayList(new String[] { "A", "B" })), selfService);
+				assertTrue("Expected service exception, got none", 1 == 0);
+			}
+			catch (ServiceException sx) {
+			}
+			try {
+				catalog.getSolutions(selector("catalogId", "mycatalog", "name", true), selfService);
+				assertTrue("Expected service exception, got none", 1 == 0);
+			}
+			catch (ServiceException sx) {
+			}
+			try {
+				catalog.getSolutions(selector("catalogId", "mycatalog", "tags", true), selfService);
+				assertTrue("Expected service exception, got none", 1 == 0);
+			}
+			catch (ServiceException sx) {
+			}
+			solutions = catalog.getSolutions(Collections.EMPTY_MAP, selfService);
 			assertTrue("Unexpected solutions count: " + solutions.size(), solutions.size() == 5);
 		
 			Solution solution = catalog.getSolution("10101010-1010-1010-1010-101010101010", selfService);

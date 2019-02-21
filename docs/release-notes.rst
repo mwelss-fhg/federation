@@ -23,6 +23,11 @@ Federation Gateway Release Notes
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 The image name is "federation-gateway" and the tag is a version string as shown below. 
 
+Version 2.0.1, 2019-02-21
+-------------------------
+
+* Add catalogId field in solution search selector (`ACUMOS-2285 <https://jira.acumos.org/browse/ACUMOS-2285>`_)
+
 Version 2.0.0, 2019-02-20
 -------------------------
 

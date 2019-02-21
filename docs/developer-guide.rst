@@ -81,7 +81,7 @@ The following endpoints are defined:
 
 * /solutions
 
-  List all public solutions. Accepts a query parameter, 'selector', which contains a JSON object with selection criteria, base64 encoded. Acceptable selection criteria are the solution object attributes. The entries are ANDed.
+  List all public solutions. Accepts a query parameter, 'selector', which contains a JSON object with selection criteria, base64 encoded. Acceptable selection criteria are the solution object attributes. The entries are ANDed (see :ref:`selecting`).
 
 * /solutions/{solutionId}
 

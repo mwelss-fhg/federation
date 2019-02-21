@@ -47,6 +47,7 @@ public class Solution extends MLPSolution {
 		public static final String validationStatusCode = "validationStatusCode";
 		public static final String modified = "modified";
 		public static final String sourceId = "sourceId";
+		public static final String catalogId = "catalogId";
 	};
 
 	private List<? extends MLPSolutionRevision>		revisions;

@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -73,6 +75,14 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+	private static final List<String> allATs = new ArrayList<String>();
+
+	static {
+		for (AccessType atc: AccessType.values()) {
+			allATs.add(atc.code());
+		}
+	}
+
 	@Autowired
 	private CatalogServiceConfiguration config;
 
@@ -95,31 +105,41 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 		RestPageRequest pageRequest = new RestPageRequest(0, this.cdsConfig.getPageSize());
 		RestPageResponse<MLPSolution> pageResponse = null;
 		List<MLPSolution> solutions = new ArrayList<MLPSolution>(),
-											pageSolutions = null;
+												pageSolutions = null;
 		ICommonDataServiceRestClient cdsClient = getClient(theContext);
 		try {
+			Predicate<MLPSolution> matcher = ServiceImpl.compileSelector(selector);
+			String catid = (String)selector.get(Solution.Fields.catalogId);
+			Function<RestPageRequest, RestPageResponse<MLPSolution>> pager = null;
+			if (catid != null) {
+				pager = page -> cdsClient.getSolutionsInCatalog(catid, page);
+			} else {
+				boolean active = (Boolean)selector.getOrDefault(Solution.Fields.active, Boolean.TRUE);
+				Object o = selector.getOrDefault(Solution.Fields.accessTypeCode, allATs);
+				String[] codes = null;
+				if (o instanceof String) {
+					codes = new String[] { (String)o };
+				} else {
+					codes = ((List<String>)o).toArray(new String[0]);
+				}
+				String[] xcodes = codes;
+				Instant since = Instant.ofEpochSecond((Long)selector.get(Solution.Fields.modified));
+				pager = page -> cdsClient.findSolutionsByDate(active, xcodes, since, page);
+			}
 			do {
 				log.debug("getSolutions page {}", pageResponse);
-				pageResponse =
-					cdsClient.findSolutionsByDate(
-						(Boolean)selector.getOrDefault(Solution.Fields.active, Boolean.TRUE),
-						selector.containsKey(Solution.Fields.accessTypeCode) ?
-							new String[] {selector.get(Solution.Fields.accessTypeCode).toString()} :
-							Arrays.stream(AccessType.values()).map(at -> at.code()).toArray(String[]::new),
-						Instant.ofEpochSecond ((Long)selector.get(Solution.Fields.modified)),
-						pageRequest);
+				pageResponse = pager.apply(pageRequest);
 			
 				log.debug("getSolutions page response {}", pageResponse);
 				//we need to post-process all other selection criteria
 				pageSolutions = pageResponse.getContent().stream()
-													.filter(solution -> ServiceImpl.isSelectable(solution, selector))
-													.collect(Collectors.toList());
+															.filter(matcher)
+															.collect(Collectors.toList());
 				log.debug("getSolutions page selection {}", pageSolutions);
 		
 				pageRequest.setPage(pageResponse.getNumber() + 1);
 				solutions.addAll(pageSolutions);
-			}
-			while (!pageResponse.isLast());
+			} while (!pageResponse.isLast());
 		}
 		catch (HttpStatusCodeException restx) {
 			if (Errors.isCDSNotFound(restx))
