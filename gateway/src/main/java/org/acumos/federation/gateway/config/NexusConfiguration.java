@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -84,9 +84,15 @@ public class NexusConfiguration {
 		this.url = new URL(theSpec);
   }
 	
+
+	/**
+	 * Get the normalized URL for the nexus content server.
+	 * @return the URL, as a String, with exactly one trailing slash.
+	 */
+
 	public String getUrl() {
-		return this.url.toString();
-  }
+		return this.url.toString().replaceAll("/*$", "") + "/";
+	}
 
 	public void setUsername(String theUsername) {
 		this.username = theUsername;
