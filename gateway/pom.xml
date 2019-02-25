@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-	<!--
+	<!--<![CDATA[
 	===============LICENSE_START=======================================================
 	Acumos
 	===================================================================================
@@ -17,7 +17,7 @@
 	See the License for the specific language governing permissions and
 	limitations under the License.
 	===============LICENSE_END=========================================================
-	-->
+	]]>-->
 <project
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 	xmlns="http://maven.apache.org/POM/4.0.0"
@@ -330,6 +330,11 @@
 										</files>
 									</inline>
 								</assembly>
+								<runCmds>
+									<!-- Ensure logs dir exists and is world writable -->
+									<runCmd>mkdir /maven/logs</runCmd>
+									<runCmd>chmod -R 777 /maven</runCmd>
+								</runCmds>
 								<!-- This is the same CMD used in a Dockerfile -->
 								<cmd>
 									<!-- CDATA prevents Eclipse formatter from breaking line -->
@@ -370,6 +375,11 @@
 										</fileSets>
 									</inline>
 								</assembly>
+								<runCmds>
+									<!-- Ensure logs dir exists and is world writable -->
+									<runCmd>mkdir /maven/logs</runCmd>
+									<runCmd>chmod -R 777 /maven</runCmd>
+								</runCmds>
 								<cmd>
 									<!-- CDATA prevents Eclipse formatter from breaking line -->
 									<shell><![CDATA[cd /maven; java -Xms256m -Xmx2g -cp ${project.artifactId}-${project.version}.${project.packaging}.original:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher]]></shell>
