@@ -29,7 +29,9 @@ Version 2.0.1, 2019-02-26
 * Add catalogId field in solution search selector (`ACUMOS-2285 <https://jira.acumos.org/browse/ACUMOS-2285>`_)
 * Normalize configured Nexus URL to have exactly one trailing slash (`ACUMOS-2554 <https://jira.acumos.org/browse/ACUMOS-2554>`_)
 * Allow server to run as unprivileged user (`ACUMOS-2551 <https://jira.acumos.org/browse/ACUMOS-2551>`_)
-* List dependency on jersey-hk2 for spring-boot (`ACUMOS-2570 <https://jira.acumos.org/browse/ACUMOS-2570>`_)
+* Various problems found with version 2.0.0 (`ACUMOS-2570 <https://jira.acumos.org/browse/ACUMOS-2570>`_)
+  - List dependency on jersey-hk2 for spring-boot
+  - Instant rendered as JSON object rather than seconds since epoch
 
 Version 2.0.0, 2019-02-20
 -------------------------

@@ -171,7 +171,7 @@ public class PeerGateway {
 			}
 			Instant lastProcessed = this.sub.getProcessed();
 			if (lastProcessed != null) {
-				selector.put("modified", lastProcessed);
+				selector.put("modified", lastProcessed.getEpochSecond());
 			}
 			lastProcessed = Instant.now();
 			
