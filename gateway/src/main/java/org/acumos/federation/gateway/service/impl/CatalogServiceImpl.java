@@ -123,7 +123,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 					codes = ((List<String>)o).toArray(new String[0]);
 				}
 				String[] xcodes = codes;
-				Instant since = Instant.ofEpochSecond((Long)selector.get(Solution.Fields.modified));
+				Instant since = Instant.ofEpochSecond(((Number)selector.get(Solution.Fields.modified)).longValue());
 				pager = page -> cdsClient.findSolutionsByDate(active, xcodes, since, page);
 			}
 			do {

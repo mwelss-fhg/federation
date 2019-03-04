@@ -167,7 +167,7 @@ public abstract class ServiceImpl {
 		log.trace("compileSelector {}", theSelector);
 		Boolean ao = (Boolean)theSelector.get(Solution.Fields.active);
 		boolean active = ao == null? true: ao.booleanValue();
-		Instant since = Instant.ofEpochSecond((Long)theSelector.get(Solution.Fields.modified));
+		Instant since = Instant.ofEpochSecond(((Number)theSelector.get(Solution.Fields.modified)).longValue());
 		return(and(
 			arg -> arg.isActive() == active,
 			arg -> arg.getModified().compareTo(since) >= 0,

@@ -32,6 +32,7 @@ Version 2.0.1, 2019-02-26
 * Various problems found with version 2.0.0 (`ACUMOS-2570 <https://jira.acumos.org/browse/ACUMOS-2570>`_)
   - List dependency on jersey-hk2 for spring-boot
   - Instant rendered as JSON object rather than seconds since epoch
+  - Seconds since epoch may parse as Integer instead of Long
 
 Version 2.0.0, 2019-02-20
 -------------------------
