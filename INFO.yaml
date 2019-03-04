@@ -33,6 +33,11 @@ meetings:
 repositories:
     - 'federation'
 committers:
+    - name: 'Andrew Gauld'
+      email: 'agauld@att.com'
+      company: 'ATT'
+      id: 'ag1282'
+      timezone: 'America/New_York'
     - name: 'Aimee Ukasick'
       email: 'aimeeu@research.att.com'
       company: 'ATT'
