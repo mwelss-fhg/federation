@@ -32,6 +32,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.stereotype.Component;
 
 /**
@@ -112,7 +113,7 @@ public class CDMSClientConfiguration {
 					() -> new HttpComponentsClientHttpRequestFactory(this.localIfConfig.buildClient()))
 				//.rootUri(env.getProperty("cdms.client.url"))
 					.basicAuthorization(this.username, this.password)
-					.messageConverters(cdsMessageConverter);
+					.messageConverters(new ByteArrayHttpMessageConverter(), cdsMessageConverter);
 
 		return new CommonDataServiceRestClientImpl(this.url, builder.build());
 	}

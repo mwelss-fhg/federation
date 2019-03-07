@@ -51,6 +51,7 @@ public class Solution extends MLPSolution {
 	};
 
 	private List<? extends MLPSolutionRevision>		revisions;
+	private byte[] picture;
 
 	public Solution() {
 	}
@@ -65,6 +66,14 @@ public class Solution extends MLPSolution {
 
 	public List<? extends MLPSolutionRevision>	getRevisions() {
 		return this.revisions;
+	}
+
+	public void setPicture(byte[] picture) {
+		this.picture = picture;
+	}
+
+	public byte[] getPicture() {
+		return this.picture;
 	}
 	
 	public static SolutionBuilder build() {

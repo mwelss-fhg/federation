@@ -100,6 +100,7 @@ public class CatalogServiceTest extends ServiceTest {
 		registerMockResponse("GET /ccds/solution/search/date?atc=PB&inst=1531747662000&active=true&page=1&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage1.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010", MockResponse.success("mockCDSSolutionResponse.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/revision", MockResponse.success("mockCDSSolutionRevisionsResponse.json"));
+		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/pic", MockResponse.success("mockCDSSolutionPicResponse.tgz"));
 		registerMockResponse("GET /ccds/revision/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
 		registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
 		registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/revision", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));

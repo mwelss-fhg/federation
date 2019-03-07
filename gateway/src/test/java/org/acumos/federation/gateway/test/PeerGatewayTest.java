@@ -110,7 +110,7 @@ public class PeerGatewayTest {
 	private MockAnswer peerAnswer = new MockAnswer();	
 	private MockAnswer cdsAnswer = new MockAnswer();	
 	//initialize with the number of checkpoints
-	private CountDownLatch stepLatch = new CountDownLatch(4);
+	private CountDownLatch stepLatch = new CountDownLatch(5);
 
 	@Before
 	public void initTest() throws IOException {
@@ -126,6 +126,7 @@ public class PeerGatewayTest {
 				.mockResponse(info -> info.getPath().equals("/ccds/peer/sub/1"), MockResponse.success("mockCDSPeerSubscriptionResponse.json")) //this works for GET and PUT ..
 				.mockResponse(info -> info.getMethod().equals("GET") && info.getPath().equals("/ccds/solution/6793411f-c7a1-4e93-85bc-f91d267541d8"), MockResponse.success("mockCDSNoSuchSolutionResponse.json"))
 				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/solution"), MockResponse.success("mockCDSCreateSolutionResponse.json", stepTrack))
+				.mockResponse(info -> info.getMethod().equals("PUT") && info.getPath().equals("/ccds/solution/6793411f-c7a1-4e93-85bc-f91d267541d8/pic"), MockResponse.success("mockCDSsaveSolutionPicResponse.json", stepTrack))
 				.mockResponse(info -> info.getMethod().equals("GET") && info.getPath().equals("/ccds/solution/6793411f-c7a1-4e93-85bc-f91d267541d8/revision"), MockResponse.success("mockCDSNoSuchSolutionRevisionsResponse.json"))
 				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/solution/6793411f-c7a1-4e93-85bc-f91d267541d8/revision"), MockResponse.success("mockCDSCreateSolutionRevisionResponse.json", stepTrack))
 				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/artifact"), MockResponse.success("mockCDSCreateArtifactResponse.json", stepTrack))

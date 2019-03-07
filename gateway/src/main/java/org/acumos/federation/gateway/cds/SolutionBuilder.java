@@ -123,6 +123,11 @@ public class SolutionBuilder {
 		this.solution.setFeatured(false);
 		return this;
 	}
+
+	public SolutionBuilder withPicture(byte[] thePicture) {
+		this.solution.setPicture(thePicture);
+		return this;
+	}
 }
 
 

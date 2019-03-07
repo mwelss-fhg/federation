@@ -23,6 +23,7 @@ package org.acumos.federation.gateway.adapter;
 import java.io.Closeable;
 import java.lang.invoke.MethodHandles;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -376,6 +377,7 @@ public class PeerGateway {
 								.withModified(TimestampedEntity.ORIGIN)
 								.withUser(getUserId(this.sub))
 								.withSource(this.peer.getPeerId())
+								.withPicture(thePeerSolution.getPicture())
 								.resetStats()
 								.build();
 		}
@@ -405,6 +407,7 @@ public class PeerGateway {
 				}
 			}
 
+			theLocalSolution.setPicture(thePeerSolution.getPicture());
 			//tags, keep only the delta
 			Set<MLPTag> tags = thePeerSolution.getTags();
 			tags.removeAll(theLocalSolution.getTags());
@@ -414,6 +417,9 @@ public class PeerGateway {
 		}
 
 		private boolean hasChanged(Solution thePeerSolution, Solution theLocalSolution) {
+			if (!Arrays.equals(theLocalSolution.getPicture(), thePeerSolution.getPicture())) {
+				return true;
+			}
 			if (!theLocalSolution.getTags().containsAll(thePeerSolution.getTags()))
 				return false;
 
@@ -656,7 +662,7 @@ public class PeerGateway {
 						Resource documentContent = null;
 						try {
 							documentContent = thePeerClient.getDocumentContent(
-								peerSolution.getSolutionId(), localRevision.getRevisionId(), peerDocument.getDocumentId());
+								peerSolution.getSolutionId(), peerRevision.getRevisionId(), peerDocument.getDocumentId());
 							log.info("Received {} bytes of document content", documentContent.contentLength()); 
 						}
 						catch (FederationException x) {

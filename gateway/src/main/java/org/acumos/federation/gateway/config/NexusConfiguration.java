@@ -115,7 +115,7 @@ public class NexusConfiguration {
 		return this.groupId;
 	}
 
-	public void setNameSperator(String theNameSeparator) {
+	public void setNameSeparator(String theNameSeparator) {
 		this.nameSeparator = theNameSeparator;
 	}
 

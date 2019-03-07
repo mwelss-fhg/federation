@@ -168,6 +168,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 				return null;
 
 			solution.setRevisions(revisions);
+			solution.setPicture(cdsClient.getSolutionPicture(theSolutionId));
 			return solution;
 		}
 		catch (HttpStatusCodeException restx) {
@@ -195,6 +196,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 			else {
 				cdsClient.updateSolution(theSolution);
 			}
+			cdsClient.saveSolutionPicture(theSolution.getSolutionId(), theSolution.getPicture());
 		}
 		catch (HttpStatusCodeException scx) {
 			log.error("CDS solution call failed. CDS says " + scx.getResponseBodyAsString(), scx);
