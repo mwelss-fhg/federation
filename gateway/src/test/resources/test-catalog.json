@@ -6,8 +6,8 @@
   "modelTypeCode":"CL",
   "toolkitTypeCode":"",
   "metadata":"acumosa",
-  "created":1549401637,
-  "modified":1549401637,
+  "created":"2019-02-12T23:13:20Z",
+  "modified":"2019-02-12T23:13:20Z",
   "revisions":[
    {
     "revisionId":"01010101-0101-0101-0101-010101010101",
@@ -16,8 +16,8 @@
     "metadata":"acumosa",
     "accessTypeCode":"PB",
     "userId":"admin",
-  	"created":1549401637,
-  	"modified":1549401637,
+  	"created":"2019-02-12T23:13:20Z",
+  	"modified":"2019-02-12T23:13:20Z",
     "artifacts":[
      {
       "artifactId":"a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0",
@@ -27,6 +27,19 @@
       "metadata":"acumosa",
   	  "created":1549401637,
   	  "modified":1549401637
+     }
+    ],
+    "documents":[
+     {
+      "filename": "document.txt",
+      "userId":"abcdabcd-abcd-abcd-abcd-abcdabcdabcd",
+      "documentId":"2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b342",
+      "name":"document.txt",
+      "version": "1.0",
+      "uri":"classpath:/application-acumosb.properties",
+      "size":0,
+      "created":"2019-02-12T23:13:20Z",
+      "modified":"2019-02-12T23:13:20Z"
      }
     ]
    }

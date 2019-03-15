@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -98,6 +99,16 @@ public class ASDC {
 	private String rootPath = "/asdc/"; // "/sdc1/feproxy/"; //"/sdc/v1/catalog/";
 	private String user, passwd;
 	private String instanceId;
+
+	private Supplier<AsyncRestTemplate> artfactory = () -> new AsyncRestTemplate();
+
+	public void setARTFactory(Supplier<AsyncRestTemplate> factory) {
+		artfactory = factory;
+	}
+
+	public Supplier<AsyncRestTemplate> getARTFactory() {
+		return artfactory;
+	}
 
 	public void setUri(URI theUri) {
 		String userInfo = theUri.getUserInfo();
@@ -887,7 +898,7 @@ public class ASDC {
 	public <T> Future<T> exchange(String theRef, HttpMethod theMethod, HttpEntity theRequest,
 			Class<T> theResponseType) {
 
-		AsyncRestTemplate restTemplate = new AsyncRestTemplate();
+		AsyncRestTemplate restTemplate = artfactory.get();
 
 		List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
 		converters.add(0, new JSONHttpMessageConverter());

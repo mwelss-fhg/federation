@@ -1,8 +1,8 @@
 {
   "content": [
      {
-      "created": 1532025563000,
-      "modified": 1532025563000,
+      "created": "2018-07-19T18:39:23Z",
+      "modified": "2018-07-19T18:39:23Z",
       "peerId": "b0b0b0b0-b0b0-b0b0-b0b0-b0b0b0b0b0b0",
       "name": "acumosb",
       "subjectName": "gateway.acumosb.org",
@@ -15,8 +15,8 @@
       "self": true
     },
     {
-      "created": 1532025563000,
-      "modified": 1532025563000,
+      "created": "2018-07-19T18:39:23Z",
+      "modified": "2018-07-19T18:39:23Z",
       "peerId": "a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0",
       "name": "acumosa",
       "subjectName": "gateway.acumosa.org",

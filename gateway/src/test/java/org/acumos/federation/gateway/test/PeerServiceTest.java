@@ -82,6 +82,8 @@ public class PeerServiceTest extends ServiceTest {
 		registerMockResponse("GET /ccds/peer/search?subjectName=gateway.acumosc.org&_j=a", MockResponse.success("mockCDSSearchEmptyResponse.json"));
 		registerMockResponse("PUT /ccds/peer/b0b0b0b0-b0b0-b0b0-b0b0-b0b0b0b0b0b0", MockResponse.success("mockCDSPeerUpdateResponse.json"));
 		registerMockResponse("POST /ccds/peer", MockResponse.success("mockCDSPeerCreateResponse.json"));
+		registerMockResponse("GET /ccds/peer/b0b0b0b0-b0b0-b0b0-b0b0-b0b0b0b0b0b0", MockResponse.success("mockCDSPeerResponse.json"));
+		registerMockResponse("GET /ccds/code/pair/PEER_STATUS", MockResponse.success("mockCDSPeerStatusResponse.json"));
 	}
 
 
@@ -101,6 +103,7 @@ public class PeerServiceTest extends ServiceTest {
 
 			List<MLPPeer> peersn = peerService.getPeerBySubjectName("gateway.acumosb.org");
 			assertTrue("Expected one peer to be found", peersn.size() == 1);
+			peerService.getPeerById(peersn.get(0).getPeerId());
 
 			try {
 				peerService.registerPeer(new MLPPeer("acumosc", "gateway.acumosc.org", "https://gateway.acumosc.org:9084", false, false, "admin@acumosc.org", "AC"));

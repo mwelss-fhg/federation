@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -58,7 +58,7 @@ public abstract class ServiceTest {
 	/**
 	 * Derived classes should use this to register mock responses.
 	 */
-	protected abstract void initMockResponses();
+	protected abstract void initMockResponses() throws IOException;
 
 	/**
 	 * Use to register a mocked http request/response.

@@ -25,12 +25,12 @@ import java.util.List;
  */
 public class PeerStatuses extends CodeNames<PeerStatus> {
 
-	public static PeerStatus Active = forCode("AC");
-	public static PeerStatus Inactive = forCode("IN");
-	public static PeerStatus Requested = forCode("RQ");
-	public static PeerStatus Renounced = forCode("RN");
-	public static PeerStatus Declined = forCode("DC");
-	public static PeerStatus Unknown = forCode("UK");
+	public static final PeerStatus Active = forCode("AC");
+	public static final PeerStatus Inactive = forCode("IN");
+	public static final PeerStatus Requested = forCode("RQ");
+	public static final PeerStatus Renounced = forCode("RN");
+	public static final PeerStatus Declined = forCode("DC");
+	public static final PeerStatus Unknown = forCode("UK");
 
 	public PeerStatuses() {
 	}

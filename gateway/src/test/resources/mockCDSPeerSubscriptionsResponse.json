@@ -5,8 +5,10 @@
 		"selector":"{\"modelTypeCode\":[\"CL\",\"PR\"]}",
 		"refreshInterval":"120",
 		"maxArtifactSize":"2048",
-		"created":1549401637,
-		"modified":1549401637
+		"created":"2019-02-05T21:20:37Z",
+		"processed":"1970-01-01T00:00:01Z",
+		"scopeType":"FL",
+		"modified":"2019-02-05T21:20:37Z"
 	}
 ]
 

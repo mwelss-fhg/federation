@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos Apache-2.0
  * ===================================================================================
- * Copyright (C) 2017-2018 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ import java.lang.invoke.MethodHandles;
 import org.acumos.federation.gateway.controller.PeerCatalogController;
 import org.acumos.federation.gateway.controller.PeerPeersController;
 import org.acumos.federation.gateway.controller.PeerPingController;
+import org.acumos.federation.gateway.controller.PeerRegistrationController;
 import org.acumos.federation.gateway.controller.PeerSubscriptionController;
 import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
@@ -55,6 +56,11 @@ public class LocalConfiguration {
 	@Bean
 	public PeerPingController peerPingServer() {
 		return new PeerPingController();
+	}
+
+	@Bean
+	public PeerRegistrationController peerRegistrationServer() {
+		return new PeerRegistrationController();
 	}
 
 	@Bean

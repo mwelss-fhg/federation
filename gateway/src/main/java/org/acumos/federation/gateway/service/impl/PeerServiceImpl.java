@@ -137,7 +137,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 		log.debug("getPeerById: {}", thePeerId);
 		MLPPeer mlpPeer = getClient().getPeer(thePeerId);
 		if (mlpPeer != null) {
-			log.error("getPeerById: {}", mlpPeer.toString());
+			log.info("getPeerById: {}", mlpPeer);
 		}
 		return mlpPeer;
 	}

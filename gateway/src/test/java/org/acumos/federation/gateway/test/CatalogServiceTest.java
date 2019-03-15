@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,10 @@ import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.federation.gateway.cds.Artifact;
+import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.Solution;
+import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.security.Peer;
 import org.acumos.federation.gateway.security.Role;
 import org.acumos.federation.gateway.service.CatalogService;
@@ -100,8 +103,15 @@ public class CatalogServiceTest extends ServiceTest {
 		registerMockResponse("GET /ccds/solution/search/date?atc=PB&inst=1531747662000&active=true&page=1&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage1.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010", MockResponse.success("mockCDSSolutionResponse.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/revision", MockResponse.success("mockCDSSolutionRevisionsResponse.json"));
+		registerMockResponse("GET /ccds/solution/38efeef1-e4f4-4298-9f68-6f0052d6ade9/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341", MockResponse.success("mockCDSSolutionRevisionResponse.json"));
+		registerMockResponse("GET /ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341", MockResponse.success("mockCDSSolutionRevisionResponse.json"));
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/pic", MockResponse.success("mockCDSSolutionPicResponse.tgz"));
 		registerMockResponse("GET /ccds/revision/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
+		registerMockResponse("GET /ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
+		registerMockResponse("GET /ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/access/PB/document", MockResponse.success("mockCDSSolutionRevisionDocumentsResponse.json"));
+		registerMockResponse("GET /ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/access/PB/descr", MockResponse.success("mockCDSSolutionRevisionDescriptionResponse.json"));
+		registerMockResponse("GET /ccds/artifact/2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b341", MockResponse.success("mockCDSSolutionRevisionArtifactResponse.json"));
+		registerMockResponse("GET /ccds/document/2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b342", MockResponse.success("mockCDSSolutionRevisionDocumentResponse.json"));
 		registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
 		registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/revision", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
 		registerMockResponse("GET /ccds/revision/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0/artifact", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
@@ -134,6 +144,9 @@ public class CatalogServiceTest extends ServiceTest {
 			assertTrue("Unexpected solutions count: " + solutions.size(), solutions.size() == 2);
 			solutions = catalog.getSolutions(selector("catalogId", "mycatalog", "solutionId", "38efeef1-e4f4-4298-9f68-6f0052d6ade9"), selfService);
 			assertTrue("Unexpected solutions count: " + solutions.size(), solutions.size() == 1);
+			SolutionRevision rev = catalog.getSolutionRevision("38efeef1-e4f4-4298-9f68-6f0052d6ade9", "2c7e4481-6e6f-47d9-b7a4-c4e674d2b341");
+			Artifact art = catalog.getSolutionRevisionArtifact("2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b341");
+			Document doc = catalog.getSolutionRevisionDocument("2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b342");
 			try {
 				catalog.getSolutions(selector("catalogId", "mycatalog", "name", new CopyOnWriteArrayList(new String[] { "A", "B" })), selfService);
 				assertTrue("Expected service exception, got none", 1 == 0);

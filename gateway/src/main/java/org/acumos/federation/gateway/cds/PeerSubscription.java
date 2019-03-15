@@ -84,7 +84,7 @@ public class PeerSubscription extends MLPPeerSubscription {
 
 	public static class SubscriptionOptions {
 	
-		public CatalogUpdateOptions catalogUpdate = CatalogUpdateOptions.onSuccess;
+		public static final CatalogUpdateOptions catalogUpdate = CatalogUpdateOptions.onSuccess;
 
 		public boolean alwaysUpdateCatalog() {
 			return this.catalogUpdate.equals(CatalogUpdateOptions.always);

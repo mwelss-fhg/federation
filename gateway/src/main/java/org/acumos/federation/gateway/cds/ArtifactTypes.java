@@ -27,21 +27,21 @@ import java.util.List;
 public class ArtifactTypes extends CodeNames<ArtifactType> {
 
 	//these are the artifact type codes that we expect to find in all deployments.
-  public static ArtifactType Blueprint = forCode("BP");
-  public static ArtifactType Cdump = forCode("CD");
-  public static ArtifactType DockerImage = forCode("DI");
-  public static ArtifactType DataSource = forCode("DS");
-  public static ArtifactType Metadata = forCode("MD");
-  public static ArtifactType ModelH2O = forCode("MH");
-  public static ArtifactType ModelImage = forCode("MI");
-  public static ArtifactType ModelR = forCode("MR");
-  public static ArtifactType ModelScikit = forCode("MS");
-  public static ArtifactType ModelTensorflow = forCode("MT");
-  public static ArtifactType ToscaTemplate = forCode("TE");
-  public static ArtifactType ToscaGenerator = forCode("TG");
-  public static ArtifactType ToscaSchema = forCode("TS");
-  public static ArtifactType ToscaTranslate = forCode("TT");
-  public static ArtifactType ProtobufFile = forCode("PJ");
+  public static final ArtifactType Blueprint = forCode("BP");
+  public static final ArtifactType Cdump = forCode("CD");
+  public static final ArtifactType DockerImage = forCode("DI");
+  public static final ArtifactType DataSource = forCode("DS");
+  public static final ArtifactType Metadata = forCode("MD");
+  public static final ArtifactType ModelH2O = forCode("MH");
+  public static final ArtifactType ModelImage = forCode("MI");
+  public static final ArtifactType ModelR = forCode("MR");
+  public static final ArtifactType ModelScikit = forCode("MS");
+  public static final ArtifactType ModelTensorflow = forCode("MT");
+  public static final ArtifactType ToscaTemplate = forCode("TE");
+  public static final ArtifactType ToscaGenerator = forCode("TG");
+  public static final ArtifactType ToscaSchema = forCode("TS");
+  public static final ArtifactType ToscaTranslate = forCode("TT");
+  public static final ArtifactType ProtobufFile = forCode("PJ");
 
 
 	public static ArtifactType forCode(String theCode) {
