@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -20,9 +20,7 @@
 
 package org.acumos.federation.gateway.service.impl;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,12 +32,13 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPCatalog;
 import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.federation.gateway.cds.Artifact;
+import org.acumos.federation.gateway.cds.Catalog;
 import org.acumos.federation.gateway.cds.Document;
-import org.acumos.federation.gateway.cds.Mapper;
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
 import org.acumos.federation.gateway.service.CatalogService;
@@ -49,10 +48,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectReader;
 
 /**
  * 
@@ -64,23 +62,18 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+	private Resource catalogresource;
+	private List<Catalog> catalogs;
 	private List<Solution> solutions;
+
+	public void setCatalogs(String theCatalogs) {
+		this.catalogresource = appCtx.getResource(theCatalogs);
+	}
 
 	@PostConstruct
 	public void initService() {
-
-		checkResource();
-		try {
-			watcher.watchOn(this.resource.getURL().toURI(), (uri) -> {
-				loadSolutionsCatalogInfo();
-			});
-
-		} catch (IOException | URISyntaxException iox) {
-			log.info("Catalog watcher registration failed for " + this.resource, iox);
-		}
-
-		loadSolutionsCatalogInfo();
-
+		monitor(Solution.class, resource, (solns) -> this.solutions = solns, "solutions");
+		monitor(Catalog.class, catalogresource, (cats) -> this.catalogs = cats, "catalogs");
 		// Done
 		log.debug("Local CatalogService available");
 	}
@@ -89,19 +82,10 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	public void cleanupService() {
 	}
 
-	/** */
-	private void loadSolutionsCatalogInfo() {
-		synchronized (this) {
-			try {
- 				ObjectReader objectReader = Mapper.build()
-																			.reader(Solution.class);
-				MappingIterator objectIterator = objectReader.readValues(this.resource.getURL());
-				this.solutions = objectIterator.readAll();
-				log.info("loaded " + this.solutions.size() + " solutions");
-			} catch (Exception x) {
-				throw new BeanInitializationException("Failed to load solutions catalog from " + this.resource, x);
-			}
-		}
+	@Override
+	public List<MLPCatalog> getCatalogs(ServiceContext theContext) throws ServiceException {
+		log.debug("getCatalogs()");
+		return new ArrayList<MLPCatalog>(catalogs);
 	}
 
 	@Override

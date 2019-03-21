@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -60,36 +60,9 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	@PostConstruct
 	public void initPeerService() {
 		log.debug("init local peer info service");
-		checkResource();
-		try {
-			watcher.watchOn(this.resource.getURL().toURI(), (uri) -> {
-				loadPeersSubscriptionsInfo();
-			});
-		} catch (IOException | URISyntaxException iox) {
-			log.info("Peers subscriptions watcher registration failed for " + this.resource, iox);
-		}
-
-		loadPeersSubscriptionsInfo();
-
+		monitor(FLPPeer.class, resource, (prs) -> this.peers = prs, "peers");
 		// Done
 		log.debug("Local PeerService available");
-	}
-
-	private void loadPeersSubscriptionsInfo() {
-		log.info("Loading peers subscriptions from " + this.resource);
-		synchronized (this) {
-			try {
-				ObjectReader objectReader = new ObjectMapper()
-																					.registerModule(new JavaTimeModule())
-																					.reader(FLPPeer.class);
-				MappingIterator objectIterator = objectReader.readValues(this.resource.getURL());
-				this.peers = objectIterator.readAll();
-				log.info("loaded " + this.peers.size() + " peers");
-			}
-			catch (Exception x) {
-				throw new BeanInitializationException("Failed to load solutions catalog from " + this.resource, x);
-			}
-		}
 	}
 
 	@PreDestroy

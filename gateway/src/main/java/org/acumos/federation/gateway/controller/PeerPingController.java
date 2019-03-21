@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -26,12 +26,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.common.API;
-import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.service.PeerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -48,12 +45,6 @@ public class PeerPingController extends AbstractController {
 
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-	@Autowired
-	private Clients	clients;
-	@Autowired
-	private PeerService peerService;
-	
-
 	/**
 	 * Allows local components to ping a peer.
 	 * @param theHttpResponse
@@ -67,33 +58,9 @@ public class PeerPingController extends AbstractController {
 	@RequestMapping(value = { API.Paths.PING }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<MLPPeer> ping(
-			/* HttpServletRequest theHttpRequest, */
-			HttpServletResponse theHttpResponse,
-			@PathVariable("peerId") String thePeerId) {
-
-		JsonResponse<MLPPeer> response = new JsonResponse<MLPPeer>();
+	    HttpServletResponse theHttpResponse,
+	    @PathVariable("peerId") String thePeerId) {
 		log.debug(API.Roots.LOCAL + "" + API.Paths.PING);
-		try {
-			MLPPeer peer = this.peerService.getPeerById(thePeerId);
-			if (peer == null) {
-				response = JsonResponse.<MLPPeer> buildErrorResponse()
-																 .withMessage("No peer with id " + thePeerId + " found.")
-																 .build();
-				theHttpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			}
-			else {
-				response = this.clients.getFederationClient(peer.getApiUrl()).ping();
-				theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-			}
-		} 
-		catch (Exception x) {
-			response = JsonResponse.<MLPPeer> buildErrorResponse()
-														 .withError(x)
-														 .build();
-			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error("Exception occurred during peer ping", x);
-		}
-		return response;
+		return callPeer("ping", theHttpResponse, thePeerId, peer -> peer.ping());
 	}
-
 }

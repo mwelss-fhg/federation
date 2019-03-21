@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -38,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -58,19 +60,7 @@ public class CodeNamesServiceLocalImpl extends AbstractServiceLocalImpl implemen
 
 	@PostConstruct
 	public void initService() {
-
-		checkResource();
-		try {
-			watcher.watchOn(this.resource.getURL().toURI(), (uri) -> {
-				loadCodeNamesInfo();
-			});
-
-		} catch (IOException | URISyntaxException iox) {
-			log.info("Code names watcher registration failed for " + this.resource, iox);
-		}
-
-		loadCodeNamesInfo();
-
+		monitor(Object.class, resource, null, "codes");
 		// Done
 		log.debug("Local CodeNamesService available");
 	}
@@ -79,17 +69,16 @@ public class CodeNamesServiceLocalImpl extends AbstractServiceLocalImpl implemen
 	public void cleanupService() {
 	}
 
-	/** */
-	private void loadCodeNamesInfo() {
+	@Override
+	protected synchronized <T> void reload(Class<T> clazz, Resource resource, Consumer<List<T>> setter, String label) {
 		synchronized (this) {
 			try {
- 				ObjectMapper mapper = new ObjectMapper()
-																			.registerModule(new JavaTimeModule());
+ 				ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 				this.codes = mapper.readValue(this.resource.getURL(), new TypeReference<Map<CodeNameType, List<MLPCodeNamePair>>>(){});
-				log.info("loaded " + this.codes.size() + " codes");
+				log.info("loaded {} {}", this.codes.size(), label);
 			}
 			catch (Exception x) {
-				throw new BeanInitializationException("Failed to load codes from " + this.resource, x);
+				throw new BeanInitializationException("Failed to load " + label + " from " + resource, x);
 			}
 		}
 	}

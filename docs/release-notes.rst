@@ -1,7 +1,7 @@
 .. ===============LICENSE_START=======================================================
 .. Acumos CC-BY-4.0
 .. ===================================================================================
-.. Copyright (C) 2017-2018 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+.. Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
 .. ===================================================================================
 .. This Acumos documentation file is distributed by AT&T and Tech Mahindra
 .. under the Creative Commons Attribution 4.0 International License (the "License");
@@ -23,9 +23,12 @@ Federation Gateway Release Notes
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 The image name is "federation-gateway" and the tag is a version string as shown below. 
 
-Version 2.1.2, 2019-03-15
+Version 2.1.2, 2019-03-21
 -------------------------
 * Add JUnit test cases to reach 50% or better code coverage (`ACUMOS-2584 <https://jira.acumos.org/browse/ACUMOS-2584>`_)
+* Add API to list remote catalogs to support subscribing (`ACUMOS-2575 <https://jira.acumos.org/browse/ACUMOS-2575>`_)
+  API to list catalogs is /catalogs
+* Refactor code to avoid duplication related to implementing listing remote catalogs.
 
 Version 2.1.1, 2019-03-07
 -------------------------

@@ -33,6 +33,7 @@ import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
+import org.acumos.federation.gateway.cds.Catalog;
 import org.acumos.federation.gateway.common.JsonResponse;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
 import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
@@ -77,6 +78,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 									"codes-local.source=classpath:test-codes.json",
 									"peers-local.source=classpath:test-peers.json",
 									"catalog-local.source=classpath:test-catalog.json",
+									"catalog-local.catalogs=classpath:test-catalogs.json",
 									"federation.ssl.key-store=classpath:acumosa.pkcs12",
 									"federation.ssl.key-store-password=acumosa",
 									"federation.ssl.key-store-type=PKCS12",
@@ -138,6 +140,15 @@ public class ControllerTest {
 		assertGoodResponse("testPing", response);
 	}
 
+	@Test
+	public void testCatalogs() {
+		setClient(PEERID);
+
+		ResponseEntity<JsonResponse<List<Catalog>>> response =
+			this.restTemplate.exchange("https://localhost:" + this.port + "/catalogs", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<Catalog>>>() {});
+		
+		assertGoodResponseWith("testCatalogs", response, content -> content.size() == 2 && ((Catalog)content.get(0)).getSize() == 2);
+	}
 	@Test
 	public void testSolutions() {
 		setClient(PEERID);

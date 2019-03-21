@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Scanner;
 
+import org.acumos.cds.domain.MLPCatalog;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.federation.gateway.common.API;
@@ -108,6 +109,7 @@ import org.springframework.web.client.RestTemplate;
 									"codes-local.source=classpath:test-codes.json",
 									"peers-local.source=classpath:test-peers.json",
 									"catalog-local.source=classpath:test-catalog.json",
+									"catalog-local.catalogs=classpath:test-catalogs.json",
 									"federation.server.port=${random.int[49152,65535]}",
 									"federation.ssl.key-store=classpath:acumosa.pkcs12",
 									"federation.ssl.key-store-password=acumosa",
@@ -165,6 +167,7 @@ public class LocalControllerTest {
 		MockitoAnnotations.initMocks(this);
 
 		peerAnswer
+			.mockResponse(info -> info.getPath().equals("/catalogs"), MockResponse.success("mockPeerCatalogsResponse.json"))
 			.mockResponse(info -> info.getPath().equals("/solutions"), MockResponse.success("mockPeerSolutionsResponse.json"))
 			.mockResponse(info -> info.getPath().contains("/solutions/") && !info.getPath().contains("/revisions"), MockResponse.success("mockPeerSolutionResponse.json"))
 			.mockResponse(info -> info.getPath().endsWith("/revisions"), MockResponse.success("mockPeerSolutionRevisionsResponse.json"))
@@ -222,6 +225,17 @@ public class LocalControllerTest {
 		} catch (HttpStatusCodeException httpx) {
 			assertEquals(code, httpx.getStatusCode().value());
 		}
+	}
+
+	@Test
+	public void testPeerCatalogs() {
+		String url = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111111/catalogs";
+
+		log.info("testPeerCatalogs: {}", url);
+		ResponseEntity<JsonResponse<List<MLPCatalog>>> response =
+			this.restTemplate.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPCatalog>>>() {});
+		
+		assertGoodResponseWith("testPeerCatalogs", response, content -> content.size() == 2);
 	}
 
 	@Test
@@ -295,9 +309,9 @@ public class LocalControllerTest {
 		String badpeer = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111112";
 	
 		verifyFail(badpeer + "/ping", HttpMethod.GET, new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {}, 404);
-		verifyFail(badpeer + "/peers", HttpMethod.GET, new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {}, 500);
-		verifyFail(badpeer + "/solutions?selector=e30K", HttpMethod.GET, new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {}, 500);
-		verifyFail(badpeer + "/solutions/00000000-0000-0000-0000-000000000000", HttpMethod.GET, new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {}, 500);
+		verifyFail(badpeer + "/peers", HttpMethod.GET, new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {}, 404);
+		verifyFail(badpeer + "/solutions?selector=e30K", HttpMethod.GET, new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {}, 404);
+		verifyFail(badpeer + "/solutions/00000000-0000-0000-0000-000000000000", HttpMethod.GET, new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {}, 404);
 	}
 
 	@Test

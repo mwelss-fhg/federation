@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -20,16 +20,38 @@
 
 package org.acumos.federation.gateway.controller;
 
+import java.lang.invoke.MethodHandles;
+import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+
+import org.acumos.cds.domain.MLPPeer;
+
+import org.acumos.federation.gateway.common.Clients;
+import org.acumos.federation.gateway.common.FederationClient;
+import org.acumos.federation.gateway.common.JsonResponse;
+import org.acumos.federation.gateway.service.PeerService;
 
 
-/**
- * 
- *
- */
 public abstract class AbstractController {
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-	protected static final String APPLICATION_JSON = "application/json";
+	@FunctionalInterface
+	protected interface ThrowingFunction<T, R> {
+		R apply(T t) throws Exception;
+	}
+
+	@Autowired
+	protected Clients clients;
+	@Autowired
+	protected PeerService peerService;
+
+	protected static final String APPLICATION_JSON = MediaType.APPLICATION_JSON_UTF8_VALUE;
+	protected static final String APPLICATION_OCTET_STREAM = MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
 	protected final ObjectMapper mapper;
 
@@ -37,4 +59,29 @@ public abstract class AbstractController {
 		mapper = new ObjectMapper();
 	}
 
+	/**
+	 * Handle common aspects of forwarding a local request to a peer Acumos.
+	 * @param opname the name of the operation to perform
+	 * @param response the HTTP response for setting error codes
+	 * @param peerId the ID of the remote peer to call
+	 * @param fcn the operation to invoke on the remote peer
+	 */
+	protected <T> JsonResponse<T> callPeer(String opname, HttpServletResponse response, String peerId, ThrowingFunction<FederationClient, JsonResponse<T>> fcn) {
+		try {
+			MLPPeer peer = peerService.getPeerById(peerId);
+			if (peer == null) {
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+				return JsonResponse.<T>buildErrorResponse()
+				    .withMessage("No peer with id " + peerId + " found.")
+				    .build();
+			}
+			JsonResponse<T> ret = fcn.apply(clients.getFederationClient(peer.getApiUrl()));
+			response.setStatus(HttpServletResponse.SC_OK);
+			return ret;
+		} catch (Exception x) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			log.error("Exception occurred during peer " + peerId + " " + opname, x);
+			return JsonResponse.<T>buildErrorResponse().withError(x).build();
+		}
+	}
 }

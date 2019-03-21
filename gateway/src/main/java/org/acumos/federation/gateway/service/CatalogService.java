@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -27,10 +27,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPCatalog;
 import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.federation.gateway.cds.Artifact;
+import org.acumos.federation.gateway.cds.Catalog;
 import org.acumos.federation.gateway.cds.Document;
 import org.acumos.federation.gateway.cds.Solution;
 import org.acumos.federation.gateway.cds.SolutionRevision;
@@ -44,6 +46,29 @@ import org.acumos.federation.gateway.cds.SolutionRevision;
  * executed only accesses solutions it was granted access to.
  */
 public interface CatalogService {
+
+	/**
+	 * API to be invoked by Peer Acumos to fetch the list of visible Catalogs.
+	 *
+	 * @param theContext
+	 *            the execution context.
+	 *
+	 * @return List of visible Catalogs.
+	 *
+	 * @throws ServiceException if an error is encountered during processing
+	 */
+	public List<MLPCatalog> getCatalogs(ServiceContext theContext) throws ServiceException;
+
+	/**
+	 * Default interface for calls in behalf of the local Acumos service.
+	 *
+	 * @return List of the visible Catalogs
+	 *
+	 * @throws ServiceException if an error is encoutered during processing
+	 */
+	public default List<MLPCatalog> getCatalogs() throws ServiceException {
+		return getCatalogs(selfService());
+	}
 
 	/**
 	 * API to be invoked by Peer Acumos to fetch the Catalog Solutions List.

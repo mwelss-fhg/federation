@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,10 @@
 package org.acumos.federation.gateway.common;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.util.UriComponentsBuilder;
@@ -41,6 +44,7 @@ public enum API {
 	SOLUTION_REVISION_DOCUMENTS(Paths.SOLUTION_REVISION_DOCUMENTS),
 	DOCUMENT_DETAILS(Paths.DOCUMENT_DETAILS),
 	DOCUMENT_CONTENT(Paths.DOCUMENT_CONTENT),
+	CATALOGS(Paths.CATALOGS),
 	PEERS(Paths.PEERS),
 	SUBSCRIPTION(Paths.SUBSCRIPTION),
 	PING(Paths.PING),
@@ -53,9 +57,9 @@ public enum API {
 		this.path = thePath;
 	}
 
-	API(String thePath, String[] theQueryParams) {
+	API(String thePath, List<String> theQueryParams) {
 		this.path = thePath;
-		this.query = theQueryParams;
+		this.query = theQueryParams.toArray(new String[theQueryParams.size()]);
 	}
 
 	public String path() {
@@ -169,6 +173,7 @@ public enum API {
 
 		public static final String SUBSCRIPTION = "/subscription/{subscriptionId}";
 
+		public static final String CATALOGS = "/catalogs";
 		public static final String PEERS = "/peers";
 		public static final String PING = "/ping";
 
@@ -183,6 +188,6 @@ public enum API {
 
 	public static interface Queries {
 
-		public static final String[] SOLUTIONS = { QueryParameters.SOLUTIONS_SELECTOR };
+		public static final List<String> SOLUTIONS = Collections.unmodifiableList(Arrays.asList(new String[] { QueryParameters.SOLUTIONS_SELECTOR }));
 	}
 }

@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPCatalog;
 import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
@@ -47,7 +48,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Base64Utils;
@@ -79,15 +79,48 @@ public class CatalogController extends AbstractController {
 	 * @param theHttpRequest Request
 	 * @param theHttpResponse
 	 *            HttpServletResponse
+	 * @return List of Catalogs in JSON format.
+	 */
+	@CrossOrigin
+	@PreAuthorize("isActive && hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).CATALOG_ACCESS)")
+	@ApiOperation(value = "Invoked by Peer Acumos to get a list of visible Catalogs from the local Acumos Instance .", response = MLPCatalog.class, responseContainer = "List")
+	@RequestMapping(value = { API.Paths.CATALOGS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@ResponseBody
+	public JsonResponse<List<MLPCatalog>> getCatalogs(HttpServletRequest theHttpRequest, HttpServletResponse theHttpResponse) {
+		JsonResponse<List<MLPCatalog>> response = null;
+		List<MLPCatalog> catalogs = null;
+		log.debug(API.Paths.CATALOGS);
+		try {
+			log.debug("getCatalogs");
+			catalogs = catalogService.getCatalogs(new ControllerContext());
+			response = JsonResponse.<List<MLPCatalog>> buildResponse()
+														.withMessage("available catalogs")
+														.withContent(catalogs)
+														.build();
+			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
+			log.debug("getCatalogs: provided {} catalogs", catalogs == null ? 0 : catalogs.size());
+		} catch (Throwable x) {
+			response = JsonResponse.<List<MLPCatalog>> buildErrorResponse()
+														 .withError(x)
+														 .build();
+			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			log.error("Exception occurred while fetching catalogs", x);
+		}
+		return response;
+	}
+
+	/**
+	 * @param theHttpRequest Request
+	 * @param theHttpResponse
+	 *            HttpServletResponse
 	 * @param theSelector
 	 *            Solutions selector
 	 * @return List of Published ML Solutions in JSON format.
 	 */
 	@CrossOrigin
-	// @PreAuthorize("hasAuthority('PEER')"
 	@PreAuthorize("isActive && hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).CATALOG_ACCESS)")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of Published Solutions from the Catalog of the local Acumos Instance .", response = MLPSolution.class, responseContainer = "List")
-	@RequestMapping(value = { API.Paths.SOLUTIONS }, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@RequestMapping(value = { API.Paths.SOLUTIONS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<List<MLPSolution>> getSolutions(
 			HttpServletRequest theHttpRequest,
@@ -284,8 +317,7 @@ public class CatalogController extends AbstractController {
 	@CrossOrigin
 	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of solution revision artifacts from the local Acumos Instance .", response = MLPArtifact.class, responseContainer = "List")
-	@RequestMapping(value = {
-			API.Paths.SOLUTION_REVISION_ARTIFACTS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@RequestMapping(value = { API.Paths.SOLUTION_REVISION_ARTIFACTS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<List<MLPArtifact>> getSolutionRevisionArtifacts(
 			HttpServletRequest theHttpRequest, HttpServletResponse theHttpResponse,
@@ -341,8 +373,7 @@ public class CatalogController extends AbstractController {
 	@CrossOrigin
 	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of solution revision public documents from the local Acumos Instance .", response = MLPArtifact.class, responseContainer = "List")
-	@RequestMapping(value = {
-			API.Paths.SOLUTION_REVISION_DOCUMENTS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
+	@RequestMapping(value = { API.Paths.SOLUTION_REVISION_DOCUMENTS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<List<MLPDocument>> getSolutionRevisionDocuments(
 			HttpServletRequest theHttpRequest, HttpServletResponse theHttpResponse,
@@ -401,8 +432,7 @@ public class CatalogController extends AbstractController {
 	@CrossOrigin
 	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "API to download artifact content", response = Resource.class, code = 200)
-	@RequestMapping(value = {
-			API.Paths.ARTIFACT_CONTENT }, method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+	@RequestMapping(value = { API.Paths.ARTIFACT_CONTENT }, method = RequestMethod.GET, produces = APPLICATION_OCTET_STREAM)
 	@ResponseBody
 	public Callable<Resource> getArtifactContent(HttpServletRequest theHttpRequest,
 			HttpServletResponse theHttpResponse, @PathVariable("solutionId") String theSolutionId,
@@ -444,8 +474,7 @@ public class CatalogController extends AbstractController {
 	@CrossOrigin
 	@PreAuthorize("isActive && hasAuthority('CATALOG_ACCESS')")
 	@ApiOperation(value = "API to download a documents' content", response = Resource.class, code = 200)
-	@RequestMapping(value = {
-			API.Paths.DOCUMENT_CONTENT }, method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+	@RequestMapping(value = { API.Paths.DOCUMENT_CONTENT }, method = RequestMethod.GET, produces = APPLICATION_OCTET_STREAM)
 	@ResponseBody
 	public Callable<Resource> getDocumentContent(HttpServletRequest theHttpRequest,
 			HttpServletResponse theHttpResponse, @PathVariable("solutionId") String theSolutionId,

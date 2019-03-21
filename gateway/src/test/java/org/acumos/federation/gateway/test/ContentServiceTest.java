@@ -85,6 +85,7 @@ import org.acumos.federation.gateway.cds.Document;
 	"codes-local.source=classpath:test-codes.json",
 	"peers-local.source=classpath:test-peers.json",
 	"catalog-local.source=classpath:test-catalog.json",
+	"catalog-local.catalogs=classpath:test-catalogs.json",
 	"federation.ssl.key-store=classpath:acumosa.pkcs12",
 	"federation.ssl.key-store-password=acumosa",
 	"federation.ssl.key-store-type=PKCS12",

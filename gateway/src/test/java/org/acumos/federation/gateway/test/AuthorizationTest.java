@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -76,6 +76,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 									"codes-local.source=classpath:test-codes.json",
 									"peers-local.source=classpath:test-peers.json",
 									"catalog-local.source=classpath:test-catalog.json",
+									"catalog-local.catalogs=classpath:test-catalogs.json",
 									"federation.ssl.key-store=classpath:acumosa.pkcs12",
 									"federation.ssl.key-store-password=acumosa",
 									"federation.ssl.key-store-type=PKCS12",

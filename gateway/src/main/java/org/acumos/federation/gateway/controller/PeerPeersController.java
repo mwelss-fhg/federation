@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -27,12 +27,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.common.API;
-import org.acumos.federation.gateway.common.Clients;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.service.PeerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -49,12 +46,6 @@ public class PeerPeersController extends AbstractController {
 
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-	@Autowired
-	private Clients	clients;
-	@Autowired
-	private PeerService peerService;
-	
-
 	/**
 	 * Allows local components to ping a peer.
 	 * @param theHttpResponse
@@ -68,26 +59,11 @@ public class PeerPeersController extends AbstractController {
 	@RequestMapping(value = { API.Paths.PEERS }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
 	public JsonResponse<List<MLPPeer>> getPeers(
-			/* HttpServletRequest theHttpRequest, */
-			HttpServletResponse theHttpResponse,
-			@PathVariable("peerId") String thePeerId) {
+	    HttpServletResponse theHttpResponse,
+	    @PathVariable("peerId") String thePeerId) {
 
-		JsonResponse<List<MLPPeer>> response = new JsonResponse<List<MLPPeer>>();
 		log.debug(API.Roots.LOCAL + "" + API.Paths.PEERS);
-		try {
-			MLPPeer peer = this.peerService.getPeerById(thePeerId);
-			response = this.clients.getFederationClient(peer.getApiUrl()).getPeers();
-
-			theHttpResponse.setStatus(HttpServletResponse.SC_OK);
-		} 
-		catch (Exception x) {
-			response = JsonResponse.<List<MLPPeer>> buildErrorResponse()
-														 .withError(x)
-														 .build();
-			theHttpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			log.error("Exception occurred during peer " + thePeerId + " getPeers", x);
-		}
-		return response;
+		return callPeer("getPeers", theHttpResponse, thePeerId, peer -> peer.getPeers());
 	}
 
 }

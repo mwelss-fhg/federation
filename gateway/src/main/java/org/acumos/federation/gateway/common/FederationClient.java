@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -28,8 +28,10 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.acumos.cds.domain.MLPArtifact;
+import org.acumos.cds.domain.MLPCatalog;
 import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
@@ -79,61 +81,38 @@ public class FederationClient extends AbstractClient {
 		super(theTarget, theClient, theMapper);
 		this.client = theClient;
 	}
-
 	/**
 	 * @return Ping information from/for Remote Acumos
 	 * @throws FederationException
 	 *             Throws FederationException if remote acumos interaction has failed.
 	 */
-	public JsonResponse<MLPPeer> ping()
-			throws FederationException {
-		URI uri = API.PING.buildUri(this.baseUrl);
-		log.info("Query for " + uri);
-		ResponseEntity<JsonResponse<MLPPeer>> response = null;
-		try {
-			response = restTemplate.exchange(uri, HttpMethod.GET, null,
-					new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {
-					});
-		}
-		catch (HttpStatusCodeException scx) {
-			log.error(uri + " failed", scx);
-			throw new PeerException(uri, scx);
-		}
-		catch (Throwable t) {
-			log.error(uri + " unexpected failure.", t);
-			throw new FederationException(uri, t);
-		}
-		finally {
-			log.info(uri + " response " + response);
-		}
-		return response.getBody();
+	public JsonResponse<MLPPeer> ping() throws FederationException {
+		return handle(
+		    API.PING.buildUri(this.baseUrl),
+		    new ParameterizedTypeReference<JsonResponse<MLPPeer>>(){});
 	}
 
 	public JsonResponse<List<MLPPeer>> getPeers()
 			throws FederationException {
-		URI uri = API.PEERS.buildUri(this.baseUrl);
-		log.info("Query for " + uri);
-		ResponseEntity<JsonResponse<List<MLPPeer>>> response = null;
-		try {
-			response = restTemplate.exchange(uri, HttpMethod.GET, null,
-					new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {
-					});
-		}
-		catch (HttpStatusCodeException scx) {
-			log.error(uri + " failed", scx);
-			throw new PeerException(uri, scx);
-		}
-		catch (Throwable t) {
-			log.error(uri + " unexpected failure.", t);
-			throw new FederationException(uri, t);
-		}
-		finally {
-			log.info(uri + " response " + response);
-		}
-		return response.getBody();
+		return handle(
+		    API.PEERS.buildUri(this.baseUrl),
+		    new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>(){});
 	}	
 
 
+	/**
+	 * List catalogs in the remote Acumos.
+	 *
+	 * @return List of MLPCatalogs from remote Acumos.
+	 *
+	 * @throws FederationException
+	 *             If remote acumos is not available
+	 */
+	public JsonResponse<List<MLPCatalog>> getCatalogs() throws FederationException {
+		return handle(
+		    API.CATALOGS.buildUri(this.baseUrl),
+		    new ParameterizedTypeReference<JsonResponse<List<MLPCatalog>>>(){});
+	}
 	/**
 	 * 
 	 * @param theSelection
@@ -150,7 +129,6 @@ public class FederationClient extends AbstractClient {
 		try {
 			log.info("getSolutions selector {}", Utils.mapToJsonString(theSelection));
 			selectorParam = theSelection == null ? null
-					// : UriUtils.encodeQueryParam(Utils.mapToJsonString(theSelection),"UTF-8");
 					: Base64Utils.encodeToString(Utils.mapToJsonString(theSelection).getBytes("UTF-8"));
 			log.info("getSolutions encoded selector {}", selectorParam);
 		}
@@ -158,27 +136,8 @@ public class FederationClient extends AbstractClient {
 			throw new IllegalArgumentException("Cannot process the selection argument", x);
 		}
 
-		URI uri = API.SOLUTIONS.buildUri(this.baseUrl, selectorParam == null ? Collections.EMPTY_MAP
-				: Collections.singletonMap(API.QueryParameters.SOLUTIONS_SELECTOR, selectorParam));
-		log.info("Query for " + uri);
-		ResponseEntity<JsonResponse<List<MLPSolution>>> response = null;
-		try {
-			response = restTemplate.exchange(uri, HttpMethod.GET, null,
-					new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {
-					});
-		}
-		catch (HttpStatusCodeException scx) {
-			log.error(uri + " failed", scx);
-			throw new PeerException(uri, scx);
-		}
-		catch (Throwable t) {
-			log.error(uri + " unexpected failure.", t);
-			throw new FederationException(uri, t);
-		}
-		finally {
-			log.info(uri + " response " + response);
-		}
-		return response.getBody();
+		URI uri = API.SOLUTIONS.buildUri(this.baseUrl, selectorParam == null ? Collections.EMPTY_MAP : Collections.singletonMap(API.QueryParameters.SOLUTIONS_SELECTOR, selectorParam));
+		return handle(uri, new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 	}
 
 	/**
@@ -190,26 +149,9 @@ public class FederationClient extends AbstractClient {
 	public JsonResponse<MLPSolution> getSolution(String theSolutionId)
 			throws FederationException {
 
-		URI uri = API.SOLUTION_DETAIL.buildUri(this.baseUrl, theSolutionId);
-		log.info("Query for " + uri);
-		ResponseEntity<JsonResponse<MLPSolution>> response = null;
-		try {
-			response = restTemplate.exchange(uri, HttpMethod.GET, null,
-					new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {
-					});
-		}
-		catch (HttpStatusCodeException scx) {
-			log.error(uri + " failed", scx);
-			throw new PeerException(uri, scx);
-		}
-		catch (Throwable t) {
-			log.error(uri + " unexpected failure.", t);
-			throw new FederationException(uri, t);
-		}
-		finally {
-			log.info(uri + " response " + response);
-		}
-		return response.getBody();
+		return handle(
+		    API.SOLUTION_DETAIL.buildUri(this.baseUrl, theSolutionId),
+		    new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {});
 	}
 
 	/**
@@ -222,26 +164,9 @@ public class FederationClient extends AbstractClient {
 	public JsonResponse<List<MLPSolutionRevision>> getSolutionRevisions(String theSolutionId)
 			throws FederationException {
 
-		URI uri = API.SOLUTION_REVISIONS.buildUri(this.baseUrl, theSolutionId);
-		log.info("Query for " + uri);
-		ResponseEntity<JsonResponse<List<MLPSolutionRevision>>> response = null;
-		try {
-			response = restTemplate.exchange(uri, HttpMethod.GET, null,
-					new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {
-					});
-		}
-		catch (HttpStatusCodeException scx) {
-			log.error(uri + " failed", scx);
-			throw new PeerException(uri, scx);
-		}
-		catch (Throwable t) {
-			log.info(uri + " unexpected failure.", t);
-			throw new FederationException(uri, t);
-		}
-		finally {
-			log.info(uri + " response " + response);
-		}
-		return response.getBody();
+		return handle(
+		    API.SOLUTION_REVISIONS.buildUri(this.baseUrl, theSolutionId),
+		    new ParameterizedTypeReference<JsonResponse<List<MLPSolutionRevision>>>() {});
 	}
 
 	/**
@@ -256,26 +181,9 @@ public class FederationClient extends AbstractClient {
 	public JsonResponse<MLPSolutionRevision> getSolutionRevision(String theSolutionId, String theRevisionId)
 			throws FederationException {
 
-		URI uri = API.SOLUTION_REVISION_DETAILS.buildUri(this.baseUrl, theSolutionId, theRevisionId);
-		log.info("Query for " + uri);
-		ResponseEntity<JsonResponse<MLPSolutionRevision>> response = null;
-		try {
-			response = restTemplate.exchange(uri, HttpMethod.GET, null,
-					new ParameterizedTypeReference<JsonResponse<MLPSolutionRevision>>() {
-					});
-		}
-		catch (HttpStatusCodeException scx) {
-			log.error(uri + " failed", scx);
-			throw new PeerException(uri, scx);
-		}
-		catch (Throwable t) {
-			log.info(uri + " unexpected failure.", t);
-			throw new FederationException(uri, t);
-		}
-		finally {
-			log.info(uri + " response " + response);
-		}
-		return response.getBody();
+		return handle(
+		     API.SOLUTION_REVISION_DETAILS.buildUri(this.baseUrl, theSolutionId, theRevisionId),
+		     new ParameterizedTypeReference<JsonResponse<MLPSolutionRevision>>() {});
 	}
 
 	/**
@@ -288,28 +196,10 @@ public class FederationClient extends AbstractClient {
 	 * @throws FederationException
 	 *             if remote acumos is not available
 	 */
-	public JsonResponse<List<MLPArtifact>> getArtifacts(String theSolutionId, String theRevisionId)
-			throws FederationException {
-		URI uri = API.SOLUTION_REVISION_ARTIFACTS.buildUri(this.baseUrl, theSolutionId, theRevisionId);
-		log.info("Query for " + uri);
-		ResponseEntity<JsonResponse<List<MLPArtifact>>> response = null;
-		try {
-			response = restTemplate.exchange(uri, HttpMethod.GET, null,
-					new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {
-					});
-		}
-		catch (HttpStatusCodeException scx) {
-			log.error(uri + " failed", scx);
-			throw new PeerException(uri, scx);
-		}
-		catch (Throwable t) {
-			log.error(uri + " unexpected failure.", t);
-			throw new FederationException(uri, t);
-		}
-		finally {
-			log.info(uri + " response " + response);
-		}
-		return response.getBody();
+	public JsonResponse<List<MLPArtifact>> getArtifacts(String theSolutionId, String theRevisionId) throws FederationException {
+		return handle(
+		    API.SOLUTION_REVISION_ARTIFACTS.buildUri(this.baseUrl, theSolutionId, theRevisionId),
+		    new ParameterizedTypeReference<JsonResponse<List<MLPArtifact>>>() {});
 	}
 
 	/**
@@ -322,8 +212,7 @@ public class FederationClient extends AbstractClient {
 	 * @return Resource
 	 * @throws FederationException On failure
 	 */
-	public Resource getArtifactContent(String theSolutionId, String theRevisionId, String theArtifactId)
-																																											throws FederationException {
+	public Resource getArtifactContent(String theSolutionId, String theRevisionId, String theArtifactId) throws FederationException {
 		return download2(API.ARTIFACT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theArtifactId));
 	}
 
@@ -337,28 +226,10 @@ public class FederationClient extends AbstractClient {
 	 * @throws FederationException
 	 *             if remote acumos is not available
 	 */
-	public JsonResponse<List<MLPDocument>> getDocuments(String theSolutionId, String theRevisionId)
-			throws FederationException {
-		URI uri = API.SOLUTION_REVISION_DOCUMENTS.buildUri(this.baseUrl, theSolutionId, theRevisionId);
-		log.info("Query for " + uri);
-		ResponseEntity<JsonResponse<List<MLPDocument>>> response = null;
-		try {
-			response = restTemplate.exchange(uri, HttpMethod.GET, null,
-					new ParameterizedTypeReference<JsonResponse<List<MLPDocument>>>() {
-					});
-		}
-		catch (HttpStatusCodeException scx) {
-			log.error(uri + " failed", scx);
-			throw new PeerException(uri, scx);
-		}
-		catch (Throwable t) {
-			log.error(uri + " unexpected failure.", t);
-			throw new FederationException(uri, t);
-		}
-		finally {
-			log.info(uri + " response " + response);
-		}
-		return response == null ? null : response.getBody();
+	public JsonResponse<List<MLPDocument>> getDocuments(String theSolutionId, String theRevisionId) throws FederationException {
+		return handle(
+		    API.SOLUTION_REVISION_DOCUMENTS.buildUri(this.baseUrl, theSolutionId, theRevisionId),
+		    new ParameterizedTypeReference<JsonResponse<List<MLPDocument>>>() {});
 	}
 
 	/**
@@ -372,37 +243,63 @@ public class FederationClient extends AbstractClient {
 	 * @throws FederationException
 	 *             On failure
 	 */
-	public Resource getDocumentContent(String theSolutionId, String theRevisionId, String theDocumentId)
-																																										throws FederationException {
+	public Resource getDocumentContent(String theSolutionId, String theRevisionId, String theDocumentId) throws FederationException {
 		return download2(API.DOCUMENT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theDocumentId));
 	}
 
-	protected Resource download(URI theUri) throws FederationException {
-		log.info("Query for download {}", theUri);
-		ResponseEntity<Resource> response = null;
-		RequestEntity<Void> request = RequestEntity
-																	.get(theUri)
-																	.accept(MediaType.ALL)
-																	.build();
-		try {
-			response = restTemplate.exchange(request, Resource.class);
-		}
-		catch (HttpStatusCodeException scx) {
-			log.error(theUri + " failed", scx);
-			throw new PeerException(theUri, scx);
-		}
-		catch (Throwable t) {
-			log.error(theUri + " unexpected failure.", t);
-			throw new FederationException(theUri, t);
-		}
-		finally {
-			log.info(theUri + " response " + response);
-		}
+	/**
+	 * @param theSelf self
+	 * @return Register self with the peer this client points to.
+	 * @throws FederationException
+	 *             if remote acumos is not available
+	 */
+	public JsonResponse<MLPPeer> register(MLPPeer theSelf) throws FederationException {
+		return handle(
+		    API.PEER_REGISTER.buildUri(this.baseUrl),
+		    new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {});
+	}	
 
-		return response.getBody();
+	/**
+	 * Handle errors when making requests to remote Acumos.
+	 * @param uri the URI on the remote Acumos
+	 * @param fcn the function to make the remote call
+	 * @return the body of the response from the remote call
+	 * @throws FederationException if remote acumos is not available
+	 */
+	private <T> T handle(URI uri, Supplier<ResponseEntity<T>> fcn) throws FederationException {
+		try {
+			log.info("Query for {}", uri);
+			ResponseEntity<T> response = fcn.get();
+			log.debug("{} response {}", uri, response);
+			return response == null? null: response.getBody();
+		} catch (HttpStatusCodeException scx) {
+			log.error(uri + " failed", scx);
+			throw new PeerException(uri, scx);
+		} catch (Throwable t) {
+			log.error(uri + " unexpected failure.", t);
+			throw new FederationException(uri, t);
+		}
 	}
 
 	/**
+	 * Handle common part of making most requests to remote Acumos.
+	 * @param uri the URI on the remote Acumos
+	 * @param type parameterized type reference for parsing return type
+	 * @return the body of the response from the remote call
+	 * @throws FederationException if remote acumos is not available
+	 */
+	private <T> T handle(URI uri, ParameterizedTypeReference<T> type) throws FederationException {
+		return handle(uri, () -> restTemplate.exchange(uri, HttpMethod.GET, null, type));
+	}
+
+	protected Resource download(URI theUri) throws FederationException {
+		RequestEntity<Void> request = RequestEntity.get(theUri).accept(MediaType.ALL).build();
+		return handle(theUri, () -> restTemplate.exchange(request, Resource.class));
+	}
+
+	/**
+	 * Download content of a URI.
+	 * E.g. the body of an artifact or document.
 	 * Important: the Resource returned by this method MUST BE CLOSED by whoever uses it.
 	 * @param theUri URI
 	 * @return Resource
@@ -429,8 +326,7 @@ public class FederationClient extends AbstractClient {
 		}
 	}
 
-	public static class StreamingResource extends InputStreamResource
-																				implements Closeable {
+	public static class StreamingResource extends InputStreamResource implements Closeable {
 
 		private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 		private ClientHttpResponse response;
@@ -457,35 +353,4 @@ public class FederationClient extends AbstractClient {
 			this.response.close();
 		}
 	}
-
-
-
-	/**
-	 * @param theSelf self
-	 * @return Register self with the peer this client points to.
-	 * @throws HttpStatusCodeException
-	 *             Throws HttpStatusCodeException if remote acumos interaction has failed.
-	 */
-	public JsonResponse<MLPPeer> register(MLPPeer theSelf)
-			throws HttpStatusCodeException {
-		URI uri = API.PEER_REGISTER.buildUri(this.baseUrl);
-		log.info("Query for " + uri);
-		ResponseEntity<JsonResponse<MLPPeer>> response = null;
-		try {
-			response = restTemplate.exchange(uri, HttpMethod.GET, null,
-					new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {
-					});
-		}
-		catch (HttpStatusCodeException x) {
-			log.error(uri + " failed", x);
-			throw x;
-		}
-		catch (Throwable t) {
-			log.error(uri + " unexpected failure.", t);
-		}
-		finally {
-			log.info(uri + " response " + response);
-		}
-		return response == null ? null : response.getBody();
-	}	
 }
