@@ -20,6 +20,369 @@
 Federation Gateway Configuration Guide
 ======================================
 
+The Acumos Federation Gateway is configured by setting properties using the
+SPRING_APPLICATION_JSON environment variable.  See the Spring-Boot documentation
+on Externalized Configuration for information on how the
+SPRING_APPLICATION_JSON environment variable is parsed and on other methods for
+setting configuration property values.
+
+Most of the configuration properties for the Acumos Federation Gateway always
+apply, but some are selectively enabled by others.  The conditionally enabled
+configuration properties are listed, below, in separate sections, grouped by
+the conditions that activate them.
+
+General Configuration Properties
+--------------------------------
+
+The following configuration properties are always enabled:
+
+federation.address
+  Required.  FQDN or IP address.
+
+  This specifies which IP interface, on the federation host machine, listens
+  for incoming requests from peers.  A value of 0.0.0.0 specifies listening
+  on all interfaces.
+
+federation.instance
+  Required.  Allowed values: "gateway" and "adapter".
+
+  This property controls the mode of operation of federation.
+
+  In "gateway" mode, federation uses the common data service to store
+  metadata, and federation polls its peers for solutions matching its
+  subscriptions.  In this mode, the spring.profiles.active property
+  controls how artifact and document content is stored.
+
+  In "adapter" mode, federation does not process subscriptions and
+  uses flat files to store metadata, artifacts, and documents.
+
+federation.operator
+  Required.
+
+  User ID for importing solutions, for subscriptions that do not
+  have an associated user ID of their own.
+
+federation.registration.enabled
+  Optional.  Default False.
+
+  When true, federation will accept registration requests from peers.
+
+federation.server.port
+  Required.
+
+  This specifies which TCP/IP port, on the interface(s) specified by
+  federation.address, listens for incoming requests from peers.
+
+federation.ssl.client-auth
+  Optional.  Allowed values "need", "request", "none".  Default "need".
+
+  This specifies whether to request or require 2-way TLS authentication
+  of incoming connections from peers.
+
+federation.ssl.key-alias
+  Required if key store contains multiple private keys.
+
+  This specifies which private key/certificate pair, in the key store
+  is used, by federation, to authenticate to peers.
+
+federation.ssl.key-store
+  Required.
+
+  This specifies the path of the file containing the certificate and
+  private key used, by federation, to authenticate to peers.
+
+federation.ssl.key-store-password
+  Required.
+
+  This specifies the password for decrypting the key store file.
+
+federation.ssl.key-store-type
+  Allowed values: JKS or PKCS12.
+
+  This specifies the format of the key store file.
+
+federation.ssl.trust-store
+  This specifies the path of the file containing the certificates of
+  accepted certificate authorities for authenticating peers.
+
+federation.ssl.trust-store-password
+  Required.
+
+  This specifies the password for decrypting the trust store file.
+
+federation.ssl.trust-store-type
+  Allowed values: JKS or PKCS12.
+
+local.address
+  Required.  FQDN or IP address.
+
+  This specifies which IP interface, on the federation host machine, listens
+  for incoming requests from the local Acumos marketplace portal (the portal).
+  A value of 0.0.0.0 specifies listening on all interfaces.
+
+local.server.port
+  Required.
+
+  This specifies which TCP/IP port, on the interface(s) specified by
+  federation.address, listens for incoming requests from the portal.
+
+local.ssl.client-auth
+  Optional.  Allowed values "need", "request", "none".  Default "need".
+
+  This specifies whether to request or require 2-way TLS authentication
+  of incoming connections from the portal.
+
+local.ssl.key-alias
+  Required if key store contains multiple private keys.
+
+  This specifies which private key/certificate pair, in the key store
+  is used, by federation, to authenticate to the portal.
+
+local.ssl.key-store
+  Required.
+
+  This specifies the path of the file containing the certificate and
+  private key used, by federation, to authenticate to the portal.
+
+local.ssl.key-store-password
+  Required.
+
+  This specifies the password for decrypting the key store file.
+
+local.ssl.key-store-type
+  Allowed values: JKS or PKCS12.
+
+  This specifies the format of the key store file.
+
+local.ssl.trust-store
+  This specifies the path of the file containing the certificates of
+  accepted certificate authorities for authenticating to the portal.
+
+local.ssl.trust-store-password
+  Required.
+
+  This specifies the password for decrypting the trust store file.
+
+local.ssl.trust-store-type
+  Allowed values: JKS or PKCS12.
+
+  This specifies the format of the trust store file.
+
+task.scheduler-pool-size
+  Optional.  Default 100.
+
+  This is the thread pool size for the gateway scheduler.
+
+task.executor-core-pool-size
+  Optional.  Default 20.
+
+  This is the core size of the executor thread pool.
+
+task.executor-max-pool-size
+  Optional.  Default 100.
+
+  This is the maximum size of the executor thread pool.
+
+task.executor-queue-capacity
+  Optional.  Default 50.
+
+  This is the maximum capacity of the executor queue.
+
+Gateway Configuration Properties
+--------------------------------
+
+The following configuration properties are enabled when federation.instance is "gateway":
+
+catalog.solutions.selector
+  Optional.  Default { "accessTypeCode": "PB" }
+
+  A JSON string giving override selector filters to be used when searching
+  for catalogs and solutions.  These filters are always in effect and cannot
+  be overridden.  Selectors are described in another section of this
+  documentation.
+
+catalog.solutions-selector-defaults
+  Optional.  Default { "modified": 1 }.
+
+  A JSON string giving default selector filters to be used when searching
+  for solutions.  These filters will be in effect unless overridden.
+
+catalog.solution-revisions-selector
+  Optional.  Default { "accessTypeCode": "PB" }
+
+  A JSON string giving override selector filters to be used when searching
+  for solution revisions.  These filters are always in effect and cannot
+  be overridden.  Selectors are described in another section of this
+  documentation.
+
+cdms.client.url
+  Required.
+
+  Base URL for accessing the common data service.
+
+cdms.client.username
+  Required.
+
+  User name for authenticating to the common data service.
+
+cdms.client.password
+  Required.
+
+  Password for authenticating to the common data service.
+
+cdms.client.page-size
+  Optional.  Default 100
+
+  The number of responses, per "page" to request from the common data service.
+
+peer.jobchecker.interval
+  Optional.  Default 400.
+
+  The time, in seconds, between checking for changes to the set of active
+  subscriptions.
+
+spring.profiles.active
+  Optional.  Default empty.
+
+  If the set of active profiles contains "local", then flat files are used
+  to store artifacts and documents.  If it doesn't and federation.instance is
+  "gateway", artifacts that are Docker images are stored in the Docker
+  Registry and documents and other artifacts are stored in the Nexus
+  repository.
+
+Repository Configuration Properties
+-----------------------------------
+
+The following configuration properties are enabled when federation.instance
+is "gateway" and spring.profiles.active does not contain "local":
+
+docker.api-version
+  Optional.
+
+  The version of the Docker API to use when communicating with the Docker host.
+  Version values should be of the form X.Y where X is the major version number
+  and Y is the minor version number of the Docker API protocol.  The Docker API
+  version matrix can be found
+  `here. <https://docs.docker.com/develop/sdk/#api-version-matrix>`_
+
+docker.host
+  Optional.  Default unix:///var/run/docker.sock.
+
+  The URL of the unix or IP socket for accessing the local Docker host in
+  the form tcp://hostname:port or unix://path.  The local Docker host is used
+  to pull and push Docker image artifacts from the Docker repository and to
+  serialize and deserialize those artifacts for transmission between peers.
+
+docker.docker-tls-verify
+  Optional.  Default False.
+
+  If True, use TLS encryption when connecting to the local Docker host
+
+docker.docker-cert-path
+  Required when docker.docker-tls-verify is True.
+
+  If the connection to the local Docker host is encrypted, using TLS, the path
+  the directory for the PEM files containing the trust store (ca.pem), private
+  private key (key.pem), and certificate (cert.pem) used by federation's Docker
+  client to connect to the local Docker host.
+
+docker.docker-config
+  Optional.  Default $HOME/.docker
+
+  Path to the directory containing the user's Docker configuration file
+  (config.json).
+
+docker.registry-url
+  Required.
+
+  The hostport for accessing the Docker registry in the form hostname:port.
+  The registry is used to store Docker image artifacts, in response to
+  "docker pull" and "docker push" requests sent to the Docker host.
+
+docker.registry-username
+  Required.
+
+  The username for authenticating to the Docker registry for pushing images.
+
+docker.registry-password
+  Required.
+
+  The password for authenticating to the Docker registry for pushing images.
+
+docker.registry-email
+  The email address associated with the username and password for
+  authenticating to the Docker Registry.
+
+nexus.url
+  Required.
+
+  The URL for the Nexus repository used to store (non-Docker) artifacts and
+  documents, of the form https://host:port/repository/reponame/.
+
+nexus.username
+  Required.
+
+  The user name for authenticating to the nexus server.
+
+nexus.password
+  Required.
+
+  The password for authenticating to the nexus server.
+
+nexus.group-id
+  Required.
+
+  Per Acumos instance component of the path prefix within the Nexus repository.
+
+nexus.name-separator
+  Optional.  Default ".".
+
+  Separator between components of the path prefix within the Nexus repository.
+  The prefix is of the form groupid separator solutionid separator revisionid.
+
+File-base Metadata Store Configuration Properties
+-------------------------------------------------
+
+The following configuration properties are enabled when federation.instance
+is "adapter":
+
+catalog-local.source
+  Required.
+
+  Path to file containing solution metadata available to remote peers.
+  This file is a JSON array of Solution metadata.
+
+catalog-local.catalogs
+  Required.
+
+  Path to file containing catalog metadata available to remote peers.
+  This file is a JSON array of Catalog metadata.
+
+codes-local.source
+  Required.
+
+  Path to file containing code mapping data available to remote peers.
+  This file is a JSON object with keys "ARTIFACT_TYPE", and "PEER_STATUS".
+  The values corresponding to these keys are arrays of code/name pairs, for
+  example, { "ARTIFACT_TYPE": [{ "code": "DI", "name": "DockerImage" }, ... }
+
+peers-local.source
+  Required
+
+  Path to file containing peer metadata.
+  This file is a JSON array of Peer metadata.
+
+peer-local.interval
+  Optional.  Default 60.
+
+  The time, in seconds, between checks for updates to the files specified
+  by the catalog-local.source, catalog-local.catalogs, codes-local.source,
+  and peers-local.source files.
+
+
+=========================================
+Federation Gateway Certificate Generation
+=========================================
 
 This document explains the steps required to configure two Acumos
 instances to be peers so that they can communicate via their

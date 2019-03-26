@@ -23,12 +23,13 @@ Federation Gateway Release Notes
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 The image name is "federation-gateway" and the tag is a version string as shown below. 
 
-Version 2.1.2, 2019-03-21
+Version 2.1.2, 2019-03-27
 -------------------------
 * Add JUnit test cases to reach 50% or better code coverage (`ACUMOS-2584 <https://jira.acumos.org/browse/ACUMOS-2584>`_)
 * Add API to list remote catalogs to support subscribing (`ACUMOS-2575 <https://jira.acumos.org/browse/ACUMOS-2575>`_)
   API to list catalogs is /catalogs
 * Refactor code to avoid duplication related to implementing listing remote catalogs.
+* Documentation configuration parameters (`ACUMOS-2661 <https://jira.acumos.org/browse/ACUMOS-2661>`_)
 
 Version 2.1.1, 2019-03-07
 -------------------------
