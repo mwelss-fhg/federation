@@ -50,7 +50,7 @@ public class Solution extends MLPSolution {
 		public static final String catalogId = "catalogId";
 	};
 
-	private List<? extends MLPSolutionRevision>		revisions;
+	private List<MLPSolutionRevision>		revisions;
 	private byte[] picture;
 
 	public Solution() {
@@ -60,11 +60,11 @@ public class Solution extends MLPSolution {
 		super(theCDSSolution);
 	}
 
-	public void setRevisions(List<? extends MLPSolutionRevision> theRevisions) {
+	public void setRevisions(List<MLPSolutionRevision> theRevisions) {
 		this.revisions = theRevisions;
 	}
 
-	public List<? extends MLPSolutionRevision>	getRevisions() {
+	public List<MLPSolutionRevision>	getRevisions() {
 		return this.revisions;
 	}
 

@@ -51,9 +51,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 	 * @throws ServiceException if failing to retrieve artifact information or retrieve content 
 	 */
 	@Override
-	public Resource getArtifactContent(
-		String theSolutionId, String theRevisionId, Artifact theArtifact, ServiceContext theContext)
-																																															throws ServiceException {
+	public Resource getArtifactContent(Artifact theArtifact, ServiceContext theContext) throws ServiceException {
 		if (theArtifact.getUri() == null) {
 			throw new ServiceException("No artifact uri available for " + theArtifact);
 		}
@@ -71,9 +69,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 	 * Should add a configuration parameter for the location of the file.
 	 */
 	@Override
-	public void putArtifactContent(
-		String theSolutionId, String theRevisionId, Artifact theArtifact, Resource theResource, ServiceContext theContext)
-																																										throws ServiceException {
+	public void putArtifactContent(String theSolutionId, Artifact theArtifact, Resource theResource, ServiceContext theContext) throws ServiceException {
 		File target = null;
 		try {
 			target = File.createTempFile(theArtifact.getName() + "-" + theArtifact.getVersion(), null /*""*//*,File directory*/);
@@ -88,9 +84,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 	}	
 
 	@Override
-	public Resource getDocumentContent(
-		String theSolutionId, String theRevisionId, Document theDocument, ServiceContext theContext)
-																																										throws ServiceException {
+	public Resource getDocumentContent(Document theDocument, ServiceContext theContext) throws ServiceException {
 		if (theDocument.getUri() == null) {
 			throw new ServiceException("No document uri available for " + theDocument);
 		}
@@ -105,9 +99,7 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 	}
 
 	@Override
-	public void putDocumentContent(
-		String theSolutionId, String theRevisionId, Document theDocument, Resource theResource, ServiceContext theContext)
-																																										throws ServiceException {
+	public void putDocumentContent(String theSolutionId, Document theDocument, Resource theResource, ServiceContext theContext) throws ServiceException {
 		File target = null;
 		try {
 			target = File.createTempFile(theDocument.getName() + "-" + theDocument.getVersion(), null /*""*//*,File directory*/);
@@ -120,5 +112,4 @@ public class ContentServiceLocalImpl extends AbstractServiceImpl
 
 		theDocument.setUri(target.toURI().toString());
 	}
-
 }

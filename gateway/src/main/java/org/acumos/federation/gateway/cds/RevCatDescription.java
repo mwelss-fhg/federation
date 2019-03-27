@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -17,15 +17,13 @@
  * limitations under the License.
  * ===============LICENSE_END=========================================================
  */
+package org.acumos.federation.gateway.cds;
 
-package org.acumos.federation.gateway.util;
+
+import org.acumos.cds.domain.MLPRevCatDescription;
 
 /**
- * @param <T> Type
  */
-@FunctionalInterface
-public interface FutureHandler<T> {
-
-	public void handle(Future<T> theResult);
+public class RevCatDescription extends MLPRevCatDescription implements TimestampedEntity {
 
 }

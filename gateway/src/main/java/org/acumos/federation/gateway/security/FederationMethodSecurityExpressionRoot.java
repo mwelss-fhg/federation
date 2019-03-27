@@ -35,14 +35,17 @@ public class FederationMethodSecurityExpressionRoot
 
 	private Object filterObject;
 	private Object returnObject;
-	public  boolean	isActive = false;
-	public  boolean	isKnown = false;
+	public  boolean	isActive() {
+		return ((Peer)getPrincipal()).isActive();
+	}
+
+	public  boolean	isKnown() {
+		return ((Peer)getPrincipal()).isKnown();
+	}
  
 	public FederationMethodSecurityExpressionRoot(Authentication theAuthentication) {
 		super(theAuthentication);
 		log.info("built with {}", theAuthentication);
-		this.isKnown = ((Peer) this.getPrincipal()).isKnown();
-		this.isActive = ((Peer) this.getPrincipal()).isActive();	
 	}
 
 	@Override

@@ -61,10 +61,12 @@ public abstract class AbstractController {
 
 	/**
 	 * Handle common aspects of forwarding a local request to a peer Acumos.
+	 * @param <T> the type of the expected response, from the peer
 	 * @param opname the name of the operation to perform
 	 * @param response the HTTP response for setting error codes
 	 * @param peerId the ID of the remote peer to call
 	 * @param fcn the operation to invoke on the remote peer
+	 * @return response from peer
 	 */
 	protected <T> JsonResponse<T> callPeer(String opname, HttpServletResponse response, String peerId, ThrowingFunction<FederationClient, JsonResponse<T>> fcn) {
 		try {

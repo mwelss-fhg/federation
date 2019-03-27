@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -49,10 +49,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class LocalWatchService {
 
-	private Map<URI, Consumer<URI>> sources = new HashMap<URI, Consumer<URI>>();
-	private WatchService sourceWatcher = null;
+	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-	private final static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+	private Map<URI, Consumer<URI>> sources = new HashMap<>();
+	private WatchService sourceWatcher = null;
 
 	public void watchOn(URI theUri, Consumer<URI> theHandler) {
 		this.sources.put(theUri, theHandler);
@@ -114,11 +114,10 @@ public class LocalWatchService {
 		WatchKey key = null;
 		while ((key = this.sourceWatcher.poll()) != null) {
 
-			// Path sourcePath = Paths.get(this.sourceUri).getFileName();
 			for (WatchEvent<?> event : key.pollEvents()) {
 				final Path changedPath = (Path) event.context();
 				URI uri = changedPath.toUri();
-				log.info("Local update: " + uri);
+				log.info("Local update: {}", uri);
 				Consumer c = sources.get(uri);
 				if (c != null)
 					c.accept(uri);

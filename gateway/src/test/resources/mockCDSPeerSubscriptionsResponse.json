@@ -2,12 +2,11 @@
 	{
 		"subId":1,
 		"peerId":"a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0",
-		"selector":"{\"modelTypeCode\":[\"CL\",\"PR\"]}",
+		"selector":"{\"catalogId\":\"myCatalog\"}",
 		"refreshInterval":"120",
 		"maxArtifactSize":"2048",
 		"created":"2019-02-05T21:20:37Z",
 		"processed":"1970-01-01T00:00:01Z",
-		"scopeType":"FL",
 		"modified":"2019-02-05T21:20:37Z"
 	}
 ]

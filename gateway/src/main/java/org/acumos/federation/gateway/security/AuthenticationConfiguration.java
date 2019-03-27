@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -72,10 +72,6 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 	public AuthenticationConfiguration() {
 	}
 
-	/*
-	 * public X509AuthenticationFilter(boolean disableDefaults) {
-	 * super(disableDefaults); }
-	 */
 	/**
 	 * subjectPrincipalRegex("CN=(.*?)(?:,|$)") :- The regular expression used to
 	 * extract a username from the client certificates subject name. (CN value of
@@ -108,7 +104,7 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 	@Bean
 	public AccessDeniedHandler accessDeniedHandler() {
 		return ((request, response, exception) -> {
-			log.info("accessDeniedHandler : " + exception);
+			log.info("accessDeniedHandler", exception);
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		});
 	}
@@ -135,9 +131,12 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 				return new Peer(new MLPPeer(), Role.ANY);
 			}
 
-			String cn = null,
-						 email = null,
-						 ou = null, o = null, st = null, c = null;
+			String cn = null;
+			String email = null;
+			String ou = null;
+			String o = null;
+			String st = null;
+			String c = null;
 			for (Rdn rdn :  x500subject.getRdns()) {
 				if ("CN".equalsIgnoreCase(rdn.getType())) {
 					cn = rdn.getValue().toString();

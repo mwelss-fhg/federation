@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ package org.acumos.federation.gateway.service.impl;
 
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,7 +35,6 @@ import org.acumos.federation.gateway.security.Tools;
 import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
-import org.acumos.federation.gateway.util.MapBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,12 +73,12 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 		final String subjectName = selfName;
 		log.debug("Expecting 'self' name '{}'", subjectName);
 
-		List<MLPPeer> selfPeers = new ArrayList<MLPPeer>();
+		List<MLPPeer> selfPeers = new ArrayList<>();
 		RestPageRequest pageRequest = new RestPageRequest(0, 100);
 		RestPageResponse<MLPPeer> pageResponse = null;
 		do {
 			pageResponse =
-				getClient().searchPeers(new MapBuilder().put("self", Boolean.TRUE).build(), false, pageRequest);
+				getClient().searchPeers(Collections.singletonMap("self", Boolean.TRUE), false, pageRequest);
 			log.debug("Peers representing 'self': " + pageResponse.getContent());
 
 			selfPeers.addAll(
@@ -106,8 +106,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 
 		RestPageRequest pageRequest = new RestPageRequest(0, 100);
 		RestPageResponse<MLPPeer> pageResponse = null;
-		List<MLPPeer> peers = new ArrayList<MLPPeer>(),
-									pagePeers = null;
+		List<MLPPeer> peers = new ArrayList<>();
 		ICommonDataServiceRestClient cdsClient = getClient();
 
 		do {
@@ -125,7 +124,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 	public List<MLPPeer> getPeerBySubjectName(String theSubjectName, ServiceContext theContext) {
 		log.debug("getPeerBySubjectName");
 		RestPageResponse<MLPPeer> response = 
-			getClient().searchPeers(new MapBuilder().put("subjectName", theSubjectName).build(), false, null);
+			getClient().searchPeers(Collections.singletonMap("subjectName", theSubjectName), false, null);
 		if (response.getNumberOfElements() != 1) {
 			log.warn("getPeerBySubjectName returned more then one peer: {}", response.getNumberOfElements());
 		}
@@ -152,7 +151,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 
 		ICommonDataServiceRestClient cdsClient = getClient();
 		RestPageResponse<MLPPeer> response = 
-			cdsClient.searchPeers(new MapBuilder().put("subjectName", subjectName).build(), false, null);
+			cdsClient.searchPeers(Collections.singletonMap("subjectName", subjectName), false, null);
 
 		if (response.getNumberOfElements() > 0) {
 			assertPeerRegistration(response.getContent().get(0));
@@ -181,7 +180,7 @@ public class PeerServiceImpl extends AbstractServiceImpl implements PeerService 
 
 		ICommonDataServiceRestClient cdsClient = getClient();
 		RestPageResponse<MLPPeer> response = 
-			cdsClient.searchPeers(new MapBuilder().put("subjectName", subjectName).build(), false, null);
+			cdsClient.searchPeers(Collections.singletonMap("subjectName", subjectName), false, null);
 
 		if (response.getNumberOfElements() != 1) {
 			throw new ServiceException("Search for peer with subjectName '" + subjectName + "' yielded invalid number of items: " + response.getNumberOfElements());

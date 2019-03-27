@@ -24,22 +24,15 @@
 package org.acumos.federation.gateway.service.impl;
 
 import java.lang.invoke.MethodHandles;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
-import org.acumos.cds.AccessTypeCode;
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPCatalog;
@@ -49,7 +42,6 @@ import org.acumos.cds.domain.MLPSolutionRevision;
 import org.acumos.cds.domain.MLPTag;
 import org.acumos.cds.transport.RestPageRequest;
 import org.acumos.cds.transport.RestPageResponse;
-import org.acumos.federation.gateway.cds.AccessType;
 import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.Catalog;
 import org.acumos.federation.gateway.cds.Document;
@@ -61,7 +53,6 @@ import org.acumos.federation.gateway.service.CatalogServiceConfiguration;
 import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.acumos.federation.gateway.util.Errors;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,18 +64,9 @@ import org.springframework.web.client.HttpStatusCodeException;
  *
  */
 @Service
-public class CatalogServiceImpl extends AbstractServiceImpl
-																implements CatalogService {
+public class CatalogServiceImpl extends AbstractServiceImpl implements CatalogService {
 
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-	private static final List<String> allATs = new ArrayList<String>();
-
-	static {
-		for (AccessType atc: AccessType.values()) {
-			allATs.add(atc.code());
-		}
-	}
 
 	@Autowired
 	private CatalogServiceConfiguration config;
@@ -97,60 +79,46 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	public List<MLPCatalog> getCatalogs(ServiceContext theContext) throws ServiceException {
 		log.debug("getCatalogs");
 		ICommonDataServiceRestClient cdsClient = getClient(theContext);
-		Set<String> atcs = new HashSet<String>(Arrays.asList(atcArray(config.getSolutionsSelector())));
-		List<MLPCatalog> catalogs = allPages("getCatalogs", page -> cdsClient.getCatalogs(page))
-		    .stream().filter(mcat -> atcs.contains(mcat.getAccessTypeCode()))
-		    .collect(Collectors.toList());
-		for (MLPCatalog mcat: catalogs) {
-			try {
-				// Don't have getCatalogSolutionCount() in cds 2.1
-				//((Catalog)mcat).setSize((int)cdsClient.getCatalogSolutionCount(mcat.getCatalogId()));
-				((Catalog)mcat).setSize(getSolutions(Collections.singletonMap(Solution.Fields.catalogId, mcat.getCatalogId()), theContext).size());
-			} catch (HttpStatusCodeException ex) {
-				throw new ServiceException("Failed to count solutions in catalog", ex);
+		List<MLPCatalog> catalogs = allPages("searchCatalogs", page -> cdsClient.searchCatalogs(config.getCatalogsSelector(), false, page));
+		try {
+			String peerId = getPeerId(theContext);
+			Set<String> toget = peerId != null? new HashSet<>(cdsClient.getPeerAccessCatalogIds(peerId)): new HashSet<>();
+			for (MLPCatalog mcat: catalogs) {
+				toget.remove(mcat.getCatalogId());
+				((Catalog)mcat).setSize((int)cdsClient.getCatalogSolutionCount(mcat.getCatalogId()));
 			}
+			for (String catid: toget) {
+				MLPCatalog mcat = cdsClient.getCatalog(catid);
+				if (mcat != null) {
+					((Catalog)mcat).setSize((int)cdsClient.getCatalogSolutionCount(catid));
+					catalogs.add(mcat);
+				}
+			}
+		} catch (HttpStatusCodeException restx) {
+			log.debug("getCatalogs failed {}: {}", restx, restx.getResponseBodyAsString());
+			throw new ServiceException("Failed on getCatalogs", restx);
 		}
 		log.debug("getCatalogs: catalogs count {}", catalogs.size());
 		return catalogs;
 	}
 
 	@Override
-	public List<MLPSolution> getSolutions(Map<String, ?> theSelector, ServiceContext theContext) throws ServiceException {
-		log.debug("getSolutions with selector {}", theSelector);
-
-		Map<String, Object> selector = new HashMap<String, Object>(this.config.getSolutionsSelectorDefaults());
-		if (theSelector != null)
-			selector.putAll(theSelector);
-		//it is essential that this gets done at the end as to force all baseSelector criteria (otherwise a submitted accessTypeCode
-		//could overwrite the basic one end expose non public solutions ..).
-		selector.putAll(this.config.getSolutionsSelector());
-		log.debug("getSolutions with full selector {}", selector);
+	public List<MLPSolution> getSolutions(String theCatalogId, ServiceContext theContext) throws ServiceException {
+		log.debug("getSolutions with catalog {}", theCatalogId);
 		ICommonDataServiceRestClient cdsClient = getClient(theContext);
-		Predicate<MLPSolution> matcher = ServiceImpl.compileSelector(selector);
-		String catid = (String)selector.get(Solution.Fields.catalogId);
-		Function<RestPageRequest, RestPageResponse<MLPSolution>> pager = null;
-		if (catid != null) {
-			pager = page -> cdsClient.getSolutionsInCatalog(catid, page);
-		} else {
-			boolean active = (Boolean)selector.getOrDefault(Solution.Fields.active, Boolean.TRUE);
-			String[] codes = atcArray(selector);
-			Instant since = Instant.ofEpochSecond(((Number)selector.get(Solution.Fields.modified)).longValue());
-			pager = page -> cdsClient.findSolutionsByDate(active, codes, since, page);
-		}
-		List<MLPSolution> solutions = allPages("getSolutions", pager)
-		    .stream().filter(matcher).collect(Collectors.toList());
+		String[] catids = new String[] { theCatalogId };
+		List<MLPSolution> solutions = allPages("getSolutionsInCatalogs", page -> cdsClient.getSolutionsInCatalogs(catids, page));
 		log.debug("getSolutions: solutions count {}", solutions.size());
 		return solutions;
 	}
 
 	@Override
 	public Solution getSolution(String theSolutionId, ServiceContext theContext) throws ServiceException {
-
 		log.trace("getSolution {}", theSolutionId);
 		ICommonDataServiceRestClient cdsClient = getClient(theContext, true);
 		try {
 			Solution solution = (Solution)cdsClient.getSolution(theSolutionId);
-			List<MLPSolutionRevision> revisions = getSolutionRevisions(theSolutionId, theContext);
+			List<MLPSolutionRevision> revisions = getRevisions(theSolutionId, theContext);
 
 			//we can expose this solution only if we can expose at least one revision
 			if (revisions == null || revisions.isEmpty())
@@ -176,7 +144,7 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 
 		//we handle tags separately
 		Set<MLPTag> tags = theSolution.getTags();
-		theSolution.setTags(Collections.EMPTY_SET);
+		theSolution.setTags(Collections.emptySet());
 
 		try {
 			if (theSolution.getCreated() == TimestampedEntity.ORIGIN) {
@@ -214,60 +182,40 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	}
 
 	@Override
-	public List<MLPSolutionRevision> getSolutionRevisions(String theSolutionId, ServiceContext theContext) throws ServiceException {
+	public List<MLPSolutionRevision> getRevisions(String theSolutionId, ServiceContext theContext) throws ServiceException {
 
-		log.trace("getSolutionRevisions {}", theSolutionId);
+		log.trace("getRevisions {}", theSolutionId);
 		try {
 			List<MLPSolutionRevision> revisions = getClient(theContext).getSolutionRevisions(theSolutionId);
-			//make sure we only expose revisions according to the filter
-			if (revisions != null) {
-				log.trace("getSolutionRevisions {}: got {} revisions", theSolutionId, revisions.size());
-				revisions = 
-					revisions.stream()
-									 .filter(revision -> this.config.getSolutionRevisionsSelector().entrySet().stream()
-																				.allMatch(s -> {
-																					try {
-																						log.trace("getSolutionRevisions verifying filter: revision property value {} vs filter value {}", PropertyUtils.getProperty(revision, s.getKey()), s.getValue());
-																						return PropertyUtils.getProperty(revision, s.getKey()).equals(s.getValue());
-																					} 
-																					catch (Exception x) { 
-																						log.trace("getSolutionRevisions failed to verify filter", x);
-																						return false;
-																					}
-																				})
-													)
-									 .collect(Collectors.toList());
-			}
 			return revisions;
-		}
-		catch (HttpStatusCodeException restx) {
-			if (Errors.isCDSNotFound(restx))
+		} catch (HttpStatusCodeException restx) {
+			if (Errors.isCDSNotFound(restx)) {
 				return null;
-			else
+			} else {
 				throw new ServiceException("Failed to retrieve solution revision information", restx);
+			}
 		}
 	}
 
 
 	@Override
-	public SolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
-			ServiceContext theContext) throws ServiceException {
-
-		log.trace("getSolutionRevision");
+	public SolutionRevision getRevision(String theCatalogId, String theSolutionId, String theRevisionId, ServiceContext theContext) throws ServiceException {
+		log.trace("getRevision");
 		ICommonDataServiceRestClient cdsClient = getClient(theContext, true);
 		try {
-			SolutionRevision revision =
-					(SolutionRevision)cdsClient.getSolutionRevision(theSolutionId, theRevisionId);
-			revision.setArtifacts(getSolutionRevisionArtifacts(theSolutionId, theRevisionId, theContext));
-			revision.setDocuments(getSolutionRevisionDocuments(theSolutionId, theRevisionId, theContext));
-			try {
-				revision.setRevisionDescription(cdsClient.getRevisionDescription(theRevisionId, AccessTypeCode.PB.name()));
+			SolutionRevision revision = (SolutionRevision)cdsClient.getSolutionRevision(theSolutionId, theRevisionId);
+			revision.setArtifacts(getArtifacts(theSolutionId, theRevisionId, theContext));
+			if (theCatalogId != null) {
+				revision.setDocuments(getDocuments(theCatalogId, theRevisionId, theContext));
+				try {
+					revision.setRevCatDescription(cdsClient.getRevCatDescription(theRevisionId, theCatalogId));
+				}
+				catch (HttpStatusCodeException restx) {
+					if (!Errors.isCDSNotFound(restx)) {
+						throw new ServiceException("Failed to retrieve solution revision description", restx);
+					}
+				}
 			}
-			catch (HttpStatusCodeException restx) {
-				if (!Errors.isCDSNotFound(restx))
-					throw new ServiceException("Failed to retrieve solution revision description", restx);
-			}
-	
 			return revision;
 		}	
 		catch (HttpStatusCodeException restx) {
@@ -279,9 +227,8 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	}
 
 	@Override
-  public SolutionRevision putSolutionRevision(SolutionRevision theRevision, ServiceContext theContext)
-																																																				throws ServiceException {
-		log.trace("putSolutionRevision {}", theRevision);
+	public SolutionRevision putRevision(SolutionRevision theRevision, ServiceContext theContext) throws ServiceException {
+		log.trace("putRevision {}", theRevision);
 	
 		try {
 			if (theRevision.getCreated() == TimestampedEntity.ORIGIN) {
@@ -304,10 +251,9 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	}
 
 	@Override
-	public List<MLPArtifact> getSolutionRevisionArtifacts(String theSolutionId, String theRevisionId,
-			ServiceContext theContext) throws ServiceException {
+	public List<MLPArtifact> getArtifacts(String theSolutionId, String theRevisionId, ServiceContext theContext) throws ServiceException {
 
-		log.trace("getSolutionRevisionArtifacts");
+		log.trace("getArtifacts");
 		try {
 			return getClient(theContext).getSolutionRevisionArtifacts(theSolutionId, theRevisionId);
 		}
@@ -324,11 +270,10 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	 * @throws ServiceException if failing to retrieve artifact information or retrieve content 
 	 */
 	@Override
-	public Artifact getSolutionRevisionArtifact(String theArtifactId, ServiceContext theContext) throws ServiceException {
+	public Artifact getArtifact(String theArtifactId, ServiceContext theContext) throws ServiceException {
 
-		log.trace("getSolutionRevisionArtifact");
+		log.trace("getArtifact");
 		try {
-			//one should check that this belongs to at least one public revision of some solution accessible within the given context ..
 			return (Artifact)getClient(theContext).getArtifact(theArtifactId);
 		}	
 		catch (HttpStatusCodeException restx) {
@@ -340,10 +285,10 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	}
 
 	@Override
-	public List<MLPDocument> getSolutionRevisionDocuments(String theSolutionId, String theRevisionId, ServiceContext theContext) throws ServiceException {
-		log.trace("getSolutionRevisionDocuments");
+	public List<MLPDocument> getDocuments(String theCatalogId, String theRevisionId, ServiceContext theContext) throws ServiceException {
+		log.trace("getDocuments");
 		try {
-			return getClient(theContext).getSolutionRevisionDocuments(theRevisionId, AccessTypeCode.PB.name());
+			return getClient(theContext).getRevisionCatalogDocuments(theRevisionId, theCatalogId);
 		}
 		catch (HttpStatusCodeException restx) {
 			if (Errors.isCDSNotFound(restx))
@@ -354,10 +299,9 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 	}
 
 	@Override
-	public Document getSolutionRevisionDocument(String theDocumentId, ServiceContext theContext) throws ServiceException {
-		log.trace("getSolutionRevisionDocument");
+	public Document getDocument(String theDocumentId, ServiceContext theContext) throws ServiceException {
+		log.trace("getDocument");
 		try {
-			//one should check that this has a public visibility within at least one revision of some solution accessible within the given context ..
 			return (Document)getClient(theContext).getDocument(theDocumentId);
 		}	
 		catch (HttpStatusCodeException restx) {
@@ -368,14 +312,45 @@ public class CatalogServiceImpl extends AbstractServiceImpl
 		}
 	}
 
-	private static String[] atcArray(Map<String, Object> selector) {
-		Object o = selector.getOrDefault(Solution.Fields.accessTypeCode, allATs);
-		return (o instanceof String)? new String[] { (String)o }: ((List<String>)o).toArray(new String[0]);
+	@Override
+	public boolean isCatalogAllowed(String theCatalogId, ServiceContext theContext) {
+		return getClient().isPeerAccessToCatalog(getPeerId(theContext), theCatalogId);
+	}
+
+	@Override
+	public boolean isSolutionAllowed(String theSolutionId, ServiceContext theContext) {
+		return getClient().isPeerAccessToSolution(getPeerId(theContext), theSolutionId);
+	}
+
+	@Override
+	public boolean isRevisionAllowed(String theRevisionId, ServiceContext theContext) {
+		try {
+			ICommonDataServiceRestClient cdsClient = getClient(theContext, true);
+			SolutionRevision revision = (SolutionRevision)cdsClient.getSolutionRevision("ignored", theRevisionId);
+			return isSolutionAllowed(revision.getSolutionId(), theContext);
+		} catch (Exception e) {
+			log.error("Error checking revision access for revision " + theRevisionId + " blocking access", e);
+			return false;
+		}
+	}
+
+	@Override
+	public boolean isArtifactAllowed(String theArtifactId, ServiceContext theContext) {
+		return true;
+	}
+
+	@Override
+	public boolean isDocumentAllowed(String theDocumentId, ServiceContext theContext) {
+		return true;
+	}
+
+	private static String getPeerId(ServiceContext theContext) {
+		return theContext.getPeer().getPeerInfo().getPeerId();
 	}
 
 	private <T> List<T> allPages(String opname, Function<RestPageRequest, RestPageResponse<T>> fcn) throws ServiceException {
 		RestPageRequest request = new RestPageRequest(0, cdsConfig.getPageSize());
-		List<T> ret = new ArrayList<T>();
+		List<T> ret = new ArrayList<>();
 		while (true) {
 			try {
 				RestPageResponse<T> response = fcn.apply(request);

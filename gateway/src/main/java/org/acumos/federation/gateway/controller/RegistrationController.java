@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -27,11 +27,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -49,9 +47,6 @@ import io.swagger.annotations.ApiOperation;
 public class RegistrationController extends AbstractController {
 
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-	@Autowired
-	private PeerService peerService;
 
 	/**
 	 * @param theHttpResponse
@@ -80,7 +75,7 @@ public class RegistrationController extends AbstractController {
 									.build();
 									
 			theHttpResponse.setStatus(HttpServletResponse.SC_ACCEPTED);
-			log.debug("peer registration request " + peer + " was accepted");
+			log.debug("peer registration request {} was accepted", peer);
 		}
 		catch (ServiceException sx) {
 			response = JsonResponse.<MLPPeer> buildErrorResponse()
@@ -100,7 +95,7 @@ public class RegistrationController extends AbstractController {
 	}
 
 	@CrossOrigin
-	@PreAuthorize("isKnown && hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).REGISTRATION_ACCESS)")
+	@PreAuthorize("isKnown() && hasAuthority(T(org.acumos.federation.gateway.security.Priviledge).REGISTRATION_ACCESS)")
 	@ApiOperation(value = "Invoked by another Acumos Instance to request federation termination.", response = MLPPeer.class)
 	@RequestMapping(value = { API.Paths.PEER_UNREGISTER }, method = RequestMethod.POST, produces = APPLICATION_JSON)
 	@ResponseBody
@@ -121,7 +116,7 @@ public class RegistrationController extends AbstractController {
 									.build();
 									
 			theHttpResponse.setStatus(HttpServletResponse.SC_ACCEPTED);
-			log.debug("federation termination request from " + peer + " was registered");
+			log.debug("federation termination request from {} was registered", peer);
 		}
 		catch (ServiceException sx) {
 			response = JsonResponse.<MLPPeer> buildErrorResponse()

@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,6 @@ import java.time.Instant;
 import java.util.Set;
 
 import org.acumos.cds.domain.MLPTag;
-import org.acumos.federation.gateway.cds.AccessType;
 import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.ArtifactBuilder;
 import org.acumos.federation.gateway.cds.Document;
@@ -44,7 +43,6 @@ public class CdsTest {
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private final boolean active = true;
-	private final String atc = "PR";
 	private final Instant date1 = Instant.now();
 	private final Instant date2 = Instant.now();
 	private final String desc = "desc";
@@ -69,14 +67,6 @@ public class CdsTest {
 		}
 	};
 
-	@Test
-	public void testAccessType() throws Exception {
-		for (AccessType e : AccessType.values()) {
-			log.info("access type {}, code {}", e, e.code());
-			AccessType.forCode(e.code());
-		}
-	}
-	
 	@Test
 	public void testArtifactBuilder() throws Exception {
 		ArtifactBuilder bldr = Artifact.build();
@@ -146,13 +136,12 @@ public class CdsTest {
 	@Test
 	public void testSolutionRevisionBuilder() throws Exception {
 		SolutionRevisionBuilder bldr = SolutionRevision.build();
-		bldr.forSolution(id1).withAccessTypeCode(atc).withCreated(date1).withMetadata(meta)
+		bldr.forSolution(id1).withCreated(date1).withMetadata(meta)
 				.withModified(date2).withOrigin(origin).withRevisionId(id2).withSource(source).withVersion(version)
 				.withUser(user);
 		SolutionRevision r = bldr.build();
 		Assert.assertNotNull(r);
 		Assert.assertEquals(id1, r.getSolutionId());
-		Assert.assertEquals(atc, r.getAccessTypeCode());
 		Assert.assertEquals(date1, r.getCreated());
 		Assert.assertEquals(meta, r.getMetadata());
 		Assert.assertEquals(date2, r.getModified());

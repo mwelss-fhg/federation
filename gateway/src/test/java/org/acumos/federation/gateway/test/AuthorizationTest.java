@@ -28,8 +28,6 @@ import java.util.Scanner;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder;
-import org.acumos.federation.gateway.config.InterfaceConfigurationBuilder.SSLBuilder;
 import org.apache.http.client.HttpClient;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -42,24 +40,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.junit4.SpringRunner;
 
 
 
-/**
- */
-
-//@RunWith(SpringJUnit4ClassRunner.class)
 @RunWith(SpringRunner.class)
 @ContextHierarchy({
 	@ContextConfiguration(classes = org.acumos.federation.gateway.test.TestAdapterConfiguration.class),
@@ -89,20 +81,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class AuthorizationTest {
 
 	private final Logger log = LoggerFactory.getLogger(getClass().getName());
-	@Autowired
-	private TestRestTemplate restTemplate;
 	@Value("${local.server.port}")
 	int port;
 
 	@Test
 	public void testUnknownPeerSolutionsAccess() {
-
-    ((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareUnknownHttpClient());
-
 		ResponseEntity<JsonResponse<List<MLPSolution>>> response =
-			this.restTemplate.exchange("https://localhost:" + this.port + "/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
+			TestTemplates.UNREGISTERED.exchange("https://localhost:" + this.port + "/solutions?catalogId=myCatalog", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 
 		if (response != null)	{
 			log.info("test unknown peer access: {}", response.getBody());
@@ -115,13 +100,8 @@ public class AuthorizationTest {
 
 	@Test
 	public void testKnownPeerSolutionsAccess() {
-
-    ((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareKnownHttpClient());
-
 		ResponseEntity<JsonResponse<List<MLPSolution>>> response =
-			this.restTemplate.exchange("https://localhost:" + this.port + "/solutions", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
+			TestTemplates.PEER.exchange("https://localhost:" + this.port + "/solutions?catalogId=myCatalog", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 		
 		if (response != null)	{
 			log.info("test known peer access: {}", response.getBody());
@@ -136,13 +116,8 @@ public class AuthorizationTest {
 
 	@Test
 	public void testUnknownRegisterAccess() {
-
-    ((HttpComponentsClientHttpRequestFactory)
-			this.restTemplate.getRestTemplate().getRequestFactory())
-				.setHttpClient(prepareUnknownHttpClient());
-		
 		ResponseEntity<JsonResponse<MLPPeer>> response =
-			this.restTemplate.exchange("https://localhost:" + this.port + "/peer/register", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {});
+			TestTemplates.UNREGISTERED.exchange("https://localhost:" + this.port + "/peer/register", HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {});
 		
 		if (response != null)	{
 			log.info("test unknown peer access to register: {}", response.getBody());
@@ -170,34 +145,6 @@ public class AuthorizationTest {
  		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
  		headers.setContentType(MediaType.APPLICATION_JSON);
  		return new HttpEntity<String>(headers);
-	}
-
-	private HttpClient prepareKnownHttpClient() {
-		return new InterfaceConfigurationBuilder()
-								.withSSL(new SSLBuilder()
-															.withKeyStore("classpath:/acumosb.pkcs12")
-															.withKeyStorePassword("acumosb")
-															//.withKeyPassword("acumosb")
-															.withTrustStore("classpath:/acumosTrustStore.jks")
-															.withTrustStoreType("JKS")
-															.withTrustStorePassword("acumos")
-															.build())
-								.buildConfig()
-								.buildClient();
-	}
-
-	private HttpClient prepareUnknownHttpClient() {
-		return new InterfaceConfigurationBuilder()
-								.withSSL(new SSLBuilder()
-															.withKeyStore("classpath:/acumosc.pkcs12")
-															.withKeyStorePassword("acumosc")
-															//.withKeyPassword("acumosb")
-															.withTrustStore("classpath:/acumosTrustStore.jks")
-															.withTrustStoreType("JKS")
-															.withTrustStorePassword("acumos")
-															.build())
-								.buildConfig()
-								.buildClient();
 	}
 }
 

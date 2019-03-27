@@ -34,17 +34,15 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public enum API {
 
-	SOLUTIONS(Paths.SOLUTIONS, Queries.SOLUTIONS),
+	CATALOGS(Paths.CATALOGS),
+	SOLUTIONS(Paths.SOLUTIONS, Queries.CATALOG_ID),
 	SOLUTION_DETAIL(Paths.SOLUTION_DETAILS),
 	SOLUTION_REVISIONS(Paths.SOLUTION_REVISIONS),
-	SOLUTION_REVISION_DETAILS(Paths.SOLUTION_REVISION_DETAILS),
+	SOLUTION_REVISION_DETAILS(Paths.SOLUTION_REVISION_DETAILS, Queries.CATALOG_ID),
 	SOLUTION_REVISION_ARTIFACTS(Paths.SOLUTION_REVISION_ARTIFACTS),
-	ARTIFACT_DETAILS(Paths.ARTIFACT_DETAILS),
 	ARTIFACT_CONTENT(Paths.ARTIFACT_CONTENT),
-	SOLUTION_REVISION_DOCUMENTS(Paths.SOLUTION_REVISION_DOCUMENTS),
-	DOCUMENT_DETAILS(Paths.DOCUMENT_DETAILS),
+	SOLUTION_REVISION_DOCUMENTS(Paths.SOLUTION_REVISION_DOCUMENTS, Queries.CATALOG_ID),
 	DOCUMENT_CONTENT(Paths.DOCUMENT_CONTENT),
-	CATALOGS(Paths.CATALOGS),
 	PEERS(Paths.PEERS),
 	SUBSCRIPTION(Paths.SUBSCRIPTION),
 	PING(Paths.PING),
@@ -157,23 +155,18 @@ public enum API {
 
 	public static interface Paths {
 
+		public static final String CATALOGS = "/catalogs";
 		public static final String SOLUTIONS = "/solutions";
 		public static final String SOLUTION_DETAILS = "/solutions/{solutionId}";
-
 		public static final String SOLUTION_REVISIONS = "/solutions/{solutionId}/revisions";
 		public static final String SOLUTION_REVISION_DETAILS = "/solutions/{solutionId}/revisions/{revisionId}";
-
 		public static final String SOLUTION_REVISION_ARTIFACTS = "/solutions/{solutionId}/revisions/{revisionId}/artifacts";
-		public static final String ARTIFACT_DETAILS = "/solutions/{solutionId}/revisions/{revisionId}/artifacts/{artifactId}";
-		public static final String ARTIFACT_CONTENT = "/solutions/{solutionId}/revisions/{revisionId}/artifacts/{artifactId}/content";
-
-		public static final String SOLUTION_REVISION_DOCUMENTS = "/solutions/{solutionId}/revisions/{revisionId}/documents";
-		public static final String DOCUMENT_DETAILS = "/solutions/{solutionId}/revisions/{revisionId}/documents/{documentId}";
-		public static final String DOCUMENT_CONTENT = "/solutions/{solutionId}/revisions/{revisionId}/documents/{documentId}/content";
+		public static final String ARTIFACT_CONTENT = "/artifacts/{artifactId}/content";
+		public static final String SOLUTION_REVISION_DOCUMENTS = "/revisions/{revisionId}/documents";
+		public static final String DOCUMENT_CONTENT = "/documents/{documentId}/content";
 
 		public static final String SUBSCRIPTION = "/subscription/{subscriptionId}";
 
-		public static final String CATALOGS = "/catalogs";
 		public static final String PEERS = "/peers";
 		public static final String PING = "/ping";
 
@@ -181,13 +174,21 @@ public enum API {
 		public static final String PEER_UNREGISTER = "/peer/unregister";
 	}
 
+	public static interface PathParameters {
+		public static final String PEER_ID = "peerId";
+		public static final String CATALOG_ID = "catalogId";
+		public static final String SOLUTION_ID = "solutionId";
+		public static final String REVISION_ID = "revisionId";
+		public static final String ARTIFACT_ID = "artifactId";
+		public static final String DOCUMENT_ID = "documentId";
+	}
 	public static interface QueryParameters {
 
-		public static final String SOLUTIONS_SELECTOR = "selector";
+		public static final String CATALOG_ID = "catalogId";
 	}
 
 	public static interface Queries {
 
-		public static final List<String> SOLUTIONS = Collections.unmodifiableList(Arrays.asList(new String[] { QueryParameters.SOLUTIONS_SELECTOR }));
+		public static final List<String> CATALOG_ID = Collections.unmodifiableList(Arrays.asList(new String[] { QueryParameters.CATALOG_ID }));
 	}
 }

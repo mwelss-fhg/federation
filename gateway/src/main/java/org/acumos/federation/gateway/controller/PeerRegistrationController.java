@@ -60,7 +60,7 @@ public class PeerRegistrationController extends AbstractController {
 	public JsonResponse<MLPPeer> register(
 	    HttpServletResponse theHttpResponse,
 	    @PathVariable("peerId") String thePeerId) {
-		log.debug(API.Roots.LOCAL + "" + API.Paths.PEER_REGISTER);
+		log.debug("{}{}", API.Roots.LOCAL, API.Paths.PEER_REGISTER);
 		return callPeer("getPeers", theHttpResponse, thePeerId, peer -> peer.register(peerService.getSelf()) );
 	}
 }

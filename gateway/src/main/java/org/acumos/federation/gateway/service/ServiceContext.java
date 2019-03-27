@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -54,18 +54,10 @@ public interface ServiceContext {
 		return getPeer().getPeerInfo().isSelf();
 	}
 
-	/*
-	 */
-	//public static ServiceContext selfService() {
-	//	return forPeer(/*how to get a reference to the self peer in here ??*/);
-	//}
-
-	/*
-	 */
 	public static ServiceContext forPeer(final Peer thePeer) {
 		return new ServiceContext() {
 
-			private Map<String, Object> attributes = new HashMap<String, Object>();
+			private Map<String, Object> attributes = new HashMap<>();
 			private Peer								peer;
 
 			{

@@ -220,12 +220,12 @@ public class ContentServiceTest	extends ServiceTest {
 		Artifact artifact = new Artifact();
 		artifact.setUri("com/artifact/6793411f-c7a1-4e93-85bc-f91d267541d8/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/artifact/1.0/artifact-1.0.log");
 		artifact.setArtifactTypeCode("DS");
-		contentService.getArtifactContent("sid", "rid", artifact).getInputStream().close();
+		contentService.getArtifactContent(artifact).getInputStream().close();
 		artifact = new Artifact();
 		artifact.setArtifactTypeCode("DS");
 		artifact.setName("artifact.log");
 		artifact.setVersion("1.0");
-		contentService.putArtifactContent("sid", "rid", artifact, new InputStreamResource(new ByteArrayInputStream("xxx".getBytes())));
+		contentService.putArtifactContent("sid", artifact, new InputStreamResource(new ByteArrayInputStream("xxx".getBytes())));
 	}
 
 
@@ -235,30 +235,31 @@ public class ContentServiceTest	extends ServiceTest {
 		Artifact artifact = new Artifact();
 		artifact.setArtifactTypeCode("DI");
 		try {
-			contentService.getArtifactContent("sid", "rid", artifact).getInputStream().close();
+			contentService.getArtifactContent(artifact).getInputStream().close();
 			fail("Expected ServiceException");
 		} catch (ServiceException se) {
 			// We want this
 		}
 		try {
 			artifact.setUri("Rainy_Day_Case");
-			contentService.getArtifactContent("sid", "rid", artifact).getInputStream().close();
+			contentService.getArtifactContent(artifact).getInputStream().close();
 			fail("Expected ServiceException");
 		} catch (ServiceException se) {
 			// We want this
 		}
 		artifact.setUri("com/artifact/6793411f-c7a1-4e93-85bc-f91d267541d8/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/artifact/1.0/artifact-1.0.log");
-		contentService.getArtifactContent("sid", "rid", artifact).getInputStream().close();
+		contentService.getArtifactContent(artifact).getInputStream().close();
 		artifact = new Artifact();
 		artifact.setArtifactTypeCode("DI");
 		artifact.setName("thatone");
 		artifact.setVersion("1.0");
+		artifact.setArtifactId("AnArtifactId");
 		artifact.setDescription("repo1.example.org/thatone:1.0");
-		contentService.putArtifactContent("sid", "rid", artifact, new InputStreamResource(new ByteArrayInputStream("xxx".getBytes())));
-		assertEquals("dockerhost.example.com/thatone_sid:1.0", artifact.getUri());
+		contentService.putArtifactContent("sid", artifact, new InputStreamResource(new ByteArrayInputStream("xxx".getBytes())));
+		assertEquals("dockerhost.example.com/AnArtifactId:1.0", artifact.getUri());
 		try {
 			artifact.setDescription("repo1.example.org/notthere:9.9");
-			contentService.putArtifactContent("sid", "rid", artifact, new InputStreamResource(new ByteArrayInputStream("xxx".getBytes())));
+			contentService.putArtifactContent("sid", artifact, new InputStreamResource(new ByteArrayInputStream("xxx".getBytes())));
 			fail("Expected ServiceException");
 		} catch (ServiceException se) {
 			// We want this
@@ -270,17 +271,17 @@ public class ContentServiceTest	extends ServiceTest {
 	public void testDocuments() throws Exception {
 		Document document = new Document();
 		try {
-			contentService.getDocumentContent("sid", "rid", document).getInputStream().close();
+			contentService.getDocumentContent(document).getInputStream().close();
 			fail("Expected ServiceException");
 		} catch (ServiceException se) {
 			// We want this
 		}
 		document.setUri("com/artifact/6793411f-c7a1-4e93-85bc-f91d267541d8/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/document/PB/document-PB.txt");
-		contentService.getDocumentContent("sid", "rid", document).getInputStream().close();
+		contentService.getDocumentContent(document).getInputStream().close();
 		document = new Document();
 		document.setName("thatone");
-		contentService.putDocumentContent("sid", "rid", document, new InputStreamResource(new ByteArrayInputStream("xxx".getBytes())));
-		assertEquals("com/artifact/sid/rid/thatone/PB/thatone-PB.", document.getUri());
+		contentService.putDocumentContent("sid", document, new InputStreamResource(new ByteArrayInputStream("xxx".getBytes())));
+		assertEquals("com/artifact/sid/thatone/na/thatone-na.", document.getUri());
 	}
 
 	@Test

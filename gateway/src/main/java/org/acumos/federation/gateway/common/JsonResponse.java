@@ -112,7 +112,7 @@ public class JsonResponse<T> implements Serializable {
 	}
 
 	public static <T> JsonResponseBuilder<T> buildResponse() {
-		return new JsonResponseBuilder<T>();
+		return new JsonResponseBuilder<>();
 	}
 
 	public static class JsonErrorResponseBuilder<T> {
@@ -140,7 +140,7 @@ public class JsonResponse<T> implements Serializable {
 	}
 	
 	public static <T> JsonErrorResponseBuilder<T> buildErrorResponse() {
-		return new JsonErrorResponseBuilder<T>();
+		return new JsonErrorResponseBuilder<>();
 	}
 
 }

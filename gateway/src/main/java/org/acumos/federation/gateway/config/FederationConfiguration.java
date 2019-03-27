@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,6 @@ import org.acumos.federation.gateway.controller.RegistrationController;
 import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-//import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -88,13 +87,13 @@ public class FederationConfiguration {
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	//@ConfigurationProperties(prefix = "server", ignoreInvalidFields = true)
 	public HttpClient federationClient() {
-		log.debug(this + "::federationClient from " + this.interfaceConfig);
+		log.debug("{}::federationClient from {}", this, this.interfaceConfig);
 		return this.interfaceConfig.buildClient();
 	}
 
 	@Bean
 	public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> federationServer() {
-		log.debug(this + "::federationServer from " + this.interfaceConfig);
+		log.debug("{}::federationServer from {}", this, this.interfaceConfig);
 		return new WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>() {
 			@Override
 			public void customize(ConfigurableServletWebServerFactory theServer) {

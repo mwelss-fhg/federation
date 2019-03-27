@@ -90,7 +90,7 @@ public class LocalConfiguration {
 	@Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public HttpClient localClient() {
-		log.debug(this + "::localClient from " + this.interfaceConfig);
+		log.debug("{}::localClient from {}", this, this.interfaceConfig);
 		return interfaceConfig.buildClient();
 	}
 
@@ -101,7 +101,7 @@ public class LocalConfiguration {
 	 */
 	@Bean
 	public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> localServer() {
-		log.debug(this + "::localServer from " + this.interfaceConfig);
+		log.debug("{}::localServer from {}", this, this.interfaceConfig);
 		return new WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>() {
 			@Override
 			public void customize(ConfigurableServletWebServerFactory theServer) {

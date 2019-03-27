@@ -118,7 +118,7 @@ public class TestAdapter {
 				List<MLPSolution> peerSolutions = null;
 				try {
 					peerSolutions = (List)clients.getFederationClient(this.peer.getApiUrl())
-						.getSolutions(Utils.jsonStringToMap(this.sub.getSelector())).getContent();
+						.getSolutions((String)Utils.jsonStringToMap(this.sub.getSelector()).get("catalogId")).getContent();
 				}
 				catch (FederationException fx) {
 					log.warn("Failed to retrieve solutions", fx);
@@ -176,8 +176,7 @@ public class TestAdapter {
 						for (MLPArtifact artifact : artifacts) {
 							Resource artifactContent = null;
 							try {
-								artifactContent = fedClient.getArtifactContent(
-																		solution.getSolutionId(), revision.getRevisionId(), artifact.getArtifactId());
+								artifactContent = fedClient.getArtifactContent( artifact.getArtifactId());
 								log.warn("Received artifact content: "
 										+ new BufferedReader(new InputStreamReader(artifactContent.getInputStream()))
 												.lines().collect(Collectors.joining("\n")));

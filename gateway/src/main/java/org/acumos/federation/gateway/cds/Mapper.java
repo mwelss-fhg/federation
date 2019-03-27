@@ -26,7 +26,7 @@ import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPCatalog;
 import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPPeerSubscription;
-import org.acumos.cds.domain.MLPRevisionDescription;
+import org.acumos.cds.domain.MLPRevCatDescription;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 
@@ -70,7 +70,7 @@ public class Mapper {
 		    .add(MLPCatalog.class, Catalog.class)
 		    .add(MLPDocument.class, Document.class)
 		    .add(MLPPeerSubscription.class, PeerSubscription.class)
-		    .add(MLPRevisionDescription.class, RevisionDescription.class)
+		    .add(MLPRevCatDescription.class, RevCatDescription.class)
 		    .add(MLPSolution.class, Solution.class)
 		    .add(MLPSolutionRevision.class, SolutionRevision.class)
 		    .build();

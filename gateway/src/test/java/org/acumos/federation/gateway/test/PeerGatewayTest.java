@@ -113,7 +113,7 @@ public class PeerGatewayTest {
 	private MockAnswer peerAnswer = new MockAnswer();	
 	private MockAnswer cdsAnswer = new MockAnswer();	
 	//initialize with the number of checkpoints
-	private CountDownLatch stepLatch = new CountDownLatch(8);
+	private CountDownLatch stepLatch = new CountDownLatch(10);
 
 	@Before
 	public void initTest() throws IOException {
@@ -124,21 +124,30 @@ public class PeerGatewayTest {
 		//the mocking setup below must be in place before the gateway starts, not part of the test 'per se'.
 		cdsAnswer
 				.mockResponse(info -> info.getPath().equals("/ccds/peer/search") && info.getQueryParam("self").equals("true"), MockResponse.success("mockCDSPeerSearchSelfResponse.json"))
+				.mockResponse(info -> info.getPath().equals("/ccds/catalog/solution"), MockResponse.success("mockCDSPortalNoSolutionsResponse.json"))
+				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/catalog"), MockResponse.success("mockCDSCreateCatalogResponse.json", stepTrack))
+				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/catalog/myCatalog/solution/6793411f-c7a1-4e93-85bc-f91d267541d8"), MockResponse.success("mockCDSAddCatalogSolutionResponse.json", stepTrack))
 				.mockResponse(info -> info.getPath().equals("/ccds/peer"), MockResponse.success("mockCDSPeerSearchAllResponse.json"))
 				.mockResponse(info -> info.getPath().equals("/ccds/peer/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/sub"), MockResponse.success("mockCDSPeerSubscriptionsResponse.json"))
 				.mockResponse(info -> info.getPath().equals("/ccds/peer/sub/1"), MockResponse.success("mockCDSPeerSubscriptionResponse.json")) //this works for GET and PUT ..
-				.mockResponse(info -> info.getMethod().equals("GET") && info.getPath().equals("/ccds/solution/6793411f-c7a1-4e93-85bc-f91d267541d8"), MockResponse.success("mockCDSNoSuchSolutionResponse.json"))
+				.mockResponse(info -> info.getMethod().equals("GET") && info.getPath().equals("/ccds/solution/6793411f-c7a1-4e93-85bc-f91d267541d8"), MockResponse.success("mockCDSNoSuchThingResponse.json"))
 				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/solution"), MockResponse.success("mockCDSCreateSolutionResponse.json", stepTrack))
 				.mockResponse(info -> info.getMethod().equals("PUT") && info.getPath().equals("/ccds/solution/6793411f-c7a1-4e93-85bc-f91d267541d8/pic"), MockResponse.success("mockCDSsaveSolutionPicResponse.json", stepTrack))
 				.mockResponse(info -> info.getMethod().equals("GET") && info.getPath().equals("/ccds/solution/6793411f-c7a1-4e93-85bc-f91d267541d8/revision"), MockResponse.success("mockCDSNoSuchSolutionRevisionsResponse.json"))
 				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/solution/6793411f-c7a1-4e93-85bc-f91d267541d8/revision"), MockResponse.success("mockCDSCreateSolutionRevisionResponse.json", stepTrack))
+				.mockResponse(info -> info.getMethod().equals("GET") && info.getPath().equals("/ccds/artifact/2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b341"), MockResponse.success("mockCDSNoSuchThingResponse.json"))
 				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/artifact"), MockResponse.success("mockCDSCreateArtifactResponse.json", stepTrack))
+				.mockResponse(info -> info.getMethod().equals("GET") && info.getPath().equals("/ccds/document/2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b342"), MockResponse.success("mockCDSNoSuchThingResponse.json"))
 				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/document"), MockResponse.success("mockCDSCreateDocumentResponse.json", stepTrack))
-				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/access/PB/descr"), MockResponse.success("mockCDSCreateRevisionDescriptionResponse.json", stepTrack))
-				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/access/PB/document/2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b342"), MockResponse.success("mockCDSCreateRevisionDocumentResponse.json", stepTrack))
+				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/catalog/myCatalog/descr"), MockResponse.success("mockCDSCreateRevisionDescriptionResponse.json", stepTrack))
+				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/catalog/myCatalog/document/2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b342"), MockResponse.success("mockCDSCreateRevisionDocumentResponse.json", stepTrack))
 				.mockResponse(info -> info.getMethod().equals("POST") && info.getPath().equals("/ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/artifact/2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b341"), MockResponse.success("mockCDSCreateRevisionArtifactResponse.json", stepTrack))
 				.mockResponse(info -> info.getPath().equals("/ccds/code/pair/PEER_STATUS"), MockResponse.success("mockCDSPeerStatusResponse.json"))
-				.mockResponse(info -> info.getPath().equals("/ccds/code/pair/ARTIFACT_TYPE"), MockResponse.success("mockCDSArtifactTypeResponse.json"));
+				.mockResponse(info -> info.getPath().equals("/ccds/code/pair/ARTIFACT_TYPE"), MockResponse.success("mockCDSArtifactTypeResponse.json"))
+				.mockResponse(info -> info.getPath().equals("/ccds/access/peer/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/catalog"), MockResponse.success("mockCDSNoSuchSolutionRevisionsResponse.json"))
+				.mockResponse(info -> info.getPath().equals("/ccds/catalog/5ebbc521-1642-4d4c-a732-d9e8a6b51f4a/solution/count"), MockResponse.success("mockCDSPortalSolutionCountResponse.json"))
+				.mockResponse(info -> info.getPath().equals("/ccds/catalog/e072d118-0875-438b-8c9e-cf1f8ef3d9cb/solution/count"), MockResponse.success("mockCDSPortalSolutionCountResponse.json"))
+				.mockResponse(info -> info.getPath().equals("/ccds/catalog/search"), MockResponse.success("mockCDSPortalCatalogsResponse.json"));
 
 		//the CDS client is built to use a RestTemplate that leverages the HttpClient built from the LocalInterfaceConfiguration
 		//similar to what is done in ServiceTest
@@ -170,6 +179,7 @@ public class PeerGatewayTest {
 
 		try {
 			peerAnswer
+					.mockResponse(info -> info.getPath().equals("/catalogs"), MockResponse.success("mockPeerGWCatalogsResponse.json"))
 					.mockResponse(info -> info.getPath().equals("/solutions"), MockResponse.success("mockPeerSolutionsResponse.json"))
 					.mockResponse(info -> info.getPath().startsWith("/solutions/") && !info.getPath().contains("/revisions"), MockResponse.success("mockPeerSolutionResponse.json"))
 					.mockResponse(info -> info.getPath().endsWith("/revisions"), MockResponse.success("mockPeerSolutionRevisionsResponse.json"))
@@ -250,10 +260,5 @@ public class PeerGatewayTest {
 		}
 		//if we are here is that all steps that we expected took place
 		assertTrue(completed);
-	}
-
-	@Test
-	public void testContentService() throws Exception {
-		log.info("Content: {}", content);
 	}
 }

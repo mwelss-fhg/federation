@@ -60,7 +60,7 @@ public class PeerPingController extends AbstractController {
 	public JsonResponse<MLPPeer> ping(
 	    HttpServletResponse theHttpResponse,
 	    @PathVariable("peerId") String thePeerId) {
-		log.debug(API.Roots.LOCAL + "" + API.Paths.PING);
+		log.debug("{}{}", API.Roots.LOCAL, API.Paths.PING);
 		return callPeer("ping", theHttpResponse, thePeerId, peer -> peer.ping());
 	}
 }

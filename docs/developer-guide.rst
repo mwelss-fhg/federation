@@ -65,8 +65,12 @@ REST Interface
 --------------
 
 The federation interface allows access via the federation gateway to information available in an Acumos system.
-The main category of information that is exposed via the gateway is solution information: solution/revision/artifact and artifact content.
-The federation gateway allows access from pre-registered peers via a REST interface running over HTTPS/SSL/TLS.
+The main exposed elements are catalogs, solutions, artifacts, and documents.
+The federation gateway allows pre-registered peers to retrieve a list of catalogs they are permitted to view.
+The peers can then list solutions and revisions of those solutions published in those catalogs.
+They can then retrieve metadata and content of artifacts referenced by those revisions.
+For each catalog a solution revision appears in, peers can retrieve a description and document metadata and content
+
 The gateway requires mutual authentication; i.e., the client will be required to present a certificate.
 The gateway identifies a client as a pre-registered peer based on the certificates' subjectName
 (which implies that the subjectName must be communicated to the Acumos system administrator when the peer is provisioned).
@@ -74,8 +78,8 @@ The gateway identifies a client as a pre-registered peer based on the certificat
 API
 ~~~
 
-All APIs encode the response in JSON.
-There is a top level envelope containing error information, and under the entry 'responseBody' it contains the actual content.
+All APIs except the artifact and document content APIs, encode the response in JSON.  The artifact and document content APIs return unencoded data.
+For other APIs, there is a top level envelope containing error information, and under the entry 'responseBody' it contains the actual content.
 All identifiers are UUIDs.
 The following endpoints are defined:
 
@@ -83,38 +87,38 @@ The following endpoints are defined:
 
   List all visible (e.g. public) catalogs.
 
-* /solutions
+* /solutions?catalogId={catalogId}
 
-  List all public solutions. Accepts a query parameter, 'selector', which contains a JSON object with selection criteria, base64 encoded. Acceptable selection criteria are the solution object attributes. The entries are ANDed (see :ref:`selecting`).
+  List all solutions published to the specified catalog.
 
 * /solutions/{solutionId}
 
-  Retrieve one solution details.
+  Retrieve the specified solution, and its revisions.
 
 * /solutions/{solutionId}/revisions
 
-  List all revisions for a given solution.
+  Retrieve the revisions of the specified solution.
 
-* /solutions/{solutionId}/revisions/{revisionId}
+* /solutions/{solutionId}/revisions/{revisionId}[?catalogId={catalogId}]
 
-  Retrieve one revision details
+  Retrieve details of the specified revision, including its artifacts.
+  If the optional catalogId query parameter is specified, the description
+  of the revision and any documents associated with it, from the specified
+  catalog, will also be included.
 
 * /solutions/{solutionId}/revisions/{revisionId}/artifacts
 
   List all artifacts attached to a particular revision
 
-* /artifacts/{artifactId}
+* /artifacts/{artifactId}/content
 
-  Retrieve one artifact details
+  Retrieve the content of the specified artifact
 
-* /artifacts/{artifactId}/download
+* /revision/{revisionId}/documents?catalogId={catalogId}
 
-  Download the artifact content.
+  Retrieve documents associated with the specified revision in the specified
+  catalog.
 
-Example of solutions selector: The following will select all CLassifiers::
+* /documents/{documentId}/content
 
-    { "modelTypeCode":"CL" }
-
-Multiple values for a solution attribute are allowed and ORed.  The following will select all CLassifiers and PRedictors::
-
-    { "modelTypeCode":["CL","PR"] }
+  Retrieve the content of the specified document

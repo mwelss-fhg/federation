@@ -20,9 +20,7 @@
 
 package org.acumos.federation.gateway.service.impl;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +86,6 @@ public class CodeNamesServiceLocalImpl extends AbstractServiceLocalImpl implemen
 	public List<MLPCodeNamePair> getCodeNames(CodeNameType theType) throws ServiceException {
 
 		log.debug("getCodeNames");
-		return this.codes.getOrDefault(theType, Collections.EMPTY_LIST);
+		return this.codes.getOrDefault(theType, Collections.emptyList());
 	}
 }

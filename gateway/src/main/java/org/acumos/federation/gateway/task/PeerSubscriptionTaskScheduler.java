@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -81,8 +81,7 @@ public class PeerSubscriptionTaskScheduler {
 	public void cleanUpTasks() {
 		log.debug("cleanUpTasks");
 		try {
-			log.debug("cleanUpTasks: " + this.peersSubsTask.size() + " tasks");
-			//this.taskScheduler.shutdown();
+			log.debug("cleanUpTasks: {} tasks", this.peersSubsTask.size());
 
 		}
 		catch (Exception e) {
@@ -110,7 +109,6 @@ public class PeerSubscriptionTaskScheduler {
 		new PeerTaskHandler().runTask(thePeer, theSub);
 	}
 
-	/** */
 	private boolean shouldRun(MLPPeerSubscription theSub) {
 		if (theSub.getRefreshInterval() == null) {
 			//on demand only subscription
@@ -132,7 +130,7 @@ public class PeerSubscriptionTaskScheduler {
 		Set<Long> subsToTerminate = null;
 
 		if (subsTask != null) {
-			subsToTerminate = new HashSet<Long>();
+			subsToTerminate = new HashSet<>();
 
 			for (Map.Entry<Long, PeerTaskHandler> subTaskEntry : subsTask.entrySet()) {
 				subTaskEntry.getValue().stopTask();
@@ -152,13 +150,13 @@ public class PeerSubscriptionTaskScheduler {
 		// Get the List of MLP Peers
 		List<MLPPeer> peers = peerService.getPeers();
 		if (Utils.isEmptyList(peers)) {
-			log.info("no peers from " + peerService);
+			log.info("no peers from {}", peerService);
 			return;
 		}
 
 		//terminate peer tasks for deleted peers
 		Set<String> activePeerIds = this.peersSubsTask.rowKeySet();
-		Set<String> peersToTerminate = new HashSet<String>();
+		Set<String> peersToTerminate = new HashSet<>();
 		for (String activePeerId: activePeerIds) {
 			MLPPeer activePeer = peers.stream().filter(peer -> peer.getPeerId().equals(activePeerId)).findFirst().orElse(null);
 			if (activePeer == null) {
@@ -193,11 +191,10 @@ public class PeerSubscriptionTaskScheduler {
 
 			//terminate all active peer sub tasks that have no provisioned equivalent
 			if (peerSubsTask != null) {
-				Set<Long> subsToTerminate = new HashSet<Long>();
+				Set<Long> subsToTerminate = new HashSet<>();
 				for (Map.Entry<Long, PeerTaskHandler> peerSubTaskEntry : peerSubsTask.entrySet()) {
 					//fugly
-					if (!peerSubs.stream()
-								.filter(peerSub -> peerSub.getSubId().equals(peerSubTaskEntry.getKey())).findAny().isPresent()) {
+					if (!peerSubs.stream().anyMatch(peerSub -> peerSub.getSubId().equals(peerSubTaskEntry.getKey()))) {
 						peerSubTaskEntry.getValue().stopTask();
 						subsToTerminate.add(peerSubTaskEntry.getKey());
 						log.debug("Terminated task for peer {} subscription {}", peer.getPeerId(), peerSubTaskEntry.getKey());
@@ -211,7 +208,7 @@ public class PeerSubscriptionTaskScheduler {
 
 			//start/update tasks for all current subscriptions
 			for (MLPPeerSubscription peerSub : peerSubs) {
-				log.info("checkSub " + peerSub);
+				log.info("checkSub {}", peerSub);
 				PeerTaskHandler peerSubTask = this.peersSubsTask.get(peer.getPeerId(), peerSub.getSubId());
 				if (peerSubTask != null) {
 					MLPPeerSubscription taskSub = peerSubTask.getSubscription();

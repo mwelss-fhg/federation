@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -52,8 +52,6 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContextBuilder;
-//import org.apache.http.ssl.SSLContexts;
-//import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -81,21 +79,12 @@ public class InterfaceConfiguration {
 	private	Server	server; 
 
 	public InterfaceConfiguration() {
-		log.trace(this + "::new");
+		log.trace("{}::new", this);
 	}
 
-/*
-	public int getPoolSize() {
-		return this.poolSize;
-	}
-
-	public void setPoolSize(int thePoolSize) {
-		this.poolSize = thePoolSize;
-	}
-*/
 	@PostConstruct
 	public void initInterface() {
-		log.trace(this + "::init");
+		log.trace("{}::init", this);
 	}	
 
 	public String getAddress() {
@@ -281,8 +270,8 @@ public class InterfaceConfiguration {
 		@Autowired
 		private ResourceLoader resourceLoader;
 
-		private KeyStore	keyStore,
-											trustStore;
+		private KeyStore	keyStore;
+		private KeyStore	trustStore;
 
 		private String keyStoreLocation;
 		private String keyStoreType = "JKS";
@@ -425,7 +414,7 @@ public class InterfaceConfiguration {
 			try {
 				store = KeyStore.getInstance(theType);
 				store.load(storeSource,	thePasswd.toCharArray());
-				log.trace("Loaded key store: " + theLocation);
+				log.trace("Loaded key store: {}", theLocation);
 			}
 			catch (Exception x) {
 				throw new IllegalStateException("Error loading key material: " + x, x);
@@ -509,24 +498,19 @@ public class InterfaceConfiguration {
 	public HttpClient buildClient() {
 
 		SSLContext sslContext = null;
-		log.trace("Build HttpClient with " + this);
+		log.trace("Build HttpClient with {}", this);
 
 		if (this.ssl == null) {
 			log.trace("No ssl config was provided");
 		}
 		else {
-			KeyStore keyStore = this.ssl.loadKeyStore(),
-							 trustStore = this.ssl.loadTrustStore();
+			KeyStore keyStore = this.ssl.loadKeyStore();
+			KeyStore trustStore = this.ssl.loadTrustStore();
 
 			SSLContextBuilder contextBuilder = SSLContexts.custom();
 			try {
 				if (keyStore != null) {
-					contextBuilder.loadKeyMaterial(keyStore,
-							this.ssl.keyStorePasswd.toCharArray()/*
-																	 * , (aliases, socket) -> {
-																	 * 
-																	 * return this.ssl.keyAlias; }
-																	 */);
+					contextBuilder.loadKeyMaterial(keyStore, this.ssl.keyStorePasswd.toCharArray());
 				}
 
 				if (trustStore != null) {
@@ -554,14 +538,6 @@ public class InterfaceConfiguration {
 			registryBuilder.register("https", sslSocketFactory);
 		}
 		Registry<ConnectionSocketFactory> registry = registryBuilder.build();
-
-		/*
-		 * PoolingHttpClientConnectionManager connectionManager = new
-		 * PoolingHttpClientConnectionManager(registry);
-		 * connectionManager.setMaxTotal(this.poolSize);
-		 * connectionManager.setDefaultMaxPerRoute(this.poolSize);
-		 */
-
 		CredentialsProvider credsProvider = null;
 		if (hasClient()) {
 			credsProvider = new BasicCredentialsProvider();
@@ -574,7 +550,6 @@ public class InterfaceConfiguration {
 
 		HttpClientBuilder clientBuilder = HttpClients.custom();
 
-		// clientBuilder.setConnectionManager(connectionManager);
 		clientBuilder.setConnectionManager(new BasicHttpClientConnectionManager(registry));
 
 		if (sslSocketFactory != null)

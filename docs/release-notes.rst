@@ -23,6 +23,32 @@ Federation Gateway Release Notes
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 The image name is "federation-gateway" and the tag is a version string as shown below. 
 
+Version 2.2.0, 2019-04-16
+-------------------------
+* Update to CDS 2.2.x with subscription by catalogs (`ACUMOS-2732 <https://jira.acumos.org/browse/ACUMOS-2732>`_)
+
+  This makes changes to the REST api for accessing Federation on both the
+  public and internal interfaces:
+
+  * When listing solutions, the optional selector query parameter is replaced
+    by a required catalogId query parameter
+
+  * When getting revision details an optional catalogId query parameter is
+    added, used to retrieve descriptions and documents, from that catalog, for
+    the revision.  If not specified, no descriptions or documents are returned.
+
+  * When getting artifact and document content, the form of the URI is changed
+    to eliminate the unused solution and revision IDs.
+
+  * When getting documents for a revision, the form of the URI is changed
+    to eliminate the unused solution ID and a required catalogID query parameter
+    is added.
+
+  Solution revisions in CDS no longer have access type codes, so the (optional)
+  catalog.default-access-type-code configuration parameter has been removed.
+
+* Eliminate vulnerabilities and many "code smells" identified by SONAR.
+
 Version 2.1.2, 2019-03-27
 -------------------------
 * Add JUnit test cases to reach 50% or better code coverage (`ACUMOS-2584 <https://jira.acumos.org/browse/ACUMOS-2584>`_)

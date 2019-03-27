@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -107,29 +107,27 @@ public class PeerSubscription extends MLPPeerSubscription {
 	public static boolean isModified(MLPPeerSubscription theCurrentSub, MLPPeerSubscription theNewSub) {
 		boolean res = true;
 
-		String taskSelector = theCurrentSub.getSelector(),
-					 peerSelector = theNewSub.getSelector();
+		String taskSelector = theCurrentSub.getSelector();
+		String peerSelector = theNewSub.getSelector();
 		res &= ((taskSelector != null && peerSelector == null) ||
 						(taskSelector == null && peerSelector != null) ||
 					  (taskSelector != null && peerSelector != null && !taskSelector.equals(peerSelector)));
 
-		String taskOptions = theCurrentSub.getOptions(),
-					 peerOptions = theNewSub.getOptions();
+		String taskOptions = theCurrentSub.getOptions();
+		String peerOptions = theNewSub.getOptions();
 		res &= ((taskOptions != null && peerOptions == null) ||
 						(taskOptions == null && peerOptions != null) ||
 					  (taskOptions != null && peerOptions != null && !taskOptions.equals(peerOptions)));
 
-		Long taskRefresh = theCurrentSub.getRefreshInterval(),
-				 peerRefresh = theNewSub.getRefreshInterval();
+		Long taskRefresh = theCurrentSub.getRefreshInterval();
+		Long peerRefresh = theNewSub.getRefreshInterval();
 		res &= ((taskRefresh != null && peerRefresh == null) ||
 						(taskRefresh == null && peerRefresh != null) ||
 					  (taskRefresh != null && peerRefresh != null && !taskRefresh.equals(peerRefresh)));
 
 		//cannot be null
-		res &= !theCurrentSub.getScopeType().equals(theNewSub.getScopeType());
 		res &= !theCurrentSub.getUserId().equals(theNewSub.getUserId());
 		res &= !theCurrentSub.getPeerId().equals(theNewSub.getPeerId());
-		res &= !theCurrentSub.getAccessType().equals(theNewSub.getAccessType());
 
 		return res;
 	}

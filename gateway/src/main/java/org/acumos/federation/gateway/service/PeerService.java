@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -150,7 +150,7 @@ public interface PeerService {
 		else if (status == PeerStatuses.Renounced) {
 			throw new ServiceException("Peer unregistration request is pending");
 		}
-		else { //if (status == PeerStatus.Active || status == PeerStatus.Inactive) {
+		else { // status is Active or Inactive
 			throw new ServiceException("Peer already exists: " + thePeer);
 		}
 	}

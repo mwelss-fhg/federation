@@ -36,7 +36,7 @@ public class ControllerContext implements ServiceContext {
 	private ThreadLocal<Map<String, Object>> attributes =
 		new ThreadLocal<Map<String, Object>>() {
 			public Map<String, Object> initialValue() {
-				return new HashMap<String, Object>();
+				return new HashMap<>();
 			}
 		};																				
 

@@ -193,27 +193,10 @@ Gateway Configuration Properties
 
 The following configuration properties are enabled when federation.instance is "gateway":
 
-catalog.solutions.selector
+catalog.catalogs-selector
   Optional.  Default { "accessTypeCode": "PB" }
 
-  A JSON string giving override selector filters to be used when searching
-  for catalogs and solutions.  These filters are always in effect and cannot
-  be overridden.  Selectors are described in another section of this
-  documentation.
-
-catalog.solutions-selector-defaults
-  Optional.  Default { "modified": 1 }.
-
-  A JSON string giving default selector filters to be used when searching
-  for solutions.  These filters will be in effect unless overridden.
-
-catalog.solution-revisions-selector
-  Optional.  Default { "accessTypeCode": "PB" }
-
-  A JSON string giving override selector filters to be used when searching
-  for solution revisions.  These filters are always in effect and cannot
-  be overridden.  Selectors are described in another section of this
-  documentation.
+  A JSON string giving filters to be used when searching for catalogs.
 
 cdms.client.url
   Required.

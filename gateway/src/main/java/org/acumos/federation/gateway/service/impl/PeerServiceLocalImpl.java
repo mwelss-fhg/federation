@@ -20,9 +20,7 @@
 
 package org.acumos.federation.gateway.service.impl;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,15 +37,10 @@ import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @Service
 @ConfigurationProperties(prefix = "peers-local")
@@ -90,7 +83,7 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	/** */
 	@Override
 	public List<MLPPeer> getPeerBySubjectName(final String theSubjectName, ServiceContext theContext) {
-		log.info("Looking for peer " + theSubjectName);
+		log.info("Looking for peer {}", theSubjectName);
 		return this.peers.stream().filter(peer -> {
 			log.info("Found peer " + peer.getSubjectName());
 			return theSubjectName.equals(peer.getSubjectName());
@@ -101,7 +94,7 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	@Override
 	public MLPPeer getPeerById(final String thePeerId, ServiceContext theContext) {
 		MLPPeer apeer = this.peers.stream().filter(peer -> thePeerId.equals(peer.getPeerId())).findFirst().orElse(null);
-		log.info("Local peer info, one peer: " + apeer);
+		log.info("Local peer info, one peer: {}", apeer);
 		return apeer;
 	}
 
@@ -133,11 +126,11 @@ public class PeerServiceLocalImpl extends AbstractServiceLocalImpl implements Pe
 	@Override
 	public List<MLPPeerSubscription> getPeerSubscriptions(final String thePeerId) {
 		if (this.peers == null)
-			return Collections.EMPTY_LIST;
+			return Collections.emptyList();
 		FLPPeer peer = this.peers.stream().filter(entry -> thePeerId.equals(entry.getPeerId())).findFirst()
 				.orElse(null);
-		log.info("Peer " + thePeerId + " subs:" + (peer == null ? "none" : peer.getSubscriptions()));
-		return peer == null ? Collections.EMPTY_LIST : (List)peer.getSubscriptions();
+		log.info("Peer {} subs: {}", thePeerId, (peer == null ? "none" : peer.getSubscriptions()));
+		return peer == null ? Collections.emptyList() : (List)peer.getSubscriptions();
 	}
 
 	/** */

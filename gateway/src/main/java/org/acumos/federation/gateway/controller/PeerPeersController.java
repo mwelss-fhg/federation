@@ -62,7 +62,7 @@ public class PeerPeersController extends AbstractController {
 	    HttpServletResponse theHttpResponse,
 	    @PathVariable("peerId") String thePeerId) {
 
-		log.debug(API.Roots.LOCAL + "" + API.Paths.PEERS);
+		log.debug("{}{}", API.Roots.LOCAL, API.Paths.PEERS);
 		return callPeer("getPeers", theHttpResponse, thePeerId, peer -> peer.getPeers());
 	}
 

@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,6 @@
  * ===============LICENSE_END=========================================================
  */
 
-/**
- * 
- */
 package org.acumos.federation.gateway.service.impl;
 
 import java.io.InputStream;
@@ -29,7 +26,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.acumos.cds.AccessTypeCode;
 import org.acumos.federation.gateway.cds.Artifact;
 import org.acumos.federation.gateway.cds.ArtifactTypes;
 import org.acumos.federation.gateway.cds.Document;
@@ -62,20 +58,17 @@ import com.github.dockerjava.core.command.PushImageResultCallback;
  *
  */
 @Service
-public class ContentServiceImpl extends AbstractServiceImpl
-																	implements ContentService {
+public class ContentServiceImpl extends AbstractServiceImpl implements ContentService {
 
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Autowired
-  private NexusConfiguration nexusConfig;
-  @Autowired
-  private DockerConfiguration dockerConfig;
+	@Autowired
+	private NexusConfiguration nexusConfig;
+	@Autowired
+	private DockerConfiguration dockerConfig;
 
 	@Override
-	public Resource getArtifactContent(
-		String theSolutionId, String theRevisionId, Artifact theArtifact, ServiceContext theContext)
-																																															throws ServiceException {
+	public Resource getArtifactContent(Artifact theArtifact, ServiceContext theContext) throws ServiceException {
 		if (theArtifact.getUri() == null) {
 			throw new ServiceException("No artifact uri available for " + theArtifact);
 		}
@@ -88,7 +81,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 
 				try (PullImageResultCallback pullResult = new PullImageResultCallback()) {
 					docker.pullImageCmd(theArtifact.getUri())
-								.exec(pullResult);
+					    .exec(pullResult);
 					pullResult.awaitCompletion();
 					log.debug("Completed docker image pull for {}", theArtifact);
 				}
@@ -109,9 +102,7 @@ public class ContentServiceImpl extends AbstractServiceImpl
 	}
 
 	@Override
-	public void putArtifactContent(
-		String theSolutionId, String theRevisionId, Artifact theArtifact, Resource theResource, ServiceContext theContext)
-																																														throws ServiceException {
+	public void putArtifactContent(String theSolutionId, Artifact theArtifact, Resource theResource, ServiceContext theContext) throws ServiceException {
 
 		if (ArtifactTypes.DockerImage.getCode().equals(theArtifact.getArtifactTypeCode())) {
 			TrackingPushImageResultCallback pushResult = null;
@@ -119,53 +110,48 @@ public class ContentServiceImpl extends AbstractServiceImpl
 				TrackingInputStream imageSource = new TrackingInputStream(theResource.getInputStream());
 				//load followed by push
 				DockerClient docker = this.dockerConfig.getDockerClient();
-
 				docker.loadImageCmd(imageSource)
-							.exec(); //sync xecution
-				log.debug("Completed docker image load for {}. Transfered {} bytes in {} seconds.",
-					theArtifact, imageSource.size(), imageSource.duration()/1000);
-
+				    .exec(); //sync xecution
+				log.debug("Completed docker image load for {}. Transfered {} bytes in {} seconds.", theArtifact, imageSource.size(), imageSource.duration()/1000);
 				List<Image> images = docker.listImagesCmd().exec();
 				log.trace("Available docker images: {}", images);
-
 				//this relies on the presence of the original uri/tag in the description (which is what the controller does), otherwise
 				//we'd need to pick this information from the manifest
 				Image image = images.stream()
-												.filter(i -> i.getRepoTags() != null && Stream.of(i.getRepoTags()).anyMatch(t -> t.equals(theArtifact.getDescription())))
-												.findFirst()
-												.orElse(null);
+				    .filter(i -> i.getRepoTags() != null && Stream.of(i.getRepoTags()).anyMatch(t -> t.equals(theArtifact.getDescription())))
+				    .findFirst()
+				    .orElse(null);
 				if (image == null) {
 					log.debug("Could not find loaded docker image with tag {}", theArtifact.getDescription());
 					throw new ServiceException("Could not find loaded docker image for " + theArtifact);
 				}
 	
 				//new image name for re-tagging
-				String imageName = dockerConfig.getRegistryUrl() + "/" + theArtifact.getName().toLowerCase() + "_" + theSolutionId;
+				String imageName = dockerConfig.getRegistryUrl() + "/" + theArtifact.getArtifactId();
 				String imageTag = imageName;
 				log.debug("Attempt re-tagging of docker image {} with {}:{}", image, imageTag, theArtifact.getVersion());
 				docker.tagImageCmd(image.getId(), imageTag, theArtifact.getVersion()).exec();
 				log.debug("Re-tagged docker image: {} to {}:{}", image, imageTag, theArtifact.getVersion());
 				//remove old tag that came with the load
 				docker.removeImageCmd(theArtifact.getDescription())
-							.withForce(Boolean.TRUE)
-							.exec();
+				    .withForce(Boolean.TRUE)
+				    .exec();
 			
 				log.debug("Attempt docker push for image {}, tag {}", image, imageTag);
 				docker.pushImageCmd(imageName)
-							.withAuthConfig(dockerConfig.getAuthConfig())
-							.withTag(theArtifact.getVersion())
-							.exec(pushResult = new TrackingPushImageResultCallback())
-							.awaitCompletion();
+				    .withAuthConfig(dockerConfig.getAuthConfig())
+				    .withTag(theArtifact.getVersion())
+				    .exec(pushResult = new TrackingPushImageResultCallback())
+				    .awaitCompletion();
 
 				PushResponseItem pushResponse = pushResult.getResponseItem();
 				if (pushResponse.isErrorIndicated()) {
-					log.debug("Failed to push artifact {} image {} to docker registry: {}, {}", theArtifact, image, pushResponse.getError(), pushResponse.getErrorDetail());
-					throw new ServiceException("Failed to push image to docker registry: " + pushResponse.getError() + "\n" + pushResponse.getErrorDetail());
+					log.debug("Failed to push artifact {} image {} to docker registry: {}", theArtifact, image, pushResponse.getErrorDetail());
+					throw new ServiceException("Failed to push image to docker registry: " + pushResponse.getErrorDetail());
 				}
 				else {
 					log.debug("Completed docker push for artifact {} image {}", theArtifact, image);
 				}
-				
 				String imageUri = imageName + ":" + theArtifact.getVersion();
 				// update artifact with local repo reference. we also update the name and description in order to stay
 				// alligned with on-boarding's unwritten rules
@@ -187,17 +173,14 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		}
 		else {
 			String[] nameParts = splitName(getName(theArtifact));
-			String uri = putNexusContent(
-				nexusPrefix(theSolutionId, theRevisionId), nameParts[0], theArtifact.getVersion(), nameParts[1], theResource);
+			String uri = putNexusContent(nexusPrefix(theSolutionId), nameParts[0], theArtifact.getVersion(), nameParts[1], theResource);
 			// update artifact with local repo reference
 			theArtifact.setUri(uri);
 		}
 	}
 
 	@Override
-	public Resource getDocumentContent(
-		String theSolutionId, String theRevisionId, Document theDocument, ServiceContext theContext)
-																																										throws ServiceException {
+	public Resource getDocumentContent(Document theDocument, ServiceContext theContext) throws ServiceException {
 		if (theDocument.getUri() == null) {
 			throw new ServiceException("No document uri available for " + theDocument);
 		}
@@ -206,12 +189,9 @@ public class ContentServiceImpl extends AbstractServiceImpl
 	}
 
 	@Override
-	public void putDocumentContent(
-		String theSolutionId, String theRevisionId, Document theDocument, Resource theResource, ServiceContext theContext)
-																																										throws ServiceException {
+	public void putDocumentContent(String theSolutionId, Document theDocument, Resource theResource, ServiceContext theContext) throws ServiceException {
 		String[] nameParts = splitName(getName(theDocument));
-		String uri = putNexusContent(
-			nexusPrefix(theSolutionId, theRevisionId), nameParts[0], AccessTypeCode.PB.name(), nameParts[1], theResource);
+		String uri = putNexusContent(nexusPrefix(theSolutionId), nameParts[0], "na", nameParts[1], theResource);
 		theDocument.setUri(uri);
 	}
 
@@ -245,7 +225,6 @@ public class ContentServiceImpl extends AbstractServiceImpl
 		try {
 			String path = nexusPath(theGroupId, theContentId, theVersion, thePackaging);
 			URI contentUri = new URI(this.nexusConfig.getUrl() + UriUtils.encodePath(path, "UTF-8"));
-			//URI contentUri = new URI(this.nexusConfig.getUrl() + path);
 			log.info("Writing artifact content to nexus at {}", path);
 			RequestEntity<Resource> request = RequestEntity
 																					.put(contentUri)
@@ -270,8 +249,8 @@ public class ContentServiceImpl extends AbstractServiceImpl
 	/**
 	 * This builds the prefix passed to nexusPath
 	 */
-	private String nexusPrefix(String theSolutionId, String theRevisionId) {
-		return String.join(nexusConfig.getNameSeparator(), nexusConfig.getGroupId(), theSolutionId, theRevisionId);
+	private String nexusPrefix(String theSolutionId) {
+		return String.join(nexusConfig.getNameSeparator(), nexusConfig.getGroupId(), theSolutionId);
 	}
 
 	/**

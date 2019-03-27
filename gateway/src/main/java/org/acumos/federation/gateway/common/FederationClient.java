@@ -27,7 +27,6 @@ import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import org.acumos.cds.domain.MLPArtifact;
@@ -36,7 +35,6 @@ import org.acumos.cds.domain.MLPDocument;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
-import org.acumos.federation.gateway.util.Utils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
@@ -52,7 +50,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.util.Base64Utils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -115,28 +112,16 @@ public class FederationClient extends AbstractClient {
 	}
 	/**
 	 * 
-	 * @param theSelection
-	 *            key-value pairs; ignored if null or empty. Gives special treatment
-	 *            to Date-type values.
+	 * @param theCatalogId
+	 *             Catalog ID
 	 * @return List of MLPSolutions from Remote Acumos
 	 * @throws FederationException
 	 *             If remote acumos is not available
 	 */
-	public JsonResponse<List<MLPSolution>> getSolutions(Map<String, Object> theSelection)
-			throws FederationException {
+	public JsonResponse<List<MLPSolution>> getSolutions(String theCatalogId) throws FederationException {
 
-		String selectorParam = null;
-		try {
-			log.info("getSolutions selector {}", Utils.mapToJsonString(theSelection));
-			selectorParam = theSelection == null ? null
-					: Base64Utils.encodeToString(Utils.mapToJsonString(theSelection).getBytes("UTF-8"));
-			log.info("getSolutions encoded selector {}", selectorParam);
-		}
-		catch (Exception x) {
-			throw new IllegalArgumentException("Cannot process the selection argument", x);
-		}
-
-		URI uri = API.SOLUTIONS.buildUri(this.baseUrl, selectorParam == null ? Collections.EMPTY_MAP : Collections.singletonMap(API.QueryParameters.SOLUTIONS_SELECTOR, selectorParam));
+		log.info("getSolutions Catalog ID {}", theCatalogId);
+		URI uri = API.SOLUTIONS.buildUri(this.baseUrl, Collections.singletonMap(API.QueryParameters.CATALOG_ID, theCatalogId));
 		return handle(uri, new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 	}
 
@@ -174,15 +159,15 @@ public class FederationClient extends AbstractClient {
 	 *            Solution ID
 	 * @param theRevisionId
 	 *            Revision ID
+	 * @param theCatalogId
+	 *            Optional Catalog ID
 	 * @return Detailed artifact information from Remote Acumos. The returned value can be safely cast to ..gateway.cds.SolutionRevision.
 	 * @throws FederationException
 	 *             if remote acumos is not available
 	 */
-	public JsonResponse<MLPSolutionRevision> getSolutionRevision(String theSolutionId, String theRevisionId)
-			throws FederationException {
-
+	public JsonResponse<MLPSolutionRevision> getSolutionRevision(String theSolutionId, String theRevisionId, String theCatalogId) throws FederationException {
 		return handle(
-		     API.SOLUTION_REVISION_DETAILS.buildUri(this.baseUrl, theSolutionId, theRevisionId),
+		     API.SOLUTION_REVISION_DETAILS.buildUri(this.baseUrl, theSolutionId, theRevisionId, theCatalogId),
 		     new ParameterizedTypeReference<JsonResponse<MLPSolutionRevision>>() {});
 	}
 
@@ -203,48 +188,40 @@ public class FederationClient extends AbstractClient {
 	}
 
 	/**
-	 * @param theSolutionId
-	 *            Solution ID
-	 * @param theRevisionId
-	 *            Revision ID
 	 * @param theArtifactId
 	 *            Artifact ID
 	 * @return Resource
 	 * @throws FederationException On failure
 	 */
-	public Resource getArtifactContent(String theSolutionId, String theRevisionId, String theArtifactId) throws FederationException {
-		return download2(API.ARTIFACT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theArtifactId));
+	public StreamingResource getArtifactContent(String theArtifactId) throws FederationException {
+		return download(API.ARTIFACT_CONTENT.buildUri(this.baseUrl, theArtifactId));
 	}
 
 	/**
 	 * 
-	 * @param theSolutionId
-	 *            Solution ID
 	 * @param theRevisionId
 	 *            Revision ID
+	 * @param theCatalogId
+	 *            Catalog ID
 	 * @return List of MLPDocuments from Remote Acumos
 	 * @throws FederationException
 	 *             if remote acumos is not available
 	 */
-	public JsonResponse<List<MLPDocument>> getDocuments(String theSolutionId, String theRevisionId) throws FederationException {
+	public JsonResponse<List<MLPDocument>> getDocuments(String theRevisionId, String theCatalogId) throws FederationException {
 		return handle(
-		    API.SOLUTION_REVISION_DOCUMENTS.buildUri(this.baseUrl, theSolutionId, theRevisionId),
+		    API.SOLUTION_REVISION_DOCUMENTS.buildUri(this.baseUrl, theRevisionId, theCatalogId),
 		    new ParameterizedTypeReference<JsonResponse<List<MLPDocument>>>() {});
 	}
 
 	/**
-	 * @param theSolutionId
-	 *            Solution ID
-	 * @param theRevisionId
-	 *            Revision ID
 	 * @param theDocumentId
 	 *            Document ID
 	 * @return Resource
 	 * @throws FederationException
 	 *             On failure
 	 */
-	public Resource getDocumentContent(String theSolutionId, String theRevisionId, String theDocumentId) throws FederationException {
-		return download2(API.DOCUMENT_CONTENT.buildUri(this.baseUrl, theSolutionId, theRevisionId, theDocumentId));
+	public StreamingResource getDocumentContent(String theDocumentId) throws FederationException {
+		return download(API.DOCUMENT_CONTENT.buildUri(this.baseUrl, theDocumentId));
 	}
 
 	/**
@@ -292,11 +269,6 @@ public class FederationClient extends AbstractClient {
 		return handle(uri, () -> restTemplate.exchange(uri, HttpMethod.GET, null, type));
 	}
 
-	protected Resource download(URI theUri) throws FederationException {
-		RequestEntity<Void> request = RequestEntity.get(theUri).accept(MediaType.ALL).build();
-		return handle(theUri, () -> restTemplate.exchange(request, Resource.class));
-	}
-
 	/**
 	 * Download content of a URI.
 	 * E.g. the body of an artifact or document.
@@ -305,7 +277,7 @@ public class FederationClient extends AbstractClient {
 	 * @return Resource
 	 * @throws FederationException on failure
 	 */
-	protected StreamingResource download2(URI theUri) throws FederationException {
+	private StreamingResource download(URI theUri) throws FederationException {
 		log.info("Query for download {}", theUri);
 		ClientHttpResponse response = null;
 		try {
@@ -337,7 +309,7 @@ public class FederationClient extends AbstractClient {
 		}
 
 		@Override
-		public InputStream getInputStream() throws IOException, IllegalStateException {
+		public InputStream getInputStream() throws IOException {
 			log.trace("Download input stream access at {}",ExceptionUtils.getStackTrace(new RuntimeException("Input stream access")) );
 			return super.getInputStream();
 		}

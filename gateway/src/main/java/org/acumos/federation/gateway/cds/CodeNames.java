@@ -25,6 +25,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,15 +49,11 @@ public abstract class CodeNames<T extends CodeName> {
 
 	private static CodeNamesService codes = null;
 
-	protected static Map<CodeNameType, List<MLPCodeNamePair>> codeNamePairs = new HashMap<>();
-	protected static Map<Class, List<CodeName>> codeNames = new HashMap<>();
+	protected static Map<CodeNameType, List<MLPCodeNamePair>> codeNamePairs = new EnumMap(CodeNameType.class);
+	protected static HashMap<Class, List<CodeName>> codeNames = new HashMap<>();
 
 	@Autowired
 	public void setCodeNamesService(CodeNamesService theService) {
-		if (codes != null && codes != theService) {
-			log.warn("Mismatched auto (RE-)wiring. Has " + codes + ". Got " + theService);
-		}
-		// TODO: last value wins?   if (codes == null)
 		codes = theService;
 	}	
 
@@ -97,7 +94,7 @@ public abstract class CodeNames<T extends CodeName> {
 		synchronized (codeNames) {
 			List<CodeName> codes = codeNames.get(theType);
 			if (codes == null) {
-				codes = new LinkedList<CodeName>();
+				codes = new LinkedList<>();
 				codeNames.put(theType, codes);
 			}
 			//cannot call the CodeName.getCode in here as it will trigger an attempt to load the codes
@@ -159,7 +156,7 @@ public abstract class CodeNames<T extends CodeName> {
 							 this.pair.getName().equals(other.getName()); //we should also test the type ..
 			}
 			if (theMethod.getName().equals("toString")) {
-				return this.pair.getCode().toString();
+				return this.pair.getCode();
 			}
 			throw new IllegalArgumentException("Unexpected CodeName call: " + theMethod);
 		}

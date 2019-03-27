@@ -20,6 +20,7 @@
 package org.acumos.federation.gateway.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -91,20 +92,15 @@ public class CatalogServiceTest extends ServiceTest {
 	@Autowired
 	private CatalogService catalog;
 
-	private static Map<String, Object> selector(Object... flds) {
-		Map<String, Object> ret = new HashMap<String, Object>();
-		for (int i = 0; i < flds.length; i += 2) {
-			ret.put((String)flds[i], flds[i + 1]);
-		}
-		return(ret);
-	}
-
 	protected void initMockResponses() {
 
-		registerMockResponse("GET /ccds/catalog?page=0&size=100", MockResponse.success("mockCDSPortalCatalogsResponse.json"));
-		registerMockResponse("GET /ccds/catalog/5ebbc521-1642-4d4c-a732-d9e8a6b51f4a/solution?page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
-		registerMockResponse("GET /ccds/catalog/e072d118-0875-438b-8c9e-cf1f8ef3d9cb/solution?page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
-		registerMockResponse("GET /ccds/catalog/mycatalog/solution?page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
+		registerMockResponse("GET /ccds/catalog/search?accessTypeCode=PB&_j=a&page=0&size=100", MockResponse.success("mockCDSPortalCatalogsResponse.json"));
+		registerMockResponse("GET /ccds/catalog/5ebbc521-1642-4d4c-a732-d9e8a6b51f4a/solution/count", MockResponse.success("mockCDSPortalSolutionCountResponse.json"));
+		registerMockResponse("GET /ccds/catalog/e072d118-0875-438b-8c9e-cf1f8ef3d9cb/solution/count", MockResponse.success("mockCDSPortalSolutionCountResponse.json"));
+		registerMockResponse("GET /ccds/catalog/mycatalog/solution/count", MockResponse.success("mockCDSPortalSolutionCountResponse.json"));
+		registerMockResponse("GET /ccds/access/peer/testpeerid/catalog", MockResponse.success("mockCDSPortalPeerAccessCatalogIdsResponse.json"));
+		registerMockResponse("GET /ccds/catalog/mycatalog", MockResponse.success("mockCDSPortalGetCatalogResponse.json"));
+		registerMockResponse("GET /ccds/catalog/solution?ctlg=mycatalog&page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
 		registerMockResponse("GET /ccds/solution/search/date?atc=PB&inst=1000&active=true&page=0&size=100", MockResponse.success("mockCDSPortalSolutionsResponse.json"));
 		registerMockResponse("GET /ccds/solution/search/date?atc=PB&inst=1531747662000&active=true&page=0&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage0.json"));
 		registerMockResponse("GET /ccds/solution/search/date?atc=PB&inst=1531747662000&active=true&page=1&size=100", MockResponse.success("mockCDSDateSolutionsResponsePage1.json"));
@@ -115,8 +111,8 @@ public class CatalogServiceTest extends ServiceTest {
 		registerMockResponse("GET /ccds/solution/10101010-1010-1010-1010-101010101010/pic", MockResponse.success("mockCDSSolutionPicResponse.tgz"));
 		registerMockResponse("GET /ccds/revision/a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
 		registerMockResponse("GET /ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/artifact", MockResponse.success("mockCDSSolutionRevisionArtifactsResponse.json"));
-		registerMockResponse("GET /ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/access/PB/document", MockResponse.success("mockCDSSolutionRevisionDocumentsResponse.json"));
-		registerMockResponse("GET /ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/access/PB/descr", MockResponse.success("mockCDSSolutionRevisionDescriptionResponse.json"));
+		registerMockResponse("GET /ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/catalog/mycatalog/document", MockResponse.success("mockCDSSolutionRevisionDocumentsResponse.json"));
+		registerMockResponse("GET /ccds/revision/2c7e4481-6e6f-47d9-b7a4-c4e674d2b341/catalog/mycatalog/descr", MockResponse.success("mockCDSSolutionRevisionDescriptionResponse.json"));
 		registerMockResponse("GET /ccds/artifact/2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b341", MockResponse.success("mockCDSSolutionRevisionArtifactResponse.json"));
 		registerMockResponse("GET /ccds/document/2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b342", MockResponse.success("mockCDSSolutionRevisionDocumentResponse.json"));
 		registerMockResponse("GET /ccds/solution/f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", new MockResponse(400, "Error", "mockCDSNoEntryWithIDResponse.json"));
@@ -126,6 +122,13 @@ public class CatalogServiceTest extends ServiceTest {
 		registerMockResponse("GET /ccds/solution/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/revision", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
 		registerMockResponse("GET /ccds/revision/f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1/artifact", new MockResponse(412, "Error", "mockCDSErrorResponse.json"));
 		registerMockResponse("GET /ccds/peer/search?self=true&_j=a&page=0&size=100", MockResponse.success("mockCDSPeerSearchSelfResponse.json"));
+		registerMockResponse("GET /ccds/access/peer/testpeerid/catalog/forbidden", MockResponse.success("mockCDSForbiddenResponse.json"));
+		registerMockResponse("GET /ccds/access/peer/testpeerid/catalog/allowed", MockResponse.success("mockCDSAllowedResponse.json"));
+		registerMockResponse("GET /ccds/access/peer/testpeerid/solution/forbidden", MockResponse.success("mockCDSForbiddenResponse.json"));
+		registerMockResponse("GET /ccds/access/peer/testpeerid/solution/allowed", MockResponse.success("mockCDSAllowedResponse.json"));
+		registerMockResponse("GET /ccds/solution/ignored/revision/allowed", MockResponse.success("mockCDSSolutionRevisionResponse.json"));
+		registerMockResponse("GET /ccds/access/peer/testpeerid/solution/10101010-1010-1010-1010-101010101010", MockResponse.success("mockCDSAllowedResponse.json"));
+		registerMockResponse("GET /ccds/solution/ignored/revision/forbidden", MockResponse.success("mockCDSForbiddenSolutionRevisionResponse.json"));
 	}
 
 	/**
@@ -139,45 +142,20 @@ public class CatalogServiceTest extends ServiceTest {
 			ServiceContext selfService = 
 				ServiceContext.forPeer(new Peer(new MLPPeer("acumosa", "gateway.acumosa.org", "https://gateway.acumosa.org:9084", false, false, "admin@acumosa.org", "AC"), Role.SELF));
 
+			ServiceContext contextWithPeerId = 
+				ServiceContext.forPeer(new Peer(new MLPPeer("acumosa", "gateway.acumosa.org", "https://gateway.acumosa.org:9084", false, false, "admin@acumosa.org", "AC"), Role.SELF));
+			contextWithPeerId.getPeer().getPeerInfo().setPeerId("testpeerid");
+
 			List<MLPCatalog> catalogs = catalog.getCatalogs(selfService);
 			assertEquals("Unexpected catalogs count", 2, catalogs.size());
 			assertEquals("Unexpected catalog solution count", 5, ((Catalog)catalogs.get(0)).getSize());
-			List<MLPSolution> solutions = catalog.getSolutions(selector("catalogId", "mycatalog"), selfService);
+			catalogs = catalog.getCatalogs(contextWithPeerId);
+			assertEquals("Unexpected catalogs count", 3, catalogs.size());
+			List<MLPSolution> solutions = catalog.getSolutions("mycatalog", selfService);
 			assertEquals("Unexpected solutions count", 5, solutions.size());
-			solutions = catalog.getSolutions(selector("catalogId", "mycatalog", "modelTypeCode", "RG"), selfService);
-			assertEquals("Unexpected solutions count", 2, solutions.size());
-			solutions = catalog.getSolutions(selector("catalogId", "mycatalog", "toolkitTypeCode", new CopyOnWriteArrayList(new String[] {"CP", "TF" })), selfService);
-			assertEquals("Unexpected solutions count", 3, solutions.size());
-			solutions = catalog.getSolutions(selector("catalogId", "mycatalog", "tags", "subtract"), selfService);
-			assertEquals("Unexpected solutions count", 1, solutions.size());
-			solutions = catalog.getSolutions(selector("catalogId", "mycatalog", "tags", new CopyOnWriteArrayList(new String[] { "subtract", "poutput"})), selfService);
-			assertEquals("Unexpected solutions count", 2, solutions.size());
-			solutions = catalog.getSolutions(selector("catalogId", "mycatalog", "solutionId", "38efeef1-e4f4-4298-9f68-6f0052d6ade9"), selfService);
-			assertEquals("Unexpected solutions count", 1, solutions.size());
-			SolutionRevision rev = catalog.getSolutionRevision("38efeef1-e4f4-4298-9f68-6f0052d6ade9", "2c7e4481-6e6f-47d9-b7a4-c4e674d2b341");
-			Artifact art = catalog.getSolutionRevisionArtifact("2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b341");
-			Document doc = catalog.getSolutionRevisionDocument("2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b342");
-			try {
-				catalog.getSolutions(selector("catalogId", "mycatalog", "name", new CopyOnWriteArrayList(new String[] { "A", "B" })), selfService);
-				fail("Expected service exception, got none");
-			}
-			catch (ServiceException sx) {
-			}
-			try {
-				catalog.getSolutions(selector("catalogId", "mycatalog", "name", true), selfService);
-				fail("Expected service exception, got none");
-			}
-			catch (ServiceException sx) {
-			}
-			try {
-				catalog.getSolutions(selector("catalogId", "mycatalog", "tags", true), selfService);
-				fail("Expected service exception, got none");
-			}
-			catch (ServiceException sx) {
-			}
-			solutions = catalog.getSolutions(Collections.EMPTY_MAP, selfService);
-			assertEquals("Unexpected solutions count", 5, solutions.size());
-		
+			SolutionRevision rev = catalog.getRevision("mycatalog", "38efeef1-e4f4-4298-9f68-6f0052d6ade9", "2c7e4481-6e6f-47d9-b7a4-c4e674d2b341");
+			Artifact art = catalog.getArtifact("2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b341");
+			Document doc = catalog.getDocument("2c2c2c2c-6e6f-47d9-b7a4-c4e674d2b342");
 			Solution solution = catalog.getSolution("10101010-1010-1010-1010-101010101010", selfService);
 			assertEquals("Unexpected solution info", "test", solution.getName());
 
@@ -186,7 +164,7 @@ public class CatalogServiceTest extends ServiceTest {
 				assertEquals("Unexpected revisions count", 1, revisions.size());
 				for (MLPSolutionRevision revision: revisions) {
 					assertTrue("Unexpected revision info", revision.getVersion().startsWith("1"));
-					List<MLPArtifact> artifacts = catalog.getSolutionRevisionArtifacts(solution.getSolutionId(), revision.getRevisionId());
+					List<MLPArtifact> artifacts = catalog.getArtifacts(solution.getSolutionId(), revision.getRevisionId());
 					assertEquals("Unexpected artifacts count", 1, artifacts.size());
 				}
 			}
@@ -195,10 +173,10 @@ public class CatalogServiceTest extends ServiceTest {
 			Solution nsSolution = catalog.getSolution("f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", selfService);
 			assertNull("Unexpected no such solution outcome", nsSolution);
 
-			List<MLPSolutionRevision> nsRevisions = catalog.getSolutionRevisions("f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", selfService);
+			List<MLPSolutionRevision> nsRevisions = catalog.getRevisions("f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", selfService);
 			assertNull("Unexpected no such solution (revisions) outcome", nsRevisions);
 
-			List<MLPArtifact> nsArtifacts = catalog.getSolutionRevisionArtifacts("f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", "f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", selfService);
+			List<MLPArtifact> nsArtifacts = catalog.getArtifacts("f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", "f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0", selfService);
 			assertNull("Unexpected no such solution (revision artifacts) outcome", nsArtifacts);
 
 			//other errors
@@ -210,18 +188,24 @@ public class CatalogServiceTest extends ServiceTest {
 			}
 		
 			try {
-				catalog.getSolutionRevisions("f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1", selfService);
+				catalog.getRevisions("f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1", selfService);
 				fail("Expected service exception, got none");
 			}
 			catch (ServiceException sx) {
 			}
 
 			try {
-				catalog.getSolutionRevisionArtifacts("f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1", "f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1", selfService);
+				catalog.getArtifacts("f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1", "f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1", selfService);
 				fail("Expected service exception, got none");
 			}
 			catch (ServiceException sx) {
 			}
+			assertFalse(catalog.isCatalogAllowed("forbidden", contextWithPeerId));
+			assertTrue(catalog.isCatalogAllowed("allowed", contextWithPeerId));
+			assertFalse(catalog.isSolutionAllowed("forbidden", contextWithPeerId));
+			assertTrue(catalog.isSolutionAllowed("allowed", contextWithPeerId));
+			assertFalse(catalog.isRevisionAllowed("forbidden", contextWithPeerId));
+			assertTrue(catalog.isRevisionAllowed("allowed", contextWithPeerId));
 		}
 		catch (Exception x) {
 			fail("Unexpected catalog test outcome: " + org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(x));

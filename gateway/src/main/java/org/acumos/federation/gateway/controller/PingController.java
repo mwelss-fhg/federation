@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -27,10 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.service.PeerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -46,9 +44,6 @@ public class PingController extends AbstractController {
 
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-	@Autowired
-	private PeerService peerService;
-
 	/**
 	 * Ping service.
 	 * @param theHttpResponse
@@ -56,7 +51,7 @@ public class PingController extends AbstractController {
 	 * @return List of Published ML Solutions in JSON format.
 	 */
 	@CrossOrigin
-	@PreAuthorize("isActive")
+	@PreAuthorize("isActive()")
 	@ApiOperation(value = "Invoked by Peer Acumos to get status and self information.", response = MLPPeer.class)
 	@RequestMapping(value = { API.Paths.PING }, method = RequestMethod.GET, produces = APPLICATION_JSON)
 	@ResponseBody
@@ -64,7 +59,7 @@ public class PingController extends AbstractController {
 			/* HttpServletRequest theHttpRequest, */
 			HttpServletResponse theHttpResponse) {
 
-		JsonResponse<MLPPeer> response = new JsonResponse<MLPPeer>();
+		JsonResponse<MLPPeer> response = new JsonResponse<>();
 		log.debug(API.Paths.PING);
 		try {
 			MLPPeer self = peerService.getSelf();

@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,6 @@ import org.acumos.cds.domain.MLPPeer;
 import org.acumos.federation.gateway.cds.PeerSubscription;
 import org.acumos.federation.gateway.common.API;
 import org.acumos.federation.gateway.common.JsonResponse;
-import org.acumos.federation.gateway.service.PeerService;
 import org.acumos.federation.gateway.service.PeerSubscriptionService;
 import org.acumos.federation.gateway.task.PeerSubscriptionTaskScheduler;
 import org.slf4j.Logger;
@@ -55,8 +54,6 @@ public class PeerSubscriptionController extends AbstractController {
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired
-	private PeerService peerService;
-	@Autowired
 	private PeerSubscriptionService peerSubscriptionService;
 	@Autowired
 	private ApplicationContext appCtx;
@@ -73,15 +70,13 @@ public class PeerSubscriptionController extends AbstractController {
 			@PathVariable("peerId") String thePeerId,
 			@PathVariable("subscriptionId") Long theSubscriptionId) {
 
-		log.debug(API.Roots.LOCAL + "" + API.Paths.SUBSCRIPTION);
+		log.debug("{}{}", API.Roots.LOCAL, API.Paths.SUBSCRIPTION);
 		JsonResponse<String> response = null;
 		try {
 			log.debug("trigger");
 	
 			MLPPeer peer = this.peerService.getPeerById(thePeerId);
 			PeerSubscription subscription = this.peerSubscriptionService.getPeerSubscription(theSubscriptionId);
-			//coherence check
-			//subscription.getPeerId().equals(thePeerId);
 
 			((PeerSubscriptionTaskScheduler)this.appCtx.getBean("peerSubscriptionTaskScheduler")).runOnce(peer, subscription);
 

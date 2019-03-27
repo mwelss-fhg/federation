@@ -79,13 +79,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 
 
@@ -136,17 +134,12 @@ public class LocalControllerTest {
 			super(theTarget, theClient);
 		}
 
-		public Resource xdownload(URI theUri) throws FederationException {
-			return download(theUri);
-		}
 		public void xsetTarget(String theTarget) {
 			setTarget(theTarget);
 		}
 	}
 
 
-	private RestTemplate	restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
-	
 	@Value("${local.server.port}")
 	private int localPort;
 
@@ -200,7 +193,6 @@ public class LocalControllerTest {
                   federationClient);
 			}
 		});
-		((HttpComponentsClientHttpRequestFactory)this.restTemplate.getRequestFactory()).setHttpClient(prepareHttpClient());
 	}
 
 	private <T> void assertGoodResponse(String testname, ResponseEntity<JsonResponse<T>> response) {
@@ -212,19 +204,13 @@ public class LocalControllerTest {
 		assertEquals(200, response.getStatusCodeValue());
 	}
 
+	private <T> void assertFailResponse(ResponseEntity<JsonResponse<T>> response, int code) {
+		assertEquals(code, response.getStatusCodeValue());
+	}
+
 	private <T> void assertGoodResponseWith(String testname, ResponseEntity<JsonResponse<T>> response, java.util.function.Predicate<T> fcn) {
 		assertGoodResponse(testname, response);
 		assertTrue(fcn.test(response.getBody().getContent()));
-	}
-
-	private <T> void verifyFail(String url, HttpMethod meth, ParameterizedTypeReference<T> rtype, int code) {
-		try {
-			log.info("testPeerNoSuch: {}", url);
-			this.restTemplate.exchange(url, meth, prepareRequest(), rtype);
-			fail("expected to fail");
-		} catch (HttpStatusCodeException httpx) {
-			assertEquals(code, httpx.getStatusCode().value());
-		}
 	}
 
 	@Test
@@ -233,18 +219,18 @@ public class LocalControllerTest {
 
 		log.info("testPeerCatalogs: {}", url);
 		ResponseEntity<JsonResponse<List<MLPCatalog>>> response =
-			this.restTemplate.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPCatalog>>>() {});
+			TestTemplates.SELF.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPCatalog>>>() {});
 		
 		assertGoodResponseWith("testPeerCatalogs", response, content -> content.size() == 2);
 	}
 
 	@Test
 	public void testPeerSolutions() {
-		String url = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111111/solutions";
+		String url = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111111/solutions?catalogId=myCatalog";
 
 		log.info("testPeerSolutions: {}", url);
 		ResponseEntity<JsonResponse<List<MLPSolution>>> response =
-			this.restTemplate.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
+			TestTemplates.SELF.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {});
 		
 		assertGoodResponseWith("testPeerSolutions", response, content -> content.size() == 1);
 	}
@@ -256,7 +242,7 @@ public class LocalControllerTest {
 
 		log.info("testPeerSolution: {}", url);
 		ResponseEntity<JsonResponse<MLPSolution>> response =
-			this.restTemplate.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
+			TestTemplates.SELF.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {} );
 	
 		assertGoodResponseWith("testPeerSolution", response, content -> content.getModelTypeCode().equals("CL"));
 	}
@@ -267,7 +253,7 @@ public class LocalControllerTest {
 
 		log.info("testPeerPing: {}", url);
 		ResponseEntity<JsonResponse<MLPPeer>> response =
-			this.restTemplate.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {});
+			TestTemplates.SELF.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {});
 		
 		assertGoodResponseWith("testPeerPing", response, content -> content.getPeerId().equals("11111111-1111-1111-1111-111111111111"));
 	}
@@ -278,7 +264,7 @@ public class LocalControllerTest {
 		
 		log.info("testPeerPeers: {}", url);
 		ResponseEntity<JsonResponse<List<MLPPeer>>> response =
-			this.restTemplate.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {} );
+			TestTemplates.SELF.exchange(url, HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {} );
 	
 		assertGoodResponseWith("testPeerPeers", response, content -> content.get(0).getName().startsWith("acumos"));
 	}
@@ -289,7 +275,7 @@ public class LocalControllerTest {
 
 		log.info("testPeerSubscription: {}", url);
 		ResponseEntity<JsonResponse<String>> response =
-			this.restTemplate.exchange(url, HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<String>>() {});
+			TestTemplates.SELF.exchange(url, HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<String>>() {});
 		
 		assertGoodResponse("testPeerSubscription", response);
 	}
@@ -299,7 +285,7 @@ public class LocalControllerTest {
 		String url = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111111/peer/register";
 		log.info("testPeerRegistration: {}", url);
 		ResponseEntity<JsonResponse<MLPPeer>> response =
-			this.restTemplate.exchange(url, HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {});
+			TestTemplates.SELF.exchange(url, HttpMethod.POST, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {});
 
 		assertGoodResponse("testPeerRegistration", response);
 	}
@@ -308,10 +294,10 @@ public class LocalControllerTest {
 	public void testPeerNoSuch() {
 		String badpeer = "https://localhost:" + this.localPort + "/peer/11111111-1111-1111-1111-111111111112";
 	
-		verifyFail(badpeer + "/ping", HttpMethod.GET, new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {}, 404);
-		verifyFail(badpeer + "/peers", HttpMethod.GET, new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {}, 404);
-		verifyFail(badpeer + "/solutions?selector=e30K", HttpMethod.GET, new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {}, 404);
-		verifyFail(badpeer + "/solutions/00000000-0000-0000-0000-000000000000", HttpMethod.GET, new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {}, 404);
+		assertFailResponse(TestTemplates.SELF.exchange(badpeer + "/ping", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPPeer>>() {}), 404);
+		assertFailResponse(TestTemplates.SELF.exchange(badpeer + "/peers", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPPeer>>>() {}), 404);
+		assertFailResponse(TestTemplates.SELF.exchange(badpeer + "/solutions?catalogId=XXXX", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<List<MLPSolution>>>() {}), 404);
+		assertFailResponse(TestTemplates.SELF.exchange(badpeer + "/solutions/00000000-0000-0000-0000-000000000000", HttpMethod.GET, prepareRequest(), new ParameterizedTypeReference<JsonResponse<MLPSolution>>() {}), 404);
 	}
 
 	@Test
@@ -320,7 +306,6 @@ public class LocalControllerTest {
 		fedcli.getSolutionRevisions("00000000-0000-0000-0000-000000000000");
 		fedcli.getArtifacts("00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000000");
 		fedcli.getDocuments("00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000000");
-		fedcli.xdownload(new URI("https://localhost:" + this.localPort + "/download"));
 		try {
 			fedcli.xsetTarget(null);
 			fail("Expected IllegalArgumentException");
@@ -388,35 +373,9 @@ public class LocalControllerTest {
 		assertEquals("need", ic.getSSL().getClientAuth());
 	}
 
-	private HttpEntity prepareRequest(String theResourceName) {
-		String content = new Scanner(
-    									   Thread.currentThread().getContextClassLoader().getResourceAsStream(theResourceName), "UTF-8")
-											.useDelimiter("\\Z").next();
-
-		HttpHeaders headers = new HttpHeaders();
- 		headers.setContentType(MediaType.APPLICATION_JSON);
- 		return new HttpEntity<String>(content, headers);
-	}
-	
 	private HttpEntity prepareRequest() {
 		HttpHeaders headers = new HttpHeaders();
  		headers.setContentType(MediaType.APPLICATION_JSON);
  		return new HttpEntity<String>(headers);
-	}
-
-	private HttpClient prepareHttpClient() {
-		return InterfaceConfigurationBuilder.buildFrom(new InterfaceConfigurationBuilder()
-								.withSSL(new SSLBuilder()
-															.withKeyStoreType("JKS")
-															.withKeyAlias(null)
-															.withKeyStore("classpath:/acumosa.pkcs12")
-															.withKeyStorePassword("acumosa")
-															.withTrustStore("classpath:/acumosTrustStore.jks")
-															.withTrustStoreType("JKS")
-															.withTrustStorePassword("acumos")
-															.build())
-								.buildConfig())
-								.buildConfig()
-								.buildClient();
 	}
 }

@@ -14,12 +14,11 @@
   "picture":"9999aGVsbG8gd29ybGQK",
 	"revisions":[{
 	  "revisionId":"2c7e4481-6e6f-47d9-b7a4-c4e674d2b341",
-  	"solutionId":"6793411f-c7a1-4e93-85bc-f91d267541d8",
+  	  "solutionId":"6793411f-c7a1-4e93-85bc-f91d267541d8",
 	  "version":"1.0",
 	  "metadata":"acumosa",
 	  "userId":"admin",
-	  "accessTypeCode": "PB",
-		"created":"2019-02-12T23:08:45Z",
-		"modified":"2019-02-12T23:08:45Z"}]
+	  "created":"2019-02-12T23:08:45Z",
+	  "modified":"2019-02-12T23:08:45Z"}]
  }
 }

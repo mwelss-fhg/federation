@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ public class Tools {
 	 * @return a map of requested parts and their values. Only those parts for which an entry was found will be available.
 	 */
 	public static  Map<String, Object> getNameParts(String theName, String... theParts) {
-		log.info(" X500 name: " + theName);
+		log.info(" X500 name: {}", theName);
 		LdapName x500name = null;
 		try {
 			x500name = new LdapName(theName);
@@ -59,7 +59,7 @@ public class Tools {
 			throw new IllegalArgumentException(inx);
 		}
 
-		Map<String, Object> parts = new HashMap<String, Object>();
+		Map<String, Object> parts = new HashMap<>();
 		for (Rdn rdn :  x500name.getRdns()) {
 			for (String part: theParts) {
 				if (part.equalsIgnoreCase(rdn.getType())) {

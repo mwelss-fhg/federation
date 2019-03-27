@@ -33,10 +33,6 @@ import org.springframework.core.io.Resource;
 public interface ContentService {
 
 	/**
-	 * @param theSolutionId
-	 *						The solution the revision belongs to
-	 * @param theRevisionId
-	 *						The solution revision the artifact belongs to
 	 * @param theArtifact
 	 *            The CDS representation of artifact metadata
 	 * @param theContext
@@ -44,31 +40,23 @@ public interface ContentService {
 	 * @return resource containing access to the actual artifact content
 	 * @throws ServiceException On failure
 	 */
-	public Resource getArtifactContent(
-			String theSolutionId, String theRevisionId, Artifact theArtifact, ServiceContext theContext)
+	public Resource getArtifactContent(Artifact theArtifact, ServiceContext theContext)
 																																										throws ServiceException;
 
 	/**
-	 * @param theSolutionId
-	 *						The solution the revision belongs to
-	 * @param theRevisionId
-	 *						The solution revision the artifact belongs to
 	 * @param theArtifact
 	 *            The CDS representation of artifact metadata
 	 * @return resource containing access to the actual artifact content
 	 * @throws ServiceException On failure
 	 */
-	public default Resource getArtifactContent(
-			String theSolutionId, String theRevisionId, Artifact theArtifact)					throws ServiceException {
-		return getArtifactContent(theSolutionId, theRevisionId, theArtifact, selfService());
+	public default Resource getArtifactContent(Artifact theArtifact)					throws ServiceException {
+		return getArtifactContent(theArtifact, selfService());
 	}
 
 	/**
 	 * If the call is succesful the artifact information is updated with the content uri.
 	 * @param theSolutionId
-	 *						The solution the revision belongs to
-	 * @param theRevisionId
-	 *						The solution revision the artifact belongs to
+	 *            The solution id
 	 * @param theArtifact
 	 *            The CDS representation of artifact metadata
 	 * @param theResource
@@ -77,32 +65,22 @@ public interface ContentService {
 	 *            the service execution context
 	 * @throws ServiceException On failure
 	 */
-	public void putArtifactContent(
-		String theSolutionId, String theRevisionId, Artifact theArtifact, Resource theResource, ServiceContext theContext)
-																																										throws ServiceException;
+	public void putArtifactContent(String theSolutionId, Artifact theArtifact, Resource theResource, ServiceContext theContext) throws ServiceException;
 	/**
 	 * If the call is succesful the artifact information is updated with the content uri.
 	 * @param theSolutionId
-	 *						The solution the revision belongs to
-	 * @param theRevisionId
-	 *						The solution revision the artifact belongs to
+	 *            The solution id
 	 * @param theArtifact
 	 *            The CDS representation of artifact metadata
 	 * @param theResource
 	 *            the resource providing the artifact content
 	 * @throws ServiceException On failure
 	 */
-	public default void putArtifactContent(
-		String theSolutionId, String theRevisionId, Artifact theArtifact, Resource theResource)
-																																										throws ServiceException {
-		putArtifactContent(theSolutionId, theRevisionId, theArtifact, theResource, selfService());
+	public default void putArtifactContent(String theSolutionId, Artifact theArtifact, Resource theResource) throws ServiceException {
+		putArtifactContent(theSolutionId, theArtifact, theResource, selfService());
 	}
 
 	/**
-	 * @param theSolutionId
-	 *						The solution the revision belongs to
-	 * @param theRevisionId
-	 *						The solution revision the artifact belongs to
 	 * @param theDocument
 	 *            The CDS representation of document metadata
 	 * @param theContext
@@ -110,32 +88,22 @@ public interface ContentService {
 	 * @return resource containing access to the actual document content
 	 * @throws ServiceException On failure
 	 */
-	public Resource getDocumentContent(
-		String theSolutionId, String theRevisionId, Document theDocument, ServiceContext theContext)
-																																										throws ServiceException;
+	public Resource getDocumentContent(Document theDocument, ServiceContext theContext) throws ServiceException;
 
 	/**
-	 * @param theSolutionId
-	 *						The solution the revision belongs to
-	 * @param theRevisionId
-	 *						The solution revision the artifact belongs to
 	 * @param theDocument
 	 *            The CDS representation of document metadata
 	 * @return resource containing access to the actual document content
 	 * @throws ServiceException On failure
 	 */
-	public default Resource getDocumentContent(
-		String theSolutionId, String theRevisionId, Document theDocument) throws ServiceException {
-
-		return getDocumentContent(theSolutionId, theRevisionId, theDocument, selfService());
+	public default Resource getDocumentContent(Document theDocument) throws ServiceException {
+		return getDocumentContent(theDocument, selfService());
 	}
 
 	/**
 	 * If the call is successful the document information is updated with the content uri.
 	 * @param theSolutionId
-	 *						The solution the revision belongs to
-	 * @param theRevisionId
-	 *						The solution revision the artifact belongs to
+	 *            The solution id
 	 * @param theDocument
 	 *            The CDS representation of document metadata
 	 * @param theResource
@@ -144,26 +112,20 @@ public interface ContentService {
 	 *            the execution context
 	 * @throws ServiceException On failure
 	 */
-	public void putDocumentContent(
-		String theSolutionId, String theRevisionId, Document theDocument, Resource theResource, ServiceContext theContext)
-																																										throws ServiceException;
+	public void putDocumentContent(String theSolutionId, Document theDocument, Resource theResource, ServiceContext theContext) throws ServiceException;
 
 	/**
 	 * If the call is successful the document information is updated with the content uri.
 	 * @param theSolutionId
-	 *						The solution the revision belongs to
-	 * @param theRevisionId
-	 *						The solution revision the artifact belongs to
+	 *            The solution id
 	 * @param theDocument
 	 *            The CDS representation of document metadata
 	 * @param theResource
 	 *            the resource providing the document content
 	 * @throws ServiceException On failure
 	 */
-	public default void putDocumentContent(
-		String theSolutionId, String theRevisionId, Document theDocument, Resource theResource)
-																																										throws ServiceException {
-		putDocumentContent(theSolutionId, theRevisionId, theDocument, theResource, selfService());
+	public default void putDocumentContent(String theSolutionId, Document theDocument, Resource theResource) throws ServiceException {
+		putDocumentContent(theSolutionId, theDocument, theResource, selfService());
 	}
 
 

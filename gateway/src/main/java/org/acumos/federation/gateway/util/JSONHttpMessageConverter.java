@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -39,60 +39,47 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
-/**
- */
 public class JSONHttpMessageConverter extends AbstractHttpMessageConverter<Object> {
 
 	public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
-	/** */
 	public JSONHttpMessageConverter() {
 		super(new MediaType("application", "json", DEFAULT_CHARSET));
 	}
 
-	/*
-	 * @Override public boolean canRead(Class<?> theClazz, MediaType theMediaType) {
-	 * return canRead(theMediaType); }
-	 * 
-	 * @Override public boolean canWrite(Class<?> theClazz, MediaType theMediaType)
-	 * { return canWrite(theMediaType); }
-	 */
 	@Override
 	protected boolean supports(Class<?> theClazz) {
 		return theClazz.equals(JSONObject.class) || theClazz.equals(JSONArray.class);
 	}
 
 	@Override
-	protected Object readInternal(Class<?> theClazz, HttpInputMessage theInputMessage)
-			throws IOException, HttpMessageNotReadableException {
+	protected Object readInternal(Class<?> theClazz, HttpInputMessage theInputMessage) throws IOException {
 
 		Reader json = new InputStreamReader(theInputMessage.getBody(), getCharset(theInputMessage.getHeaders()));
 
 		try {
-			if (theClazz.equals(JSONObject.class))
+			if (theClazz.equals(JSONObject.class)) {
 				return new JSONObject(new JSONTokener(json));
-			if (theClazz.equals(JSONArray.class))
+			} else {
 				return new JSONArray(new JSONTokener(json));
-
-			throw new HttpMessageNotReadableException("Could not process input, cannot handle " + theClazz);
+			}
 		} catch (JSONException jsonx) {
-			throw new HttpMessageNotReadableException("Could not read JSON: " + jsonx.getMessage(), jsonx);
+			throw new HttpMessageNotReadableException("Could not read JSON: " + jsonx.getMessage(), jsonx, theInputMessage);
 		}
 	}
 
 	@Override
 	protected void writeInternal(Object theObject, HttpOutputMessage theOutputMessage)
-			throws IOException, HttpMessageNotWritableException {
+			throws IOException {
 
 		Writer writer = new OutputStreamWriter(theOutputMessage.getBody(), getCharset(theOutputMessage.getHeaders()));
 
 		try {
 			if (theObject instanceof JSONObject) {
 				((JSONObject) theObject).write(writer);
-			} else if (theObject instanceof JSONArray) {
+			} else {
 				((JSONArray) theObject).write(writer);
 			}
-
 			writer.close();
 		} catch (JSONException jsonx) {
 			throw new HttpMessageNotWritableException("Could not write JSON: " + jsonx.getMessage(), jsonx);

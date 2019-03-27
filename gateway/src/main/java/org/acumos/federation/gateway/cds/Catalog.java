@@ -19,8 +19,6 @@
  */
 package org.acumos.federation.gateway.cds;
 
-import java.util.List;
-
 import org.acumos.cds.domain.MLPCatalog;
 
 /**

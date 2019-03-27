@@ -1,0 +1,11 @@
+{
+	"catalogId": "750295d6-8f83-4e05-9b86-7681e6ec92f1",
+	"accessTypeCode": "OR",
+	"name": "Test Catalog 3",
+	"publisher": "Acumos",
+	"description": "Special access catalog for unit testing",
+	"origin": null,
+	"url": "https://www.example.org",
+	"created": "2019-03-28T14:17:01Z",
+	"modified": "2019-03-28T14:17:01Z"
+}

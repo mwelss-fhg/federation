@@ -6,19 +6,6 @@
     "version": "1.1",
     "metadata": null,
     "origin": null,
-    "accessTypeCode": "PB",
-    "solutionId": "10101010-1010-1010-1010-101010101010",
-    "userId": "d1e838c8-d8be-4ca4-968c-2ba5c6c04e55",
-    "sourceId": null
-  },
-  {
-    "created": 1524660770000,
-    "modified": 1524660932000,
-    "revisionId": "971f15d7-6a4d-4cb7-a1eb-ce58eba03fd9",
-    "version": "1",
-    "metadata": null,
-    "origin": null,
-    "accessTypeCode": "OR",
     "solutionId": "10101010-1010-1010-1010-101010101010",
     "userId": "d1e838c8-d8be-4ca4-968c-2ba5c6c04e55",
     "sourceId": null

@@ -24,9 +24,6 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -46,7 +43,6 @@ import org.acumos.federation.gateway.service.ServiceContext;
 import org.acumos.federation.gateway.service.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -72,8 +68,8 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 
 	@PostConstruct
 	public void initService() {
-		monitor(Solution.class, resource, (solns) -> this.solutions = solns, "solutions");
-		monitor(Catalog.class, catalogresource, (cats) -> this.catalogs = cats, "catalogs");
+		monitor(Solution.class, resource, solns -> this.solutions = solns, "solutions");
+		monitor(Catalog.class, catalogresource, cats -> this.catalogs = cats, "catalogs");
 		// Done
 		log.debug("Local CatalogService available");
 	}
@@ -85,23 +81,23 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	@Override
 	public List<MLPCatalog> getCatalogs(ServiceContext theContext) throws ServiceException {
 		log.debug("getCatalogs()");
-		return new ArrayList<MLPCatalog>(catalogs);
+		return new ArrayList<>(catalogs);
 	}
 
 	@Override
-	public List<MLPSolution> getSolutions(Map<String, ?> theSelector, ServiceContext theContext) throws ServiceException {
+	public List<MLPSolution> getSolutions(String theCatalogId, ServiceContext theContext) throws ServiceException {
 
-		log.debug("getSolutions, selector {}", theSelector);
-		return(solutions.stream().filter(ServiceImpl.compileSelector(theSelector)).collect(Collectors.toList()));
+		log.debug("getSolutions");
+		return(new ArrayList<MLPSolution>(solutions));
 	}
 
 	@Override
 	public Solution getSolution(final String theSolutionId, ServiceContext theContext) throws ServiceException {
 
 		log.debug("getSolution");
-		return solutions.stream().filter(solution -> {
-			return theSolutionId.equals(solution.getSolutionId());
-		}).findFirst().orElse(null);
+		return solutions.stream()
+		    .filter(solution -> theSolutionId.equals(solution.getSolutionId()))
+		    .findFirst().orElse(null);
 	}
 
 	@Override	
@@ -112,42 +108,38 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	}
 
 	@Override
-	public List<MLPSolutionRevision> getSolutionRevisions(final String theSolutionId, ServiceContext theContext) throws ServiceException {
+	public List<MLPSolutionRevision> getRevisions(final String theSolutionId, ServiceContext theContext) throws ServiceException {
 
-		log.debug("getSolutionRevisions");
+		log.debug("getRevisions");
 
 		Solution solution = getSolution(theSolutionId, theContext);
-		return (solution == null) ? Collections.EMPTY_LIST : (List)solution.getRevisions();
+		return (solution == null) ? Collections.emptyList() : solution.getRevisions();
 	}
 
 	@Override
-	public SolutionRevision getSolutionRevision(String theSolutionId, String theRevisionId,
-			ServiceContext theContext) throws ServiceException  {
+	public SolutionRevision getRevision(String theCatalogId, String theSolutionId, String theRevisionId, ServiceContext theContext) throws ServiceException  {
 
-		log.debug("getSolutionRevision");
-		return (SolutionRevision)getSolutionRevisions(theSolutionId, theContext).stream()
-						.filter(rev -> rev.getRevisionId().equals(theRevisionId)).findFirst().orElse(null);
+		log.debug("getRevision");
+		return (SolutionRevision)getRevisions(theSolutionId, theContext).stream()
+		    .filter(rev -> rev.getRevisionId().equals(theRevisionId)).findFirst().orElse(null);
 	}
 
 	@Override
-  public SolutionRevision putSolutionRevision(SolutionRevision theRevision, ServiceContext theContext)
-																																																				throws ServiceException {
+	public SolutionRevision putRevision(SolutionRevision theRevision, ServiceContext theContext) throws ServiceException {
 		log.trace("putSolutionRevision {}", theRevision);
 		return theRevision;	
 	}
 
 	@Override
-	public List<MLPArtifact> getSolutionRevisionArtifacts(final String theSolutionId, final String theRevisionId,
-			ServiceContext theContext) throws ServiceException {
-		log.debug("getSolutionRevisionArtifacts");
+	public List<MLPArtifact> getArtifacts(final String theSolutionId, final String theRevisionId, ServiceContext theContext) throws ServiceException {
+		log.debug("getArtifacts");
 
-		SolutionRevision revision = getSolutionRevision(theSolutionId, theRevisionId, theContext);
-		return (revision == null) ? Collections.EMPTY_LIST : (List)revision.getArtifacts();
+		SolutionRevision revision = getRevision(null, theSolutionId, theRevisionId, theContext);
+		return (revision == null) ? Collections.emptyList() : revision.getArtifacts();
 	}
 
 	@Override
-	public Artifact getSolutionRevisionArtifact(String theArtifactId, ServiceContext theContext) 
-																																																throws ServiceException {
+	public Artifact getArtifact(String theArtifactId, ServiceContext theContext) throws ServiceException {
 		log.debug("getSolutionRevisionArtifact");
 		// cumbersome
 		for (Solution solution : this.solutions) {
@@ -164,15 +156,23 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 	}
 	
 	@Override
-	public List<MLPDocument> getSolutionRevisionDocuments(String theSolutionId, String theRevisionId, ServiceContext theContext) throws ServiceException {
-		log.debug("getSolutionRevisionDocuments");
-
-		SolutionRevision revision = getSolutionRevision(theSolutionId, theRevisionId, theContext);
-		return (revision == null) ? Collections.EMPTY_LIST : (List)revision.getDocuments();
+	public List<MLPDocument> getDocuments(String theCatalogId, String theRevisionId, ServiceContext theContext) throws ServiceException {
+		log.debug("getSolutionRevisionDocuments {} {}", theCatalogId, theRevisionId);
+		for (Solution s: solutions) {
+			for (MLPSolutionRevision rx: s.getRevisions()) {
+				if (rx.getRevisionId().equals(theRevisionId)) {
+					SolutionRevision r = (SolutionRevision)rx;
+					if (r.getDocuments() != null) {
+						return(r.getDocuments());
+					}
+				}
+			}
+		}
+		return Collections.emptyList();
 	}
 
 	@Override
-	public Document getSolutionRevisionDocument(String theDocumentId, ServiceContext theContext) throws ServiceException {
+	public Document getDocument(String theDocumentId, ServiceContext theContext) throws ServiceException {
 		log.debug("getSolutionRevisionDocument");
 		// cumbersome
 		for (Solution solution : this.solutions) {
@@ -186,5 +186,30 @@ public class CatalogServiceLocalImpl extends AbstractServiceLocalImpl implements
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isCatalogAllowed(String theCatalogId, ServiceContext theContext) {
+		return true;
+	}
+
+	@Override
+	public boolean isSolutionAllowed(String theSolutionId, ServiceContext theContext) {
+		return true;
+	}
+
+	@Override
+	public boolean isRevisionAllowed(String theRevisionId, ServiceContext theContext) {
+		return true;
+	}
+
+	@Override
+	public boolean isArtifactAllowed(String theArtifactId, ServiceContext theContext) {
+		return true;
+	}
+
+	@Override
+	public boolean isDocumentAllowed(String theDocumentId, ServiceContext theContext) {
+		return true;
 	}
 }
