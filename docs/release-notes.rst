@@ -25,6 +25,11 @@ The image name is "federation-gateway" and the tag is a version string as shown 
 
 Version 2.2.0, 2019-04-16
 -------------------------
+* Increase Spring async task timeout value (spring.mvc.async.request-timeout)
+  to 10 minutes (`ACUMOS-2749 <https://jira.acumos.org/browse/ACUMOS-2749>`_)
+
+  This prevents timeouts during retrieval of large docker image artifacts.
+
 * Update to CDS 2.2.x with subscription by catalogs (`ACUMOS-2732 <https://jira.acumos.org/browse/ACUMOS-2732>`_)
 
   This makes changes to the REST api for accessing Federation on both the
