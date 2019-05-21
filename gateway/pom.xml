@@ -3,7 +3,7 @@
 	===============LICENSE_START=======================================================
 	Acumos
 	===================================================================================
-	Copyright (C) 2017 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+	Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
 	===================================================================================
 	This Acumos software file is distributed by AT&T and Tech Mahindra
 	under the Apache License, Version 2.0 (the "License");
@@ -18,114 +18,51 @@
 	limitations under the License.
 	===============LICENSE_END=========================================================
 	]]>-->
-<project
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-	xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.acumos.federation</groupId>
+		<artifactId>federation-parent</artifactId>
+		<version>0</version>
+	</parent>
 	<groupId>org.acumos.federation</groupId>
 	<artifactId>gateway</artifactId>
-	<version>2.2.0-SNAPSHOT</version>
+	<version>2.3.0-SNAPSHOT</version>
 	<name>Federation Gateway</name>
-	<description>Federated Acumos Interface for inter-acumos and ONAP communication</description>
-
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.1.4.RELEASE</version>
-		<!-- silence warning about parent relative path -->
-		<relativePath />
-	</parent>
-
+	<description>Federated Acumos Interface for inter-acumos communication</description>
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<!-- skip the deploy-jar-to-nexus step -->
+		<maven.install.skip>true</maven.install.skip>
+		<maven.deploy.skip>true</maven.deploy.skip>
 		<!-- Stand-alone RESTFul application -->
 		<start-class>org.acumos.federation.gateway.Application</start-class>
-		<!-- Jenkins invokes mvn with argument -Dbuild.number=${BUILD_NUMBER} -->
-		<build.number>0</build.number>
-		<skipTests>false</skipTests>
-		<!-- dependencies versions -->
-		<logback.version>1.2.3</logback.version>
-		<springfox.version>2.7.0</springfox.version>
+		<!-- dependencies version -->
+		<acumos-fgw-client.version>${project.version}</acumos-fgw-client.version>
+		<docker-java.version>3.1.2</docker-java.version>
+		<springfox.version>2.9.2</springfox.version>
+		<guava.version>20.0</guava.version>
 		<!-- Not supplied to all jobs; e.g., Javadoc -->
 		<docker.pull.registry>nexus3.acumos.org:10001</docker.pull.registry>
 		<!-- Supplied by Jenkins -->
 		<docker.push.registry>${env.NEXUS3_PUSH_REGISTRY}</docker.push.registry>
 	</properties>
-
-	<!-- Some dependencies are specific to Acumos, but this POM defines no repositories 
-		section. The Jenkins server specifies Acumos repositories. Developers should 
-		ensure their ~/.m2/settings.xml file has the following URLs in both the repositories 
-		and pluginRepositories sections or in a profile: https://nexus.acumos.org/content/repositories/snapshots/ 
-		https://nexus.acumos.org/content/repositories/releases/ -->
-
+	<!-- Dependency/plugin versions are inherited from parent pom -->
 	<dependencies>
 		<dependency>
-			<groupId>org.acumos.acumos-nexus-client</groupId>
-			<artifactId>acumos-nexus-client</artifactId>
-			<version>2.2.1</version>
+			<groupId>org.acumos.federation</groupId>
+			<artifactId>acumos-fgw-client</artifactId>
+			<version>${acumos-fgw-client.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.acumos.common-dataservice</groupId>
-			<artifactId>cmn-data-svc-client</artifactId>
-			<version>2.2.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<!-- Override Spring-boot choice -->
-			<version>20160212</version><!--$NO-MVN-MAN-VER$ -->
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<!-- spring sets the <version>${slf4j.version}</version> -->
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<!-- spring sets the <version>${logback.version}</version> -->
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-core</artifactId>
-			<!-- spring sets the <version>${logback.version}</version> -->
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-			<!-- spring sets the ${spring.boot.starter.security.version}</version> -->
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-			<!-- spring sets the <version>${spring.boot.starter.web.version}</version> -->
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-configuration-processor</artifactId>
-			<!-- spring sets the <version>${spring.boot.configuration.processor.version}</version> -->
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.inject</groupId>
-			<artifactId>jersey-hk2</artifactId>
-		</dependency>
-		<dependency>
+			<!-- resolve conflicting transitive dependencies -->
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>19.0</version>
+			<version>${guava.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<!-- spring sets the <version>4.5</version> -->
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.shell</groupId>
-			<artifactId>spring-shell</artifactId>
-			<version>1.2.0.RELEASE</version>
+			<groupId>com.github.docker-java</groupId>
+			<artifactId>docker-java</artifactId>
+			<version>${docker-java.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.springfox</groupId>
@@ -133,90 +70,47 @@
 			<version>${springfox.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-swagger-ui</artifactId>
-			<version>${springfox.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>javax.inject</groupId>
-			<artifactId>javax.inject</artifactId>
-			<version>1</version>
-		</dependency>
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt</artifactId>
-			<version>0.6.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.python</groupId>
-			<artifactId>jython-standalone</artifactId>
-			<version>2.7.1-rc3</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<!-- spring sets the <version>2.9.7</version> -->
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.datatype</groupId>
-			<artifactId>jackson-datatype-jsr310</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<!-- spring sets the <version>3.8.1</version> -->
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-cli</groupId>
-			<artifactId>commons-cli</artifactId>
-			<version>1.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<!-- spring sets the <version>3.6</version> -->
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-compress</artifactId>
-			<version>1.5</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/commons-beanutils/commons-beanutils -->
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
-			<version>1.9.3</version>
-		</dependency>
-		<dependency>
-			<groupId>com.github.docker-java</groupId>
-			<artifactId>docker-java</artifactId>
-			<version>3.0.14</version>
-		</dependency>
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjweaver</artifactId>
-			<!-- spring sets the <version>1.8.13</version> -->
-		</dependency>
-		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-			<!-- spring sets the <version>3.8.0</version> -->
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-			<!-- spring sets the <version>2.21.0</version> -->
-			<scope>test</scope>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-json</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<!-- Compile time only dependencies -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>org.acumos.federation</groupId>
+			<artifactId>acumos-fgw-client-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Test runtime dependencies -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<!-- spring sets the <version>2.1.2.RELEASE</version> -->
 			<exclusions>
-				<!-- silence warning about duplicate JSON class -->
 				<exclusion>
 					<groupId>com.vaadin.external.google</groupId>
 					<artifactId>android-json</artifactId>
@@ -225,22 +119,12 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<!-- spring sets the <version>3.0</version> -->
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok-maven-plugin</artifactId>
 			</plugin>
-			<!-- Add the build number to the jar manifest. Spring-Boot uses a complex 
-				packaging process that makes access to the original Manifest.MF very difficult. 
-				However, Java provides access to the implementation version for a package, 
-				so cram the build number into there. -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -254,13 +138,6 @@
 						</manifestEntries>
 					</archive>
 				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>test-jar</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -275,29 +152,7 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<!-- spring sets the <version>2.10</version> -->
-				<executions>
-					<execution>
-						<id>copy-dependencies</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/deps</outputDirectory>
-							<overWriteReleases>true</overWriteReleases>
-							<overWriteSnapshots>true</overWriteSnapshots>
-							<overWriteIfNewer>true</overWriteIfNewer>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- No need to deploy Spring super-jar -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
-				<!-- Spring sets the <version>2.8</version> -->
 				<configuration>
 					<skip>true</skip>
 				</configuration>
@@ -305,88 +160,28 @@
 			<plugin>
 				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
-				<version>0.23.0</version>
+				<version>0.28.0</version>
 				<configuration>
 					<verbose>true</verbose>
-					<dockerHost>${docker.host.url}</dockerHost>
-					<registry>${docker.registry.url}</registry>
-					<authConfig>
-						<username>${docker.registry.login}</username>
-						<password>${docker.registry.password}</password>
-					</authConfig>
+					<pullRegistry>${docker.pull.registry}</pullRegistry>
+					<pushRegistry>${docker.push.registry}</pushRegistry>
 					<images>
 						<image>
-							<!-- Specify a tag to avoid default tag "latest" -->
 							<name>federation-gateway:${project.version}</name>
 							<build>
 								<from>openjdk:8-jre-slim</from>
 								<tags>
-									<!-- Add tag with build number -->
 									<tag>${project.version}-b${build.number}</tag>
 								</tags>
 								<assembly>
-									<inline>
-										<files>
-											<file>
-												<source>target/${project.artifactId}-${project.version}.${project.packaging}</source>
-												<outputDirectory />
-											</file>
-										</files>
-									</inline>
+									<descriptorRef>artifact</descriptorRef>
 								</assembly>
 								<runCmds>
-									<!-- Ensure logs dir exists and is world writable -->
 									<runCmd>mkdir /maven/logs</runCmd>
 									<runCmd>chmod -R 777 /maven</runCmd>
 								</runCmds>
-								<!-- This is the same CMD used in a Dockerfile -->
 								<cmd>
-									<!-- CDATA prevents Eclipse formatter from breaking line -->
 									<shell><![CDATA[cd /maven; java -Xms256m -Xmx2g -Djava.security.egd=file:/dev/./urandom -jar ${project.artifactId}-${project.version}.${project.packaging}]]></shell>
-								</cmd>
-							</build>
-						</image>
-						<image>
-							<name>federation-gateway-test:${project.version}</name>
-							<build>
-								<from>openjdk:8-jre-slim</from>
-								<tags>
-									<tag>${project.version}-b${build.number}</tag>
-								</tags>
-								<assembly>
-									<inline>
-										<files>
-											<file>
-												<source>target/${project.artifactId}-${project.version}.${project.packaging}.original</source>
-												<outputDirectory />
-												<!-- <destName>target/${project.artifactId}-${project.version}.${project.packaging}</destName> -->
-											</file>
-											<file>
-												<source>target/${project.artifactId}-${project.version}-tests.${project.packaging}</source>
-												<outputDirectory />
-											</file>
-										</files>
-										<fileSets>
-											<fileSet>
-												<!-- <directory>${project.build.directory}/deps/</directory> -->
-												<directory>target/deps/</directory>
-												<outputDirectory>/libs/</outputDirectory>
-												<includes>
-													<include>*</include>
-												</includes>
-												<fileMode>0755</fileMode>
-											</fileSet>
-										</fileSets>
-									</inline>
-								</assembly>
-								<runCmds>
-									<!-- Ensure logs dir exists and is world writable -->
-									<runCmd>mkdir /maven/logs</runCmd>
-									<runCmd>chmod -R 777 /maven</runCmd>
-								</runCmds>
-								<cmd>
-									<!-- CDATA prevents Eclipse formatter from breaking line -->
-									<shell><![CDATA[cd /maven; java -Xms256m -Xmx2g -cp ${project.artifactId}-${project.version}.${project.packaging}.original:${project.artifactId}-${project.version}-tests.${project.packaging}:/libs/* -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.PropertiesLauncher]]></shell>
 								</cmd>
 							</build>
 						</image>
@@ -403,60 +198,9 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-				<version>1.14</version>
-				<configuration>
-					<licenseName>acumos</licenseName>
-					<licenseResolver>${project.baseUri}/src/license</licenseResolver>
-					<addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
-					<processStartTag>===============LICENSE_START=======================================================</processStartTag>
-					<processEndTag>===============LICENSE_END=========================================================</processEndTag>
-					<sectionDelimiter>===================================================================================</sectionDelimiter>
-					<inceptionYear>2017</inceptionYear>
-					<organizationName>AT&amp;T Intellectual Property &amp; Tech
-						Mahindra. All rights reserved.</organizationName>
-					<projectName>Acumos</projectName>
-					<canUpdateCopyright>true</canUpdateCopyright>
-					<canUpdateDescription>true</canUpdateDescription>
-					<canUpdateLicense>true</canUpdateLicense>
-					<emptyLineAfterHeader>true</emptyLineAfterHeader>
-					<includes>
-						<include>**/*.java</include>
-					</includes>
-				</configuration>
-				<executions>
-					<execution>
-						<id>first</id>
-						<goals>
-							<goal>update-file-header</goal>
-						</goals>
-						<phase>process-sources</phase>
-					</execution>
-				</executions>
-			</plugin>
-			-->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.7.9</version>
-				<executions>
-					<execution>
-						<id>default-prepare-agent</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>default-report</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>

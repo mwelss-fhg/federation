@@ -41,7 +41,7 @@ Use below maven command to build and package the gateway service into a single j
 Development and Local Testing
 -----------------------------
 
-This section provides information for developing and testing the federaton gateway locally.
+This section provides information for developing and testing the federation gateway locally.
 We will run two instances of the gateway to depict two instance of Acumos federated to each other.
 In below scenario, we are going to run Acumos A and Acumos B for testing locally.
 
@@ -53,7 +53,7 @@ Start two microservice instances for development and testing as follows, with th
     java -Djavax.net.ssl.trustStore=src/test/resources/acumosTrustStore.jks \
          -Djavax.net.ssl.trustStorePassword=acumos \
          -jar target/gateway-1.x.y-SNAPSHOT.jar \
-         --spring.profiles.active="default,acumosa" 
+         --spring.profiles.active="default,acumosa"
 
     java -Djavax.net.ssl.trustStore=src/test/resources/acumosTrustStore.jks \
          -Djavax.net.ssl.trustStorePassword=acumos \
@@ -81,7 +81,11 @@ API
 All APIs except the artifact and document content APIs, encode the response in JSON.  The artifact and document content APIs return unencoded data.
 For other APIs, there is a top level envelope containing error information, and under the entry 'responseBody' it contains the actual content.
 All identifiers are UUIDs.
-The following endpoints are defined:
+
+Online documentation of the API is available on each interface at
+/swagger-ui.html.
+
+The following endpoints are defined on the public "E5" interface:
 
 * /catalogs
 

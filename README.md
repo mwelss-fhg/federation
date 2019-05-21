@@ -1,6 +1,6 @@
 # Acumos Federation
 
-This repository is to support Federation Architecture for the Acumos Platform. 
+This repository supports Federation between Acumos system instances.
 
 Please see the documentation in the "docs" folder.
 
