@@ -38,6 +38,22 @@ import org.acumos.federation.client.FederationClient;
  * By mocking this bean, all external access can be stubbed out.
  */
 public class Clients {
+	/*
+	 * Implementation note:
+	 *
+	 * Ideally, all clients would be created at startup, and the getXXX()
+	 * methods would just return them, however, while the Spring framework
+	 * guarantees that @Autowired fields have been populated, before
+	 * invoking @PostConstruct annotated methods and the afterPropertiesSet
+	 * method, it doesn't guarantee that properties in those beans have
+	 * been set, and the outcome is unrelable.  @Lazy could have been used,
+	 * but it would need to be set both here, and in all the @Autowired
+	 * uses: missing a single one, in future changes, would produce
+	 * mysterious unrelable results.  So, instead, this code
+	 * creates clients on first use and, where possible, keeps them for
+	 * future use.
+	 */
+
 	@Autowired
 	private FederationConfig federation;
 
@@ -52,9 +68,18 @@ public class Clients {
 
 	private ICommonDataServiceRestClient cdsClient;
 	private NexusClient nexusClient;
-	private DockerClient dockerClient;
 
 	public FederationClient getFederationClient(String url) {
+		/*
+		 * The set of peers can change, at runtime, and there is no
+		 * notification when one is deleted (or has its API URL
+		 * changed).  It would have been possible to keep federation
+		 * clients in a hash and fault them in, as needed, but, without
+		 * a means for identifying clients that were no longer needed,
+		 * that would have constituted a memory (and possibly a TCP/IP
+		 * connection) leak.  So this code does not cache federation
+		 * clients.
+		 */
 		return new FederationClient(url, federation);
 	}
 
@@ -78,21 +103,26 @@ public class Clients {
 	}
 
 	public synchronized DockerClient getDockerClient() {
-		if (dockerClient == null) {
-			dockerClient = DockerClientBuilder.getInstance(
-			    DefaultDockerClientConfig.createDefaultConfigBuilder()
-				.withDockerHost(dockerConfig.getHost())
-				.withDockerTlsVerify(dockerConfig.getTlsVerify())
-				.withDockerConfig(dockerConfig.getDockerConfig())
-				.withDockerCertPath(dockerConfig.getDockerCertPath())
-				.withApiVersion(dockerConfig.getApiVersion())
-				.withRegistryUsername(dockerConfig.getRegistryUsername())
-				.withRegistryPassword(dockerConfig.getRegistryPassword())
-				.withRegistryEmail(dockerConfig.getRegistryEmail())
-				.withRegistryUrl(dockerConfig.getRegistryUrl())
-			        .build()
-			    ).build();
-		}
-		return dockerClient;
+		/*
+		 * For some reason, the DockerClient seems to go stale,
+		 * resulting in operations (like the docker pull command)
+		 * unexpectedly hanging, with no error or indication of a
+		 * problem.  Creating a fresh DockerClient on each
+		 * upload/download of a Docker image artifact, as a
+		 * workaround, seems to work.
+		 */
+		return DockerClientBuilder.getInstance(
+		    DefaultDockerClientConfig.createDefaultConfigBuilder()
+			.withDockerHost(dockerConfig.getHost())
+			.withDockerTlsVerify(dockerConfig.getTlsVerify())
+			.withDockerConfig(dockerConfig.getDockerConfig())
+			.withDockerCertPath(dockerConfig.getDockerCertPath())
+			.withApiVersion(dockerConfig.getApiVersion())
+			.withRegistryUsername(dockerConfig.getRegistryUsername())
+			.withRegistryPassword(dockerConfig.getRegistryPassword())
+			.withRegistryEmail(dockerConfig.getRegistryEmail())
+			.withRegistryUrl(dockerConfig.getRegistryUrl())
+			.build()
+		    ).build();
 	}
 }

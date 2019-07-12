@@ -50,6 +50,19 @@ import org.springframework.test.context.junit4.SpringRunner;
     }
 )
 public class ClientsTest {
+	/*
+	 * Implementation note:
+	 *
+	 * Since "Clients" is the common hub for outbound activity from the
+	 * Federation Gateway software, and since the destinations for that
+	 * activity don't exist during automated testing, Clients is mocked
+	 * out in all the other tests.  Without those external systems, there
+	 * still isn't a lot, that can actually be tested, here, but
+	 * this does at least exercise the code by insuring that all the
+	 * methods get invoked and that, for the clients that are cached,
+	 * the methods get invoked twice and the answers tested for equality.
+	 */
+
 	@Autowired
 	private Clients clients;
 
@@ -58,6 +71,6 @@ public class ClientsTest {
 		assertNotNull(clients.getFederationClient("https://somepeer.example.org"));
 		assertEquals(clients.getCDSClient(), clients.getCDSClient());
 		assertEquals(clients.getNexusClient(), clients.getNexusClient());
-		assertEquals(clients.getDockerClient(), clients.getDockerClient());
+		assertNotNull(clients.getDockerClient());
 	}
 }

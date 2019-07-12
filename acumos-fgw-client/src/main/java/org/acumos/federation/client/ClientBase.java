@@ -32,15 +32,11 @@ import java.security.KeyStore;
 import java.util.Collections;
 
 import org.apache.http.client.HttpClient;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -223,8 +219,6 @@ public class ClientBase {
 		}
 		SSLContextBuilder sslContextBuilder = SSLContexts.custom();
 		TlsConfig tls = conf.getSsl();
-		RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.create();
-		registryBuilder.register("http", PlainConnectionSocketFactory.getSocketFactory());
 		HttpClientBuilder clientBuilder = HttpClients.custom();
 		try {
 			if (tls != null) {
@@ -239,8 +233,6 @@ public class ClientBase {
 				}
 			}
 			SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build(), new String[] { "TLSv1.2" }, null, SSLConnectionSocketFactory.getDefaultHostnameVerifier());
-			registryBuilder.register("https", sslSocketFactory);
-			clientBuilder.setConnectionManager(new BasicHttpClientConnectionManager(registryBuilder.build()));
 			clientBuilder.setSSLSocketFactory(sslSocketFactory);
 		} catch (Exception ex) {
 			throw new TlsConfigException("Invalid TLS configuration", ex);
