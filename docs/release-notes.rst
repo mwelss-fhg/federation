@@ -27,6 +27,8 @@ Version 2.3.0, 2019-07-22
 -------------------------
 * Fix DI artifact create fail due to Federation use of a stale TCP stream (`ACUMOS-3193 <https://jira.acumos.org/browse/ACUMOS-3193>`_)
 
+* Federated model DI name to include model name - same as source peer DI name (`ACUMOS-3195 <https://jira.acumos.org/browse/ACUMOS-3195>`_)
+
 * Publish E5 Federation client library (`ACUMOS-2760 <https://jira.acumos.org/browse/ACUMOS-2760>`_)
 
   3 new sub-projects are introduced, in addition to the existing "gateway" sub-project.
@@ -76,6 +78,14 @@ Version 2.3.0, 2019-07-22
     longer have any effect.
 
 * Documentation is updated to reflect these changes.
+
+Version 2.2.1, 2019-07-18
+-------------------------
+* Fix Boreas branch Jenkins build not working (`ACUMOS-3244 <https://jira.acumos.org/browse/ACUMOS-3244>`_)
+
+* Fix DI artifact create fail due to Federation use of a stale TCP stream (`ACUMOS-3193 <https://jira.acumos.org/browse/ACUMOS-3193>`_)
+
+* Federated model DI name to include model name - same as source peer DI name (`ACUMOS-3195 <https://jira.acumos.org/browse/ACUMOS-3195>`_)
 
 Version 2.2.0, 2019-04-16
 -------------------------
