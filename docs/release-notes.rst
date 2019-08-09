@@ -23,8 +23,12 @@ Federation Gateway Release Notes
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 The image name is "federation-gateway" and the tag is a version string as shown below.
 
-Version 2.3.0, 2019-07-22
+Version 2.3.0, 2019-08-09
 -------------------------
+* Java code upgrade to Java 11 (`ACUMOS-3334 <https://jira.acumos.org/browse/ACUMOS-33334>`_)
+
+* Update to CDS 2.2.6
+
 * Fix DI artifact create fail due to Federation use of a stale TCP stream (`ACUMOS-3193 <https://jira.acumos.org/browse/ACUMOS-3193>`_)
 
 * Federated model DI name to include model name - same as source peer DI name (`ACUMOS-3195 <https://jira.acumos.org/browse/ACUMOS-3195>`_)

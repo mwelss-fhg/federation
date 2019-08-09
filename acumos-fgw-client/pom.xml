@@ -31,7 +31,7 @@ limitations under the License.
 	<name>Federation Gateway Client</name>
 	<properties>
 		<!-- dependency versions -->
-		<common-dataservice.version>2.2.2</common-dataservice.version>
+		<common-dataservice.version>2.2.6</common-dataservice.version>
 	</properties>
 	<!-- Dependency/plugin versions are inherited from parent pom -->
 	<dependencies>

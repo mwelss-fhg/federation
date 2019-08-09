@@ -169,7 +169,7 @@
 						<image>
 							<name>federation-gateway:${project.version}</name>
 							<build>
-								<from>openjdk:8-jre-slim</from>
+								<from>adoptopenjdk/openjdk11-openj9:alpine-jre</from>
 								<tags>
 									<tag>${project.version}-b${build.number}</tag>
 								</tags>

@@ -44,6 +44,8 @@ limitations under the License.
 		<jacoco.version>0.8.4</jacoco.version>
 		<lombok-plugin.version>1.18.6.0</lombok-plugin.version>
 		<spring-test.version>5.1.2.RELEASE</spring-test.version>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
 	</properties>
 	<modules>
 		<module>acumos-fgw-client-config</module>
@@ -90,14 +92,6 @@ limitations under the License.
 							</goals>
 						</execution>
 					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<configuration>
-						<source>1.8</source>
-						<target>1.8</target>
-					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.jacoco</groupId>
