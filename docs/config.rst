@@ -61,7 +61,8 @@ Example (with syntactically valid but completely made up values)::
       "username": "nexususer",
       "password": "nexuspass",
       "nexus.group-id": "myorg"
-    }
+    },
+    "verification.url": "http://securityserver:9999"
   }'
 
 Note that::
@@ -287,6 +288,12 @@ nexus.name-separator
 
   Separator between components of the path prefix within the Nexus repository.
   The prefix is of the form groupid separator solutionid separator revisionid.
+
+verification.url
+  Required.
+
+  URL for the Acumos security-verification server used to perform security
+  verification scans on solution revisions.
 
 =========================================
 Federation Gateway Certificate Generation

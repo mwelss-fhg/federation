@@ -25,7 +25,11 @@ The image name is "federation-gateway" and the tag is a version string as shown 
 
 Version 2.3.0, 2019-08-09
 -------------------------
-* Java code upgrade to Java 11 (`ACUMOS-3334 <https://jira.acumos.org/browse/ACUMOS-33334>`_)
+* Run SV license scan when a model has been federated (`ACUMOS-3396 <https://jira.acumos.org/browse/ACUMOS-3396>`_)
+  * This adds a new required configuration value, "verification.url" for the
+    security verification service.
+
+* Java code upgrade to Java 11 (`ACUMOS-3334 <https://jira.acumos.org/browse/ACUMOS-3334>`_)
 
 * Update to CDS 2.2.6
 

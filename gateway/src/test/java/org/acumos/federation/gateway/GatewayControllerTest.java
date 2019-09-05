@@ -31,9 +31,9 @@ import org.junit.Test;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -49,6 +49,8 @@ import org.springframework.web.client.HttpClientErrorException.NotFound;
 
 import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.cds.client.CommonDataServiceRestClientImpl;
+
+import org.acumos.securityverification.service.ISecurityVerificationClientService;
 
 import org.acumos.federation.client.FederationClient;
 import org.acumos.federation.client.GatewayClient;
@@ -208,6 +210,9 @@ public class GatewayControllerTest {
 
 		docker = new SimulatedDockerClient();
 		when(clients.getDockerClient()).thenReturn(docker.getClient());
+
+		ISecurityVerificationClientService sv = mock(ISecurityVerificationClientService.class);
+		when (clients.getSVClient()).thenReturn(sv);
 	}
 
 	@Test
@@ -277,6 +282,7 @@ public class GatewayControllerTest {
 	@Test
 	public void testSwagger() throws Exception {
 		RawAnonClient rac = new RawAnonClient("https://localhost:" + port);
+		assertNotNull(rac);
 		rac.get("/swagger-ui.html");
 		rac.get("/v2/api-docs");
 	}

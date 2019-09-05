@@ -186,6 +186,7 @@ public class ClientTest {
 	@Test
 	public void testUpload() throws Exception {
 		UploadTest client = new UploadTest();
+		assertNotNull(client);
 		(new ClientMocking())
 		    .errorOnNoAuth(401, "Unauthorized")
 		    .errorOnBadAuth("acumosa", "acumosa", 403, "Forbidden")

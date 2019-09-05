@@ -46,7 +46,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 	"nexus.name-separator=,",
 	"nexus.url=http://nexus.example.org",
 	"docker.host=tcp://localhost:999",
-	"cdms.client.url=http://cdms.example.org"
+	"cdms.client.url=http://cdms.example.org",
+	"verification.url=http://svserver.example.org"
     }
 )
 public class ClientsTest {
@@ -72,5 +73,6 @@ public class ClientsTest {
 		assertEquals(clients.getCDSClient(), clients.getCDSClient());
 		assertEquals(clients.getNexusClient(), clients.getNexusClient());
 		assertNotNull(clients.getDockerClient());
+		assertEquals(clients.getSVClient(), clients.getSVClient());
 	}
 }

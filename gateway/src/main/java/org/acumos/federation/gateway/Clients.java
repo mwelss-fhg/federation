@@ -32,6 +32,9 @@ import org.acumos.federation.client.config.ClientConfig;
 import org.acumos.federation.client.ClientBase;
 import org.acumos.federation.client.FederationClient;
 
+import org.acumos.securityverification.service.ISecurityVerificationClientService;
+import org.acumos.securityverification.service.SecurityVerificationClientServiceImpl;
+
 /**
  * Defines all beans used to access outside services.
  *
@@ -66,8 +69,12 @@ public class Clients {
 	@Autowired
 	private DockerConfig dockerConfig;
 
+	@Autowired
+	private ServiceConfig verificationConfig;
+
 	private ICommonDataServiceRestClient cdsClient;
 	private NexusClient nexusClient;
+	private ISecurityVerificationClientService svClient;
 
 	public FederationClient getFederationClient(String url) {
 		/*
@@ -124,5 +131,19 @@ public class Clients {
 			.withRegistryUrl(dockerConfig.getRegistryUrl())
 			.build()
 		    ).build();
+	}
+
+	public synchronized ISecurityVerificationClientService getSVClient() {
+		if (svClient == null) {
+			svClient = new SecurityVerificationClientServiceImpl(
+			    verificationConfig.getUrl(),
+			    cdmsConfig.getUrl(),
+			    cdmsConfig.getUsername(),
+			    cdmsConfig.getPassword(),
+			    nexusConfig.getUrl(),
+			    nexusConfig.getUsername(),
+			    nexusConfig.getPassword());
+		}
+		return svClient;
 	}
 }

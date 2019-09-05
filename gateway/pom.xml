@@ -89,6 +89,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.acumos.security-verification</groupId>
+			<artifactId>security-verification-client</artifactId>
+			<version>0.0.24</version>
+		</dependency>
 		<!-- Compile time only dependencies -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>

@@ -156,6 +156,12 @@ public class Application {
 	}
 
 	@Bean
+	@ConfigurationProperties(prefix="verification")
+	ServiceConfig verificationConfig() {
+		return new ServiceConfig();
+	}
+
+	@Bean
 	Clients clients() {
 		return new Clients();
 	}

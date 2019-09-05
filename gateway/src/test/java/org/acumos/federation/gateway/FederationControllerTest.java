@@ -309,6 +309,7 @@ public class FederationControllerTest {
 	@Test
 	public void testSwagger() throws Exception {
 		RawAnonClient rac = new RawAnonClient("https://localhost:" + port);
+		assertNotNull(rac);
 		rac.get("/swagger-ui.html");
 		rac.get("/v2/api-docs");
 	}

@@ -216,6 +216,9 @@ public class SubscriptionPoller {
 			if (changed && !isnew) {
 				catalogService.updateRevision(pRev);
 			}
+			if (changed) {
+				new Thread(() -> { try {clients.getSVClient().securityVerificationScan(solutionId, revisionId, "created", userId); } catch (Exception e) { log.error("SV scan failure on revision " + revisionId, e); }}).start();
+			}
 			return changed;
 		}
 
