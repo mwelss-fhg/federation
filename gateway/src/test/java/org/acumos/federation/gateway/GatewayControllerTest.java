@@ -125,14 +125,14 @@ public class GatewayControllerTest {
 		    .on("GET /peer/search?subjectName=gateway.acumosa.org&_j=a&page=0&size=100", xq("{ 'content': [ {'peerId': 'acumosa', 'subjectName': 'gateway.acumosa.org', 'statusCode': 'AC', 'self': true } ], 'last': true, 'number': 0, 'size': 100, 'numberOfElements': 1 }"))
 		    .on("GET /peer/search?subjectName=gateway.acumosb.org&_j=a&page=0&size=100", xq("{ 'content': [ {'peerId': 'acumosb', 'subjectName': 'gateway.acumosb.org', 'statusCode': 'AC', 'self': false } ], 'last': true, 'number': 0, 'size': 100, 'numberOfElements': 1 }"))
 		    .on("GET /peer/search?subjectName=gateway.acumosc.org&_j=a&page=0&size=100", xq("{ 'content': [ ], 'last': true, 'number': 0, 'size': 100, 'numberOfElements': 0 }"))
-		    .on("GET /peer/sub/999", xq("{ 'subId': 999, 'peerId': 'somepeer', 'selector': '{ \\'catalogId\\': \\'somecatalog\\' } ' }"))
+		    .on("GET /peer/sub/999", xq("{ 'subId': 999, 'peerId': 'somepeer', 'selector': '{ \\'catalogId\\': \\'somecatalog\\' } ', 'userId': 'someUser' }"))
 		    .on("GET /peer/sub/998", "")
 		    .on("GET /peer/sub/997", xq("{ 'subId': 997, 'peerId': 'someotherpeer' }"))
 		    .on("GET /peer/sub/992", xq("{ 'subId': 992, 'peerId': 'somepeer', 'selector': '{ \\'catalogId\\': [ \\'firstcatalog\\', \\'secondcatalog\\' ] }', 'refreshInterval': 3600, 'userId': 'someUser' }"))
-		    .on("GET /peer/sub/993", xq("{ 'subId': 993, 'peerId': 'somepeer', 'selector': '{ \\'catalogId\\': true }', 'refreshInterval': 3600 }"))
-		    .on("GET /peer/sub/994", xq("{ 'subId': 994, 'peerId': 'somepeer', 'selector': '{ \\'catalogId\\': [ \\'x\\', true ] }', 'refreshInterval': 3600 }"))
-		    .on("GET /peer/sub/995", xq("{ 'subId': 995, 'peerId': 'somepeer', 'selector': '}', 'refreshInterval': 3600 }"))
-		    .on("GET /peer/sub/996", xq("{ 'subId': 996, 'peerId': 'somepeer', 'selector': '{}', 'refreshInterval': 3600 }"))
+		    .on("GET /peer/sub/993", xq("{ 'subId': 993, 'peerId': 'somepeer', 'selector': '{ \\'catalogId\\': true }', 'refreshInterval': 3600, 'userId': 'someUser' }"))
+		    .on("GET /peer/sub/994", xq("{ 'subId': 994, 'peerId': 'somepeer', 'selector': '{ \\'catalogId\\': [ \\'x\\', true ] }', 'refreshInterval': 3600, 'userId': 'someUser' }"))
+		    .on("GET /peer/sub/995", xq("{ 'subId': 995, 'peerId': 'somepeer', 'selector': '}', 'refreshInterval': 3600, 'userId': 'someUser' }"))
+		    .on("GET /peer/sub/996", xq("{ 'subId': 996, 'peerId': 'somepeer', 'selector': '{}', 'refreshInterval': 3600, 'userId': 'someUser' }"))
 		    .on("PUT /peer/sub/999", "", count)
 		    .on("GET /catalog/solution?ctlg=somecatalog&page=0&size=100", xq("{ 'content': [], 'last': true, 'number': 0, 'size': 100, 'numberOfElements': 0 }"))
 		    .on("GET /catalog?page=0&size=100", xq("{ 'content': [], 'last': true, 'number': 0, 'size': 100, 'numberOfElements': 0 }"))
@@ -175,6 +175,8 @@ public class GatewayControllerTest {
 		    .on("POST /solution/cat2soln/tag/tag1", "")
 		    .on("PUT /solution/cat2soln", "")
 		    .on("PUT /peer/sub/992", "", count)
+		    .on("POST /notif", xq("{ 'notificationId': 'noteid' }"))
+		    .on("POST /notif/noteid/user/someUser", "")
 		    .applyTo(cdsClient);
 		when(clients.getCDSClient()).thenReturn(cdsClient);
 

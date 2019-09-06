@@ -91,27 +91,33 @@ public class PollingTest {
 		steps = new CountDownLatch(6);
 		(new ClientMocking())
 		    .on("GET /peer?page=0&size=100", xq("{ 'content': [ { 'peerId': '1', 'self': true }, { 'peerId': '2' } ], 'last': true, 'number': 2, 'size': 100, 'numberOfElements': 2 }"), count)
-		    .on("GET /peer/2/sub", xq("[ { 'subId': 1, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }'}, { 'subId': 2, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 3600}, { 'subId': 3, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 0}, { 'subId': 4, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 0, 'processed': '2019-01-01T00:00:00Z' }]"), count)
-		    .on("GET /peer/sub/2", xq("{ 'subId': 2, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 3600}"), count)
-		    .on("GET /peer/sub/3", xq("{ 'subId': 3, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 0}"), count)
+		    .on("GET /peer/2/sub", xq("[ { 'subId': 1, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'userId': 'someuser'}, { 'subId': 2, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 3600, 'userId': 'someuser'}, { 'subId': 3, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 0, 'userId': 'someuser'}, { 'subId': 4, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 0, 'processed': '2019-01-01T00:00:00Z' , 'userId': 'someuser'}]"), count)
+		    .on("GET /peer/sub/2", xq("{ 'subId': 2, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 3600, 'userId': 'someuser'}"), count)
+		    .on("GET /peer/sub/3", xq("{ 'subId': 3, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 0, 'userId': 'someuser'}"), count)
 		    .on("PUT /peer/sub/2", "", count)
 		    .on("PUT /peer/sub/3", "", count)
+		    .on("POST /notif", xq("{ 'notificationId': 'noteid' }"))
+		    .on("POST /notif/noteid/user/someuser", "")
 		    .applyTo(cdsClient);
 		steps.await(6, TimeUnit.SECONDS);
 		assertEquals("Incomplete steps remain", 0, steps.getCount());
 		steps = new CountDownLatch(4);
 		(new ClientMocking())
 		    .on("GET /peer?page=0&size=100", xq("{ 'content': [ { 'peerId': '1', 'self': true }, { 'peerId': '2' } ], 'last': true, 'number': 2, 'size': 100, 'numberOfElements': 2 }"), count)
-		    .on("GET /peer/2/sub", xq("[ { 'subId': 1, 'peerId': '2', 'selector': '{ \\'catalogId\\': []}', 'refreshInterval': 1800 }, { 'subId': 2, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 3600}, { 'subId': 3, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }' } ]"), count)
-		    .on("GET /peer/sub/1", xq("{ 'subId': 1, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 3600}"), count)
+		    .on("GET /peer/2/sub", xq("[ { 'subId': 1, 'peerId': '2', 'selector': '{ \\'catalogId\\': []}', 'refreshInterval': 1800, 'userId': 'someuser' }, { 'subId': 2, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 3600, 'userId': 'someuser'}, { 'subId': 3, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'userId': 'someuser' } ]"), count)
+		    .on("GET /peer/sub/1", xq("{ 'subId': 1, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 3600, 'userId': 'someuser'}"), count)
 		    .on("PUT /peer/sub/1", "", count)
+		    .on("POST /notif", xq("{ 'notificationId': 'noteid' }"))
+		    .on("POST /notif/noteid/user/someuser", "")
 		    .applyTo(cdsClient);
 		steps.await(3, TimeUnit.SECONDS);
 		assertEquals("Incomplete steps remain", 0, steps.getCount());
 		steps = new CountDownLatch(2);
 		(new ClientMocking())
 		    .on("GET /peer?page=0&size=100", xq("{ 'content': [ { 'peerId': '1', 'self': true }, { 'peerId': '2' } ], 'last': true, 'number': 2, 'size': 100, 'numberOfElements': 2 }"), count)
-		    .on("GET /peer/2/sub", xq("[ { 'subId': 2, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 3600}, { 'subId': 3, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }' } ]"), count)
+		    .on("GET /peer/2/sub", xq("[ { 'subId': 2, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'refreshInterval': 3600, 'userId': 'someuser'}, { 'subId': 3, 'peerId': '2', 'selector': '{ \\'catalogId\\': [] }', 'userId': 'someuser' } ]"), count)
+		    .on("POST /notif", xq("{ 'notificationId': 'noteid' }"))
+		    .on("POST /notif/noteid/user/someuser", "")
 		    .applyTo(cdsClient);
 		steps.await(3, TimeUnit.SECONDS);
 		assertEquals("Incomplete steps remain", 0, steps.getCount());

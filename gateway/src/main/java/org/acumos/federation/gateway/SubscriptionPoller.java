@@ -43,9 +43,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.client.ResourceAccessException;
 
+import org.acumos.cds.client.ICommonDataServiceRestClient;
 import org.acumos.cds.domain.MLPArtifact;
 import org.acumos.cds.domain.MLPCatalog;
 import org.acumos.cds.domain.MLPDocument;
+import org.acumos.cds.domain.MLPNotification;
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPPeerSubscription;
 import org.acumos.cds.domain.MLPRevCatDescription;
@@ -90,15 +92,168 @@ public class SubscriptionPoller {
 		return ret;
 	}
 
+	private enum Action {
+		PROCESS("Processed", "processing"),
+		FETCH("Fetched", "fetching"),
+		PARSE("Parsed", "parsing"),
+		CREATE("Created", "creating"),
+		UPDATE("Updated", "updating"),
+		ADD("Added", "adding"),
+		DELETE("Deleted", "deleting"),
+		COPY("Copied", "copying");
+
+		private String done;
+		private String during;
+
+		public String getDone() {
+			return(done);
+		}
+
+		public String getDuring() {
+			return(during);
+		}
+
+		Action(String done, String during) {
+			this.done = done;
+			this.during = during;
+		}
+	}
+
+	private static class PendingAction	{
+		private PendingAction parent;
+		private Action action;
+		private String item;
+		private boolean force;
+		private Instant start = Instant.now();
+
+		public PendingAction(PendingAction parent, Action action, String item, boolean force) {
+			this.parent = parent;
+			this.action = action;
+			this.item = " " + item;
+			this.force = force;
+		}
+
+		public void setForce() {
+			this.force = true;
+		}
+
+		public boolean getForce() {
+			return(this.force);
+		}
+
+		public PendingAction pop() {
+			PendingAction ret = parent;
+			parent = null;
+			return(ret);
+		}
+
+		public String getDone() {
+			return(action.getDone() + item);
+		}
+
+		public String getDuring() {
+			return(action.getDuring() + item);
+		}
+
+		public String getItem() {
+			return(item);
+		}
+		
+		public Instant getStart() {
+			return(start);
+		}
+	}
+
+	private static class Notifier	{
+		private PendingAction actions;
+		private PendingAction leaf;
+		private ICommonDataServiceRestClient cds;
+		private String userId;
+
+		public Notifier(ICommonDataServiceRestClient cds, String userId) {
+			this.cds = cds;
+			this.userId = userId;
+		}
+
+		public PendingAction begin(String item, Object... args) {
+			end();
+			actions = new PendingAction(actions, Action.PROCESS, String.format(item, args), false);
+			return actions;
+		}
+
+		public void noteEnd(PendingAction handle) {
+			handle.setForce();
+			end(handle);
+		}
+
+		public void end(PendingAction handle) {
+			end();
+			do {
+				leaf = actions;
+				actions = leaf.pop();
+			} while (end() != handle);
+		}
+
+		public void check(Action action, String item, Object... args) {
+			end();
+			leaf = new PendingAction(null, action, String.format(item, args), false);
+		}
+
+		public void action(Action action, String item, Object... args) {
+			end();
+			leaf = new PendingAction(null, action, String.format(item, args), true);
+		}
+
+		private void note(PendingAction cur, String sev, String msg) {
+			MLPNotification note = new MLPNotification(cur.getItem(), sev, cur.getStart(), Instant.now());
+			note.setMessage(msg);
+			cds.addUserToNotification(cds.createNotification(note).getNotificationId(), userId);
+		}
+
+		public PendingAction end() {
+			if (leaf != null) {
+				PendingAction cur = leaf;
+				boolean logit = leaf.getForce();
+				leaf = null;
+				if (logit) {
+					note(cur, "LO", cur.getDone());
+				}
+				return(cur);
+			}
+			return(null);
+		}
+
+		public void fail(PendingAction handle, String msg) {
+			String format = "Error occurred while %s: %s";
+			String sev = "HI";
+			PendingAction cur = null;
+			do {
+				cur = leaf;
+				leaf = null;
+				if (cur == null) {
+					cur = actions;
+					actions = cur.pop();
+				}
+				String during = cur.getDuring();
+				note(cur, sev, String.format(format, during, msg));
+				msg = during;
+				format = "While %s, an error occurred: %s";
+				sev = "ME";
+			} while (cur != handle && actions != null);
+		}
+	}
+
 	private class PeerSubscriptionPoller implements Runnable {
 		private long subId;
+		private String userId;
 		private String peerId;
 		private Long interval;
 		private ScheduledFuture future;
-		private String userId;
+		private Notifier events;
 
-		public PeerSubscriptionPoller(long subId, String peerId, Long interval) {
+		public PeerSubscriptionPoller(long subId, String userId, String peerId, Long interval) {
 			this.subId = subId;
+			this.userId = userId;
 			this.peerId = peerId;
 			this.interval = interval;
 		}
@@ -128,7 +283,10 @@ public class SubscriptionPoller {
 
 		private boolean checkRevision(String revisionId, String solutionId, String catalogId, FederationClient peer) {
 			log.info("Checking revision {} from peer {}", revisionId, peerId);
+			PendingAction act = events.begin("revision %s", revisionId);
+			events.check(Action.FETCH, "remote revision");
 			SolutionRevision pRev = (SolutionRevision)peer.getSolutionRevision(solutionId, revisionId, catalogId);
+			events.check(Action.FETCH, "local revision");
 			SolutionRevision lRev = (SolutionRevision)catalogService.getRevision(revisionId, catalogId);
 			boolean changed = false;
 			boolean isnew = lRev == null;
@@ -136,6 +294,7 @@ public class SubscriptionPoller {
 			if (isnew) {
 				log.info("Revision {} doesn't exist locally.  Creating it", revisionId);
 				pRev.setSourceId(peerId);
+				events.action(Action.CREATE, "revision %s", revisionId);
 				lRev = (SolutionRevision)catalogService.createRevision(pRev);
 			}
 			MLPRevCatDescription pDesc = pRev.getRevCatDescription();
@@ -143,13 +302,16 @@ public class SubscriptionPoller {
 			if (pDesc != null) {
 				if (lDesc == null) {
 					log.info("Description for revision {} in catalog {} doesn't exist locally.  Creating it", revisionId, catalogId);
+					events.action(Action.CREATE, "revision description");
 					catalogService.createDescription(pDesc);
 				} else if (!Objects.equals(pDesc.getDescription(), lDesc.getDescription())) {
 					log.info("Updating description for revision {} in catalog {}", revisionId, catalogId);
+					events.action(Action.UPDATE, "revision description");
 					catalogService.updateDescription(pDesc);
 				}
 			} else if (lDesc != null) {
 				log.info("Deleting old description for revision {} in catalog {}", revisionId, catalogId);
+				events.action(Action.DELETE, "revision description");
 				catalogService.deleteDescription(revisionId, catalogId);
 			}
 			List<MLPArtifact> pArts = pRev.getArtifacts();
@@ -158,20 +320,28 @@ public class SubscriptionPoller {
 				String artifactId = pArt.getArtifactId();
 				log.debug("Checking artifact {} from peer {}", artifactId, peerId);
 				String pTag = pArt.getDescription();
-				MLPArtifact lArt = catalogService.getArtifact(artifactId);
 				pArt.setUserId(userId);
 				contentService.setArtifactUri(solutionId, pArt);
+				MLPArtifact lArt = lArts.get(artifactId);
+				if (lArt == null) {
+					events.check(Action.FETCH, "local artifact %s metadata", artifactId);
+					lArt = catalogService.getArtifact(artifactId);
+				}
 				if (lArt == null) {
 					log.info("Artifact {} doesn't exist locally.  Creating it", artifactId);
+					events.action(Action.CREATE, "artifact %s metadata", artifactId);
 					lArt = catalogService.createArtifact(pArt);
 				} else if (!Objects.equals(pArt.getSize(), lArt.getSize()) || !Objects.equals(pArt.getVersion(), lArt.getVersion())) {
 					log.info("Updating artifact {}", artifactId);
+					events.action(Action.UPDATE, "artifact %s metadata", artifactId);
 					catalogService.updateArtifact(pArt);
 				} else {
 					continue;
 				}
 				changed = true;
+				events.check(Action.FETCH, "artifact %s content", artifactId);
 				try (InputStream is = peer.getArtifactContent(artifactId)) {
+					events.action(Action.COPY, "artifact %s content", artifactId);
 					contentService.putArtifactContent(pArt, pTag, is);
 				} catch (IOException ioe) {
 					throw new ResourceAccessException("Failure copying artifact " + artifactId + " from peer " + peerId, ioe);
@@ -180,6 +350,7 @@ public class SubscriptionPoller {
 			for (MLPArtifact pArt: pArts) {
 				if (lArts.get(pArt.getArtifactId()) == null) {
 					log.info("Adding artifact {} to revision {}", pArt.getArtifactId(), revisionId);
+					events.action(Action.ADD, "artifact %s to revision %s", pArt.getArtifactId(), revisionId);
 					catalogService.addArtifact(solutionId, revisionId, pArt.getArtifactId());
 				}
 			}
@@ -188,19 +359,27 @@ public class SubscriptionPoller {
 			for (MLPDocument pDoc: pDocs) {
 				String documentId = pDoc.getDocumentId();
 				log.debug("Checking document {} from peer {}", documentId, peerId);
-				MLPDocument lDoc = catalogService.getDocument(documentId);
 				pDoc.setUserId(userId);
 				contentService.setDocumentUri(solutionId, pDoc);
+				MLPDocument lDoc = lDocs.get(documentId);
+				if (lDoc == null) {
+					events.check(Action.FETCH, "local document %s metadata", documentId);
+					lDoc = catalogService.getDocument(documentId);
+				}
 				if (lDoc == null) {
 					log.info("Document {} doesn't exist locally.  Creating it", documentId);
+					events.action(Action.CREATE, "document %s metadata", documentId);
 					catalogService.createDocument(pDoc);
 				} else if (!Objects.equals(pDoc.getSize(), lDoc.getSize()) || !Objects.equals(pDoc.getVersion(), lDoc.getVersion())) {
 					log.info("Updating document {}", documentId);
+					events.action(Action.UPDATE, "document %s metadata", documentId);
 					catalogService.updateDocument(pDoc);
 				} else {
 					continue;
 				}
+				events.check(Action.FETCH, "document %s content", documentId);
 				try (InputStream is = peer.getDocumentContent(documentId)) {
+					events.action(Action.COPY, "document %s content", documentId);
 					contentService.putDocumentContent(pDoc, is);
 				} catch (IOException ioe) {
 					throw new ResourceAccessException("Failure copying document " + documentId + " from peer " + peerId, ioe);
@@ -209,22 +388,28 @@ public class SubscriptionPoller {
 			for (MLPDocument pDoc: pDocs) {
 				if (lDocs.get(pDoc.getDocumentId()) == null) {
 					log.info("Adding document {} to revision {} in catalog {}", pDoc.getDocumentId(), revisionId, catalogId);
+					events.action(Action.ADD, "document %s to revision %s in catalog %s", pDoc.getDocumentId(), revisionId, catalogId);
 					catalogService.addDocument(revisionId, catalogId, pDoc.getDocumentId());
 				}
 			}
 			changed |= isnew;
 			if (changed && !isnew) {
+				events.action(Action.UPDATE, "revision %s", revisionId);
 				catalogService.updateRevision(pRev);
 			}
 			if (changed) {
 				new Thread(() -> { try {clients.getSVClient().securityVerificationScan(solutionId, revisionId, "created", userId); } catch (Exception e) { log.error("SV scan failure on revision " + revisionId, e); }}).start();
 			}
-			return changed;
+			events.end(act);
+			return(changed);
 		}
 
 		private void checkSolution(String solutionId, String catalogId, boolean inLocalCatalog, FederationClient peer) {
 			log.info("Checking solution {} from peer {}", solutionId, peerId);
+			PendingAction act = events.begin("solution %s", solutionId);
+			events.check(Action.FETCH, "remote solution");
 			Solution pSol = (Solution)peer.getSolution(solutionId);
+			events.check(Action.FETCH, "local solution");
 			Solution lSol = (Solution)catalogService.getSolution(solutionId);
 			boolean changed = false;
 			boolean isnew = lSol == null;
@@ -237,6 +422,7 @@ public class SubscriptionPoller {
 				pSol.setSourceId(peerId);
 				pSol.setUserId(userId);
 				pSol.setViewCount(0L);
+				events.action(Action.CREATE, "solution %s", solutionId);
 				lSol = (Solution)catalogService.createSolution(pSol);
 			} else {
 				pSol.setActive(lSol.isActive());
@@ -261,39 +447,52 @@ public class SubscriptionPoller {
 			}
 			if (!Arrays.equals(lSol.getPicture(), pSol.getPicture())) {
 				log.info("Updating picture for solution {}", solutionId);
+				events.action(Action.UPDATE, "picture for solution %s", solutionId);
 				catalogService.savePicture(solutionId, pSol.getPicture());
 			}
 			if (!inLocalCatalog) {
 				log.info("Adding solution {} to catalog {}", solutionId, catalogId);
+				events.action(Action.ADD, "solution %s to catalog %s", solutionId, catalogId);
 				catalogService.addSolution(solutionId, catalogId);
 			}
 			for (MLPSolutionRevision rev: pSol.getRevisions()) {
 				changed |= checkRevision(rev.getRevisionId(), solutionId, catalogId, peer);
 			}
 			if (changed && !isnew) {
+				events.action(Action.UPDATE, "solution %s", solutionId);
 				catalogService.updateSolution(pSol);
 				log.info("Updated solution {} from peer {}", solutionId, peerId);
 			}
+			events.end(act);
 		}
 
 		private void checkCatalog(String catalogId) {
 			log.info("Checking catalog {} from peer {}", catalogId, peerId);
+			PendingAction act = events.begin("catalog %s from peer %s", catalogId, peerId);
 			FederationClient peer = clients.getFederationClient(peerService.getPeer(peerId).getApiUrl());
+			events.check(Action.FETCH, "list of solutions in remote catalog");
 			List<MLPSolution> peerSolutions = peer.getSolutions(catalogId);
+			events.check(Action.FETCH, "list of solutions in local catalog");
 			HashMap<String, MLPSolution> localSolutions = index(catalogService.getSolutions(catalogId), MLPSolution::getSolutionId);
 			if (localSolutions.isEmpty() && !peerSolutions.isEmpty() && index(catalogService.getAllCatalogs(), MLPCatalog::getCatalogId).get(catalogId) == null) {
 				log.info("Catalog {} doesn't exist locally.  Creating it", catalogId);
+				events.action(Action.CREATE, "catalog %s", catalogId);
 				catalogService.createCatalog(index(peer.getCatalogs(), MLPCatalog::getCatalogId).get(catalogId));
+				events.end();
 			}
-			for (MLPSolution solution: peer.getSolutions(catalogId)) {
+			for (MLPSolution solution: peerSolutions) {
 				checkSolution(solution.getSolutionId(), catalogId, localSolutions.get(solution.getSolutionId()) != null, peer);
 			}
 			log.info("Checked catalog {} from peer {}", catalogId, peerId);
+			events.noteEnd(act);
 		}
 
 		private void checkSubscription() {
 			log.info("Processing subscription {} for peer {}", subId, peerId);
+			PendingAction act = events.begin("subscription %s for peer %s", subId, peerId);
+			events.check(Action.FETCH, "subscription %s", subId);
 			MLPPeerSubscription subscription = peerService.getSubscription(subId);
+			events.check(Action.PARSE, "subscription's selector");
 			Object xcatalogs;
 			try {
 				xcatalogs = ((Map<String, Object>)mapper.readValue(subscription.getSelector(), trMapStoO)).get("catalogId");
@@ -304,24 +503,28 @@ public class SubscriptionPoller {
 				}
 			} catch (IOException | NullPointerException | ArrayStoreException | ClassCastException ioe) {
 				log.error(String.format("Malformed selector %s on subscription %s to peer %s", subscription.getSelector(), subId, peerId));
+				events.fail(act, "Subscription selector was malformed");
 				return;
 			}
+			events.end();
 			String[] catalogs = (String[])xcatalogs;
 			Instant startTime = Instant.now();
-			userId = subscription.getUserId();
 			for (String catalogId: catalogs) {
 				checkCatalog(catalogId);
 			}
 			subscription.setProcessed(startTime);
 			peerService.updateSubscription(subscription);
 			log.info("Subscription {} processed for peer {}", subId, peerId);
+			events.end(act);
 		}
 
 		public void run() {
+			events = new Notifier(clients.getCDSClient(), userId);
 			try {
 				checkSubscription();
 			} catch (Exception ex) {
 				log.error(String.format("Unexpected error processing subscription %s for peer %s", subId, peerId), ex);
+				events.fail(null, ex.toString());
 			}
 		}
 	}
@@ -370,7 +573,7 @@ public class SubscriptionPoller {
 		Long interval = subscription.getRefreshInterval();
 		PeerSubscriptionPoller poller = subscriptions.get(subId);
 		if (poller == null) {
-			poller = new PeerSubscriptionPoller(subId, subscription.getPeerId(), interval);
+			poller = new PeerSubscriptionPoller(subId, subscription.getUserId(), subscription.getPeerId(), interval);
 			subscriptions.put(subId, poller);
 			if (force || (interval != null && (interval.longValue() > 0L || subscription.getProcessed() == null))) {
 				poller.schedule();

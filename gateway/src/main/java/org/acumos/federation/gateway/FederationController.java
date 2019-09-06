@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.util.UriTemplateHandler;
@@ -67,6 +68,7 @@ import org.acumos.federation.client.data.SolutionRevision;
  */
 @Controller
 @CrossOrigin
+@RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class FederationController {
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -142,7 +144,7 @@ public class FederationController {
 
 	@Secured(Security.ROLE_PEER)
 	@ApiOperation(value = "Invoked by Peer Acumos to get status and self information.", response = MLPPeer.class)
-	@GetMapping(value = FederationClient.PING_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.PING_URI)
 	@ResponseBody
 	public JsonResponse<MLPPeer> ping() {
 		log.debug("/ping");
@@ -151,7 +153,7 @@ public class FederationController {
 
 	@Secured(Security.ROLE_PARTNER)
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of peers from local Acumos Instance .", response = MLPPeer.class, responseContainer = "List")
-	@GetMapping(value = FederationClient.PEERS_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.PEERS_URI)
 	@ResponseBody
 	public JsonResponse<List<MLPPeer>> getPeers() {
 		log.debug("/peers");
@@ -160,7 +162,7 @@ public class FederationController {
 
 	@Secured(Security.ROLE_REGISTER)
 	@ApiOperation(value = "Invoked by another Acumos Instance to request federation.", response = MLPPeer.class)
-	@PostMapping(value = FederationClient.REGISTER_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@PostMapping(FederationClient.REGISTER_URI)
 	@ResponseBody
 	public JsonResponse<MLPPeer> register() {
 		log.debug("/peer/register");
@@ -173,7 +175,7 @@ public class FederationController {
 
 	@Secured(Security.ROLE_UNREGISTER)
 	@ApiOperation(value = "Invoked by another Acumos Instance to request federation termination.", response = MLPPeer.class)
-	@PostMapping(value = FederationClient.UNREGISTER_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@PostMapping(FederationClient.UNREGISTER_URI)
 	@ResponseBody
 	public JsonResponse<MLPPeer> unregister() {
 		log.debug("/peer/unregister");
@@ -186,7 +188,7 @@ public class FederationController {
 
 	@Secured(Security.ROLE_PEER)
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of visible Catalogs from the local Acumos Instance .", response = MLPCatalog.class, responseContainer = "List")
-	@GetMapping(value = FederationClient.CATALOGS_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.CATALOGS_URI)
 	@ResponseBody
 	public JsonResponse<List<MLPCatalog>> getCatalogs() {
 		log.debug("/catalogs");
@@ -195,7 +197,7 @@ public class FederationController {
 
 	@Secured(Security.ROLE_PEER)
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of Published Solutions from the Catalog of the local Acumos Instance .", response = MLPSolution.class, responseContainer = "List")
-	@GetMapping(value = FederationClient.SOLUTIONS_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.SOLUTIONS_URI)
 	@ResponseBody
 	public JsonResponse<List<MLPSolution>> getSolutions(@RequestParam(value="catalogId", required = true) String catalogId) {
 		log.debug("/solutions?catalogId={}", catalogId);
@@ -211,7 +213,7 @@ public class FederationController {
 
 	@Secured(Security.ROLE_PEER)
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list detailed solution information from the Catalog of the local Acumos Instance .", response = MLPSolution.class)
-	@GetMapping(value = FederationClient.SOLUTION_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.SOLUTION_URI)
 	@ResponseBody
 	public JsonResponse<MLPSolution> getSolution(@PathVariable("solutionId") String solutionId) {
 		log.debug("/solutions/{}", solutionId);
@@ -225,7 +227,7 @@ public class FederationController {
 
 	@Secured(Security.ROLE_PEER)
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of Solution Revision from the Catalog of the local Acumos Instance .", response = MLPSolutionRevision.class, responseContainer = "List")
-	@GetMapping(value = FederationClient.REVISIONS_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.REVISIONS_URI)
 	@ResponseBody
 	public JsonResponse<List<MLPSolutionRevision>> getRevisions(@PathVariable("solutionId") String solutionId) {
 		log.debug("/solutions/{}/revisions", solutionId);
@@ -238,7 +240,7 @@ public class FederationController {
 
 	@Secured(Security.ROLE_PEER)
 	@ApiOperation(value = "Invoked by peer Acumos to get solution revision details from the local Acumos Instance .", response = MLPSolutionRevision.class)
-	@GetMapping(value = FederationClient.REVISION_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.REVISION_URI)
 	@ResponseBody
 	public JsonResponse<MLPSolutionRevision> getRevision(
 	    @PathVariable("solutionId") String solutionId,
@@ -263,7 +265,7 @@ public class FederationController {
 
 	@Secured(Security.ROLE_PEER)
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of solution revision artifacts from the local Acumos Instance .", response = MLPArtifact.class, responseContainer = "List")
-	@GetMapping(value = FederationClient.ARTIFACTS_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.ARTIFACTS_URI)
 	@ResponseBody
 	public JsonResponse<List<MLPArtifact>> getArtifacts(
 	    @PathVariable("solutionId") String solutionId,
@@ -281,7 +283,7 @@ public class FederationController {
 
 	@Secured(Security.ROLE_PEER)
 	@ApiOperation(value = "Invoked by Peer Acumos to get a list of solution revision public documents from the local Acumos Instance .", response = MLPArtifact.class, responseContainer = "List")
-	@GetMapping(value = FederationClient.DOCUMENTS_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.DOCUMENTS_URI)
 	@ResponseBody
 	public JsonResponse<List<MLPDocument>> getDocuments(
 	    @PathVariable("revisionId") String revisionId,

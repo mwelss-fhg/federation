@@ -23,8 +23,10 @@ Federation Gateway Release Notes
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 The image name is "federation-gateway" and the tag is a version string as shown below.
 
-Version 2.3.0, 2019-08-09
+Version 2.3.0, 2019-09-06
 -------------------------
+* Portal to show details of federation actions (`ACUMOS-1778 <https://jira.acumos.org/browse/ACUMOS-1778>`_)
+
 * Run SV license scan when a model has been federated (`ACUMOS-3396 <https://jira.acumos.org/browse/ACUMOS-3396>`_)
   * This adds a new required configuration value, "verification.url" for the
     security verification service.

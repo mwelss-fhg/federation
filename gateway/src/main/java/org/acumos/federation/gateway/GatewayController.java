@@ -58,7 +58,7 @@ import org.acumos.federation.client.data.JsonResponse;
 @Controller
 @CrossOrigin
 @Secured(Security.ROLE_INTERNAL)
-@RequestMapping(GatewayClient.PEER_PFX)
+@RequestMapping(value = GatewayClient.PEER_PFX, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class GatewayController {
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -72,7 +72,7 @@ public class GatewayController {
 	private SubscriptionPoller poller;
 
 	@ApiOperation(value = "Invoked by local Acumos to get a list of catalogs available from a peer Acumos instance .", response = MLPCatalog.class, responseContainer = "List")
-	@GetMapping(value = FederationClient.CATALOGS_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.CATALOGS_URI)
 	@ResponseBody
 	public JsonResponse<List<MLPCatalog>> getCatalogs(
 	    HttpServletResponse response,
@@ -82,7 +82,7 @@ public class GatewayController {
 	}
 
 	@ApiOperation(value = "Invoked by local Acumos to get a list of solutions available from a peer Acumos instance .", response = MLPSolution.class, responseContainer = "List")
-	@GetMapping(value = FederationClient.SOLUTIONS_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.SOLUTIONS_URI)
 	@ResponseBody
 	public JsonResponse<List<MLPSolution>> getSolutions(
 	    HttpServletResponse response,
@@ -93,7 +93,7 @@ public class GatewayController {
 	}
 
 	@ApiOperation(value = "Invoked by local Acumos to get detailed solution information from the catalog of a peer acumos Instance.", response = MLPSolution.class)
-	@GetMapping(value = FederationClient.SOLUTION_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.SOLUTION_URI)
 	@ResponseBody
 	public JsonResponse<MLPSolution> getSolution(
 	    HttpServletResponse response,
@@ -104,7 +104,7 @@ public class GatewayController {
 	}
 
 	@ApiOperation(value = "Invoked by local Acumos to get peers information from remote Acumos peer.", response = MLPPeer.class, responseContainer = "List")
-	@GetMapping(value = FederationClient.PEERS_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.PEERS_URI)
 	@ResponseBody
 	public JsonResponse<List<MLPPeer>> getPeers(
 	    HttpServletResponse response,
@@ -114,7 +114,7 @@ public class GatewayController {
 	}
 
 	@ApiOperation(value = "Invoked by local Acumos to get peer Acumos status and information.", response = MLPPeer.class)
-	@GetMapping(value = FederationClient.PING_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(FederationClient.PING_URI)
 	@ResponseBody
 	public JsonResponse<MLPPeer> ping(
 	    HttpServletResponse response,
@@ -124,7 +124,7 @@ public class GatewayController {
 	}
 
 	@ApiOperation(value = "Invoked by local Acumos to register with a remote Acumos peer.", response = MLPPeer.class)
-	@PostMapping(value = FederationClient.REGISTER_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@PostMapping(FederationClient.REGISTER_URI)
 	@ResponseBody
 	public JsonResponse<MLPPeer> register(
 	    HttpServletResponse response,
@@ -133,8 +133,8 @@ public class GatewayController {
 		return callPeer(response, peerId, FederationClient::register);
 	}
 
-	@ApiOperation(value = "Invoked by other Acumos components in order to trigger subscription execution")
-	@PostMapping(value = GatewayClient.SUBSCRIPTION_URI, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ApiOperation("Invoked by other Acumos components in order to trigger subscription execution")
+	@PostMapping(GatewayClient.SUBSCRIPTION_URI)
 	@ResponseBody
 	public JsonResponse<Void> triggerPeerSubscription(
 	    HttpServletResponse response,
