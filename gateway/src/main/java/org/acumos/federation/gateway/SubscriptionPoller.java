@@ -54,6 +54,9 @@ import org.acumos.cds.domain.MLPRevCatDescription;
 import org.acumos.cds.domain.MLPSolution;
 import org.acumos.cds.domain.MLPSolutionRevision;
 
+import org.acumos.licensemanager.client.model.RegisterAssetRequest;
+import org.acumos.licensemanager.client.model.RegisterAssetResponse;
+
 import org.acumos.federation.client.FederationClient;
 import org.acumos.federation.client.data.Solution;
 import org.acumos.federation.client.data.SolutionRevision;
@@ -398,7 +401,27 @@ public class SubscriptionPoller {
 				catalogService.updateRevision(pRev);
 			}
 			if (changed) {
-				new Thread(() -> { try {clients.getSVClient().securityVerificationScan(solutionId, revisionId, "created", userId); } catch (Exception e) { log.error("SV scan failure on revision " + revisionId, e); }}).start();
+				new Thread(() -> {
+					try {
+						clients.getSVClient().securityVerificationScan(solutionId, revisionId, "created", userId);
+					} catch (Exception e) {
+						log.error("SV scan failure on revision " + revisionId, e);
+					}
+				}).start();
+				new Thread(() -> {
+					try {
+						RegisterAssetRequest rar = new RegisterAssetRequest();
+						rar.setSolutionId(solutionId);
+						rar.setRevisionId(revisionId);
+						rar.setLoggedIdUser(userId);
+						RegisterAssetResponse rax = clients.getLMClient().register(rar).get();
+						if (!rax.isSuccess()) {
+							log.error("License asset registration failure on revision " + revisionId + ": " + rax.getMessage());
+						}
+					} catch (Exception e) {
+						log.error("License asset registration failure on revision " + revisionId, e);
+					}
+				}).start();
 			}
 			events.end(act);
 			return(changed);

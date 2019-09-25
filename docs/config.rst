@@ -62,6 +62,7 @@ Example (with syntactically valid but completely made up values)::
       "password": "nexuspass",
       "nexus.group-id": "myorg"
     },
+    "license-manager.url": "http://licenseserver:8888",
     "verification.url": "http://securityserver:9999"
   }'
 
@@ -261,6 +262,11 @@ docker.registry-password
 docker.registry-email
   The email address associated with the username and password for
   authenticating to the Docker Registry.
+
+license-manager.url
+  Required.
+
+  The URL for the license manager used to register solution revisions.
 
 nexus.url
   Required.

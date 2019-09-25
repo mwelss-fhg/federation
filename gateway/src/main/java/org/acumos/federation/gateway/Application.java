@@ -162,6 +162,12 @@ public class Application {
 	}
 
 	@Bean
+	@ConfigurationProperties(prefix="license-manager")
+	ServiceConfig lmConfig() {
+		return new ServiceConfig();
+	}
+
+	@Bean
 	Clients clients() {
 		return new Clients();
 	}

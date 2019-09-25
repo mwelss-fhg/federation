@@ -34,6 +34,7 @@ import org.acumos.federation.client.FederationClient;
 
 import org.acumos.securityverification.service.ISecurityVerificationClientService;
 import org.acumos.securityverification.service.SecurityVerificationClientServiceImpl;
+import org.acumos.licensemanager.client.rtu.LicenseAsset;
 
 /**
  * Defines all beans used to access outside services.
@@ -72,9 +73,13 @@ public class Clients {
 	@Autowired
 	private ServiceConfig verificationConfig;
 
+	@Autowired
+	private ServiceConfig lmConfig;
+
 	private ICommonDataServiceRestClient cdsClient;
 	private NexusClient nexusClient;
 	private ISecurityVerificationClientService svClient;
+	private LicenseAsset lmClient;
 
 	public FederationClient getFederationClient(String url) {
 		/*
@@ -140,10 +145,17 @@ public class Clients {
 			    cdmsConfig.getUrl(),
 			    cdmsConfig.getUsername(),
 			    cdmsConfig.getPassword(),
-			    nexusConfig.getUrl(),
+			    nexusConfig.getUrl().replaceAll("/*$", "") + "/",
 			    nexusConfig.getUsername(),
 			    nexusConfig.getPassword());
 		}
 		return svClient;
+	}
+
+	public synchronized LicenseAsset getLMClient() {
+		if (lmClient == null) {
+			lmClient = new LicenseAsset(getCDSClient(), lmConfig.getUrl(), nexusConfig.getUrl().replaceAll("/*$", "") + "/");
+		}
+		return lmClient;
 	}
 }
