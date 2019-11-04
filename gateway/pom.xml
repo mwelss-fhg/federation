@@ -27,7 +27,7 @@
 	</parent>
 	<groupId>org.acumos.federation</groupId>
 	<artifactId>gateway</artifactId>
-	<version>3.0.1-SNAPSHOT</version>
+	<version>3.0.2-SNAPSHOT</version>
 	<name>Federation Gateway</name>
 	<description>Federated Acumos Interface for inter-acumos communication</description>
 	<properties>
@@ -93,12 +93,12 @@
 		<dependency>
 			<groupId>org.acumos.security-verification</groupId>
 			<artifactId>security-verification-client</artifactId>
-			<version>0.0.24</version>
+			<version>1.2.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.acumos.license-manager</groupId>
 			<artifactId>license-manager-client-library</artifactId>
-			<version>1.0.0</version>
+			<version>1.4.1</version>
 		</dependency>
 		<!-- Compile time only dependencies -->
 		<dependency>

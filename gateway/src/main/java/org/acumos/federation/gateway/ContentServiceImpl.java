@@ -99,8 +99,10 @@ public class ContentServiceImpl implements ContentService {
 				throw new BadRequestException(400, "Could not find loaded docker image for " + artifact);
 			}
 			String name = artifact.getDescription().substring(0, artifact.getDescription().lastIndexOf(':'));
-			docker.tagImageCmd(image.getId(), name, artifact.getVersion()).exec();
-			docker.removeImageCmd(tag).withForce(true).exec();
+			if (!artifact.getDescription().equals(tag)) {
+				docker.tagImageCmd(image.getId(), name, artifact.getVersion()).exec();
+				docker.removeImageCmd(tag).withForce(true).exec();
+			}
 			try (PushImageResultCallback result = new PushImageResultCallback()) {
 				AuthConfig auth = (new AuthConfig())
 				    .withUsername(dockerConfig.getRegistryUsername())

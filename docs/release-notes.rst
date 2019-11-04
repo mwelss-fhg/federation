@@ -23,6 +23,11 @@ Federation Gateway Release Notes
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 The image name is "federation-gateway" and the tag is a version string as shown below.
 
+Version 3.0.2, 2019-11-04
+-------------------------
+* Don't re-tag imported docker images unless the tag is different (`ACUMOS-3670 <https://jira.acumos.org/browse/ACUMOS-3670>`_)
+* Update dependency versions for the security and license profile validation clients (`ACUMOS-3669 <https://jira.acumos.org/browse/ACUMOS-3669>`_)
+
 Version 3.0.1, 2019-09-26
 -------------------------
 * When a model has been federated, register it with the license manager (`ACUMOS-3484 <https://jira.acumos.org/browse/ACUMOS-3484>`_)
