@@ -1,0 +1,10 @@
+---
+distribution_type: container
+container_release_tag: 3.1.0
+container_pull_registry: nexus3.acumos.org:10004
+container_push_registry: nexus3.acumos.org:10002
+project: federation
+ref: c3305f8ae3c6b03d675fdb82595b328c11d9b267
+containers:
+    - name: federation-gateway
+      version: 3.1.0
