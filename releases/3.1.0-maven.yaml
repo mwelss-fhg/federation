@@ -1,0 +1,5 @@
+---
+distribution_type: maven
+version: 3.1.0
+project: federation
+log_dir: federation-maven-dl-stage-master/185
