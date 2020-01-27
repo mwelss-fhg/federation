@@ -1,7 +1,7 @@
 .. ===============LICENSE_START=======================================================
 .. Acumos CC-BY-4.0
 .. ===================================================================================
-.. Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+.. Copyright (C) 2017-2020 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
 .. ===================================================================================
 .. This Acumos documentation file is distributed by AT&T and Tech Mahindra
 .. under the Creative Commons Attribution 4.0 International License (the "License");
@@ -22,6 +22,10 @@ Federation Gateway Release Notes
 
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 The image name is "federation-gateway" and the tag is a version string as shown below.
+
+Version 3.1.1, 2020-01-27
+-------------------------
+* Update dependency version for the common data service client to 3.1.1 (`ACUMOS-3951 <https://jira.acumos.org/browse/ACUMOS-3951>`_)
 
 Version 3.1.0, 2019-12-16
 -------------------------
