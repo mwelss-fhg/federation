@@ -22,7 +22,7 @@ package org.acumos.federation.gateway;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -58,6 +58,8 @@ import org.acumos.federation.client.ClientBase;
 import org.acumos.federation.client.config.ClientConfig;
 import org.acumos.federation.client.config.BasicAuthConfig;
 import org.acumos.federation.client.config.TlsConfig;
+import org.acumos.federation.client.data.JsonResponse;
+import org.acumos.federation.client.data.ModelData;
 
 import org.acumos.federation.client.test.ClientMocking;
 import static org.acumos.federation.client.test.ClientMocking.getConfig;
@@ -78,7 +80,8 @@ import static org.acumos.federation.client.test.ClientMocking.xq;
 	"nexus.group-id=nxsgrpid",
 	"nexus.name-separator=,",
 	"docker.registry-url=someregistry:9999",
-	"federation.operator=defuserid"
+	"federation.operator=defuserid",
+	"logstash.url=http://logstash:2345",
     }
 )
 public class GatewayControllerTest {
@@ -278,6 +281,71 @@ public class GatewayControllerTest {
 		self.triggerPeerSubscription("somepeer", 999);
 		steps.await(2, TimeUnit.SECONDS);
 		assertEquals("Incomplete steps remain", 0, steps.getCount() - 1);
+	}
+
+	@Test
+	public void testModelDataNoPeerLookup() throws Exception {
+		GatewayClient self = new GatewayClient("https://localhost:" + port, getConfig("acumosa"));
+
+		ICommonDataServiceRestClient cdsClient =
+				CommonDataServiceRestClientImpl.getInstance("http://cds:999",
+						ClientBase.buildRestTemplate("http://cds:999", new ClientConfig(), null, null));
+		String peerUrl = "https://somepeer.org:999";
+
+		(new ClientMocking())
+		    .on("GET /peer/peerid", xq("{ 'peerId': 'peerid', 'apiUrl': \'" + peerUrl + "\'}"))
+		    .on("GET /solution/cat2soln", xq("{ 'solutionId': 'cat2soln', 'sourceId': 'peerid' }"))
+		    .on("GET /peer/search?subjectName=gateway.acumosa.org&_j=a&page=0&size=100", xq("{ 'content': [ {'peerId': 'acumosa', 'subjectName': 'gateway.acumosa.org', 'statusCode': 'AC', 'self': true } ], 'last': true, 'number': 0, 'size': 100, 'numberOfElements': 1 }"))
+		    .applyTo(cdsClient);
+		when(clients.getCDSClient()).thenReturn(cdsClient);
+
+		FederationClient fedClient = new FederationClient(peerUrl, new ClientConfig());
+		(new ClientMocking())
+		    .on("POST /modeldata", xq("{'message': 'model data posted and sent to peer'}"))
+		    .applyTo(fedClient);
+		when(clients.getFederationClient(any(String.class))).thenReturn(fedClient);
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		ModelData payloadObjectNode =
+				objectMapper.readValue("{\"model\": { \"solutionId\": \"cat2soln\"}}", ModelData.class);
+		System.out.println("Justin " + payloadObjectNode);
+		try {
+			self.sendModelData("peerid", payloadObjectNode);
+		} catch (Exception e) {
+			fail("model data not sent to peer");
+		}
+	}
+
+	@Test
+	public void testModelDataWithPeerLookup() throws Exception {
+		GatewayClient self = new GatewayClient("https://localhost:" + port, getConfig("acumosa"));
+
+		ICommonDataServiceRestClient cdsClient =
+				CommonDataServiceRestClientImpl.getInstance("http://cds:999",
+						ClientBase.buildRestTemplate("http://cds:999", new ClientConfig(), null, null));
+		String peerUrl = "https://somepeer.org:999";
+
+		(new ClientMocking())
+		    .on("GET /peer/peerid", xq("{ 'peerId': 'peerid', 'apiUrl': \'" + peerUrl + "\'}"))
+		    .on("GET /solution/cat2soln", xq("{ 'solutionId': 'cat2soln', 'sourceId': 'peerid' }"))
+		    .on("GET /peer/search?subjectName=gateway.acumosa.org&_j=a&page=0&size=100", xq("{ 'content': [ {'peerId': 'acumosa', 'subjectName': 'gateway.acumosa.org', 'statusCode': 'AC', 'self': true } ], 'last': true, 'number': 0, 'size': 100, 'numberOfElements': 1 }"))
+		    .applyTo(cdsClient);
+		when(clients.getCDSClient()).thenReturn(cdsClient);
+
+		FederationClient fedClient = new FederationClient(peerUrl, new ClientConfig());
+		(new ClientMocking())
+		    .on("POST /modeldata", xq("{'message': 'successfully posted model data'}"))
+		    .applyTo(fedClient);
+		when(clients.getFederationClient(any(String.class))).thenReturn(fedClient);
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		ModelData payloadObjectNode =
+				objectMapper.readValue("{\"model\": { \"solutionId\": \"cat2soln\"}}", ModelData.class);
+		try {
+			self.sendModelData("USE_SOLUTION_SOURCE", payloadObjectNode);
+		} catch (Exception e) {
+			fail("was not able to send modeldata to peer");
+		}
 	}
 
 

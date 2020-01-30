@@ -150,6 +150,12 @@ public class Application {
 	}
 
 	@Bean
+	@ConfigurationProperties(prefix="logstash")
+	ServiceConfig logstashConfig() {
+		return new ServiceConfig();
+	}
+
+	@Bean
 	@ConfigurationProperties(prefix="docker")
 	DockerConfig dockerConfig() {
 		return new DockerConfig();
@@ -191,6 +197,12 @@ public class Application {
 	CatalogService catalogService() {
 		return new CatalogServiceImpl();
 	}
+
+	@Bean
+	LogstashService logstashService() {
+		return new LogstashServiceImpl();
+	}
+
 
 	static Docket getApi() {
 		String version = Application.class.getPackage().getImplementationVersion();

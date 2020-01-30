@@ -76,10 +76,14 @@ public class Clients {
 	@Autowired
 	private ServiceConfig lmConfig;
 
+	@Autowired
+	private ServiceConfig logstashConfig;
+
 	private ICommonDataServiceRestClient cdsClient;
 	private NexusClient nexusClient;
 	private ISecurityVerificationClientService svClient;
 	private LicenseAsset lmClient;
+	private LogstashClient logstashClient;
 
 	public FederationClient getFederationClient(String url) {
 		/*
@@ -157,5 +161,14 @@ public class Clients {
 			lmClient = new LicenseAsset(getCDSClient(), lmConfig.getUrl(), nexusConfig.getUrl().replaceAll("/*$", "") + "/");
 		}
 		return lmClient;
+	}
+
+	public synchronized LogstashClient getLogstashClient(){
+		if(logstashClient == null){
+			ClientConfig cc = new ClientConfig();
+			cc.setCreds(logstashConfig);
+			logstashClient = new LogstashClient(logstashConfig.getUrl(), cc);
+		}
+		return logstashClient;
 	}
 }

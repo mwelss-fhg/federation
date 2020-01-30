@@ -23,6 +23,11 @@ Federation Gateway Release Notes
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 The image name is "federation-gateway" and the tag is a version string as shown below.
 
+Version 3.2.0, 2020-02-17
+-------------------------
+* Adding support for model data sending over federation gateway (`ACUMOS-3920 <https://jira.acumos.org/browse/ACUMOS-3920>`_)
+* Fix solution sourceId !=null (`ACUMOS-4021 <https://jira.acumos.org/browse/ACUMOS-4021>`_)
+
 Version 3.1.1, 2020-01-27
 -------------------------
 * Update dependency version for the common data service client to 3.1.1 (`ACUMOS-3951 <https://jira.acumos.org/browse/ACUMOS-3951>`_)

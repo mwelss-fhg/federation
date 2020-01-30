@@ -56,6 +56,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -247,7 +248,7 @@ public class ClientBase {
 		chrf.setBufferRequestBody(false);
 		RestTemplateBuilder rtb = new RestTemplateBuilder()
 		    .requestFactory(() -> chrf)
-		    .messageConverters(new ByteArrayHttpMessageConverter(), messageConverter, contentConverter)
+		    .messageConverters(new ByteArrayHttpMessageConverter(), new StringHttpMessageConverter(), messageConverter, contentConverter)
 		    .uriTemplateHandler(new DefaultUriBuilderFactory())
 		    .rootUri(target);
 		if (creds != null && creds.getUsername() != null && creds.getPassword() != null) {

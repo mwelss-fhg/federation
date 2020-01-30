@@ -126,3 +126,7 @@ The following endpoints are defined on the public "E5" interface:
 * /documents/{documentId}/content
 
   Retrieve the content of the specified document
+
+* /modeldata
+
+  Sends model data to supplier of the model.

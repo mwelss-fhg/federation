@@ -31,3 +31,4 @@ Federation Gateway
        config.rst
        client.rst
        release-notes.rst
+       modeldata.rst

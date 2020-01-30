@@ -63,7 +63,8 @@ Example (with syntactically valid but completely made up values)::
       "nexus.group-id": "myorg"
     },
     "license-manager.url": "http://licenseserver:8888",
-    "verification.url": "http://securityserver:9999"
+    "verification.url": "http://securityserver:9999",
+    "logstash.url": "http://logstash:2345"
   }'
 
 Note that::
@@ -300,6 +301,12 @@ verification.url
 
   URL for the Acumos security-verification server used to perform security
   verification scans on solution revisions.
+
+logstash.url
+  Required.
+
+  URL for the Acumos logstash server used to save model data in elastic search.
+  Required by the /modeldata api.
 
 =========================================
 Federation Gateway Certificate Generation

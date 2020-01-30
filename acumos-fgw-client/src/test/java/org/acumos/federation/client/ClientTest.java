@@ -22,6 +22,7 @@ package org.acumos.federation.client;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.Test;
 import org.junit.Before;
@@ -41,6 +42,7 @@ import org.springframework.web.util.UriTemplateHandler;
 import org.acumos.cds.domain.MLPSolution;
 
 import org.acumos.federation.client.config.ClientConfig;
+import org.acumos.federation.client.data.ModelData;
 import org.acumos.federation.client.data.Solution;
 import org.acumos.federation.client.data.SolutionRevision;
 
@@ -113,6 +115,24 @@ public class ClientTest {
 		assertNotNull(client.register("somepeerid"));
 		client.triggerPeerSubscription("somepeerid", 99);
 	}
+
+	@Test
+	public void testGatewayModelData() throws Exception {
+		GatewayClient client = new GatewayClient("http://localhost:8888", getConfig("acumosa"));
+		(new ClientMocking()).errorOnNoAuth(401, "Unauthorized")
+		.errorOnBadAuth("acumosa", "acumosa", 403, "Forbidden")
+		    .on("POST /peer/somepeerid/modeldata", xq("{ 'content': 'successfully send model data to peer' }"))
+		    .applyTo(client);
+		ObjectMapper objectMapper = new ObjectMapper();
+		ModelData modelData =
+				objectMapper.readValue("{\"model\": { \"solutionId\": \"UUID\"}}", ModelData.class);
+				try {
+					client.sendModelData("somepeerid", modelData);
+				} catch (Exception e) {
+					fail("failed to send model data");
+				}
+	}
+
 
 	@Test
 	public void testFederation() throws Exception {

@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
+import org.springframework.web.client.RestClientException;
 
 import org.acumos.cds.domain.MLPPeer;
 import org.acumos.cds.domain.MLPCatalog;
@@ -37,6 +38,8 @@ import org.acumos.cds.domain.MLPDocument;
 
 import org.acumos.federation.client.config.ClientConfig;
 import org.acumos.federation.client.data.JsonResponse;
+import org.acumos.federation.client.data.ModelData;
+
 
 /**
  * Client for the Federation Server's public (E5) API.  Note that servers
@@ -107,6 +110,11 @@ public class FederationClient extends ClientBase {
 	 * The query for specifying a catalog ID.
 	 */
 	public static final String CATID_QUERY = "?catalogId={catalogId}";
+
+	/**
+	 * The URI for sending model data from subscriber to supplier.
+	 */
+	public static final String MODEL_DATA = "/modeldata";
 
 	/**
 	 * Peer Status Code for Active
@@ -186,6 +194,15 @@ public class FederationClient extends ClientBase {
 	 */
 	public MLPPeer unregister() {
 		return handleResponse(UNREGISTER_URI, HttpMethod.POST, new ParameterizedTypeReference<JsonResponse<MLPPeer>>(){});
+	}
+
+	/**
+	 * @param modelData model (json) data payload
+	 * @return json response
+	 * @throws RestClientException if remote acumos is not available
+	 */
+	public Void receiveModelData(ModelData modelData) throws RestClientException {
+		return restTemplate.postForObject(MODEL_DATA, modelData, Void.class);
 	}
 
 	/**
