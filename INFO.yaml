@@ -33,6 +33,7 @@ meetings:
 repositories:
     - 'federation'
 committers:
+    - <<: *acumos_federation_ptl
     - name: 'Andrew Gauld'
       email: 'agauld@att.com'
       company: 'ATT'
