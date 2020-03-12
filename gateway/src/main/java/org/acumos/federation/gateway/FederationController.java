@@ -3,6 +3,7 @@
  * Acumos
  * ===================================================================================
  * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Modifications Copyright (C) 2020 Nordix Foundation.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -19,6 +20,7 @@
  */
 package org.acumos.federation.gateway;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Callable;
 import java.util.List;
@@ -91,6 +93,9 @@ public class FederationController {
 
 	@Autowired
 	private ContentService contentService;
+
+	@Autowired
+	private DeployedModelService deployedModelService;
 
 	private UriTemplateHandler originBuilder;
 
@@ -345,9 +350,10 @@ public class FederationController {
 	}
 
 	/**
+	 * Training API 2: ModelData(receiver)
 	 * Receives model data payload from
 	 * {@link GatewayController#peerModelData(HttpServletResponse, ModelData, String)}
-	 *
+	 * 
 	 * @param payload         model data payload The payload must have a model.solutionId
 	 * 
 	 * @param theHttpResponse HttpServletResponse
@@ -365,5 +371,34 @@ public class FederationController {
 		log.debug(FederationClient.MODEL_DATA);
 		log.debug("Model parameters: {}", payload);
 		logstashService.sendModelData(payload);
+	}
+
+	/**
+	 * Training API 4: UpdateParamA(receiver)
+	 * Receives model data payload from
+	 * {@link GatewayController#peerModelData(HttpServletResponse, ModelData, String)}
+	 *
+	 * @param payload         model data payload The payload must have a model.solutionId , model.revisionId
+	 * @param theHttpResponse HttpServletResponse
+	 * @return success message in JSON format
+	 *
+	 * @throws IOException
+	 */
+	@CrossOrigin
+	@Secured(Security.ROLE_PEER)
+	@ApiOperation(value = "Invoked by Peer Acumos to post model data to Deployed solution model .", response = JsonResponse.class)
+	@PostMapping(FederationClient.UPDATE_PARAMS)
+	@ResponseBody
+	public JsonResponse<String> updateParams(@RequestBody ModelData payload, HttpServletResponse theHttpResponse) throws IOException {
+
+		log.debug(FederationClient.UPDATE_PARAMS);
+
+		log.debug("Model parameters: {}", payload);
+		JsonResponse<String> response = new JsonResponse<String>();
+
+		String responseMessage = deployedModelService.updateParamsForAllDeployments(payload);
+
+		response.setMessage(responseMessage);
+		return response;
 	}
 }

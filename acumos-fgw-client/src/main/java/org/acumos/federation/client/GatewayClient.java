@@ -3,6 +3,7 @@
  * Acumos
  * ===================================================================================
  * Copyright (C) 2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Modifications Copyright (C) 2020 Nordix Foundation.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -175,5 +176,14 @@ public class GatewayClient extends ClientBase {
 	public void sendModelData(String peerId, ModelData modelData)
 			throws RestClientException {
 		restTemplate.postForObject(PEER_PFX + FederationClient.MODEL_DATA, modelData, Void.class, peerId);
+	}
+
+	/**
+	 * Send new params to federated model
+	 * @param peerId id to send model data to
+	 * @param modelData log data for sending to supplier of model
+	 */
+	public String updateParams(String peerId, ModelData modelData) throws RestClientException {
+		return restTemplate.postForObject(PEER_PFX + FederationClient.UPDATE_PARAMS, modelData, JsonResponse.class, peerId).getMessage();
 	}
 }

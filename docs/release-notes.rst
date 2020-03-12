@@ -2,6 +2,7 @@
 .. Acumos CC-BY-4.0
 .. ===================================================================================
 .. Copyright (C) 2017-2020 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+.. Modifications Copyright (C) 2020 Nordix Foundation.
 .. ===================================================================================
 .. This Acumos documentation file is distributed by AT&T and Tech Mahindra
 .. under the Creative Commons Attribution 4.0 International License (the "License");
@@ -22,6 +23,10 @@ Federation Gateway Release Notes
 
 This server is available as a Docker image in a Docker registry at the Linux Foundation.
 The image name is "federation-gateway" and the tag is a version string as shown below.
+
+Version 3.2.2, 2020-03-24
+-------------------------
+* Adding support for updating params to deployed model (`ACUMOS-3742 <https://jira.acumos.org/browse/ACUMOS-3742>`_)
 
 Version 3.2.1, 2020-03-12
 -------------------------

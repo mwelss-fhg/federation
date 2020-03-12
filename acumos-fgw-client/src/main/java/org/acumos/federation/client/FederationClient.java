@@ -3,6 +3,7 @@
  * Acumos
  * ===================================================================================
  * Copyright (C) 2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Modifications Copyright (C) 2020 Nordix Foundation.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -21,7 +22,6 @@ package org.acumos.federation.client;
 
 import java.util.List;
 import java.io.InputStream;
-import java.net.URI;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ResourceLoader;
@@ -117,6 +117,11 @@ public class FederationClient extends ClientBase {
 	public static final String MODEL_DATA = "/modeldata";
 
 	/**
+	 * The URI for sending model data from supplier to subscriber.
+	 */
+	public static final String UPDATE_PARAMS = "/updateparams";
+
+	/**
 	 * Peer Status Code for Active
 	 */
 	public static final String PSC_ACTIVE = "AC";
@@ -203,6 +208,15 @@ public class FederationClient extends ClientBase {
 	 */
 	public Void receiveModelData(ModelData modelData) throws RestClientException {
 		return restTemplate.postForObject(MODEL_DATA, modelData, Void.class);
+	}
+
+	/**
+	 * @param modelData model (json) data payload
+	 * @return string response message
+	 * @throws RestClientException if remote acumos is not available
+	 */
+	public String updateParams(ModelData modelData) throws RestClientException {
+		return restTemplate.postForObject(UPDATE_PARAMS, modelData, JsonResponse.class).getMessage();
 	}
 
 	/**

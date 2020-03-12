@@ -101,6 +101,18 @@ public class Clients {
 		return new FederationClient(url, federation);
 	}
 
+	/**
+	 * Create DeployedModelClient for Deployed model solution
+	 * @param url model ingress url
+	 */
+	public DeployedModelClient getDeployedModelClient(String url) {
+		/*
+		 * The target deployedModel can change on request to request basis
+		 */
+		ClientConfig cc = new ClientConfig();
+		return new DeployedModelClient(url, cc);
+	}
+
 	public synchronized ICommonDataServiceRestClient getCDSClient() {
 		if (cdsClient == null) {
 			String url = cdmsConfig.getUrl();

@@ -3,6 +3,7 @@
  * Acumos
  * ===================================================================================
  * Copyright (C) 2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Modifications Copyright (C) 2020 Nordix Foundation.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -177,6 +178,10 @@ public class FederationControllerTest {
 		    .on("GET /solution/ignored/revision/altrevid", xq("{ 'solutionId': 'somesolid', 'revisionId': 'altrevid' }"))
 		    .on("GET /revision/altrevid/artifact", xq("[ { 'artifactId': 'altart1', 'artifactTypeCode': 'DI', 'version': 'aa1ver', 'uri': 'host:999/xxx/stuff:aa1ver' }, { 'artifactId': 'altart2', 'artifactTypeCode': 'DI', 'version': 'aa2ver', 'uri': 'someimagename' }]"))
 		    .on("GET /revision/altrevid/catalog/somecatid/document", xq("[ { 'documentId': 'altdoc1', 'version': 'ad1ver', 'uri': 'somepath/ad1name/ua/ad1name-ua.ad1type' }, { 'documentId': 'altdoc2', 'version': 'ad2ver', 'uri': 'somepath/ad2name/ua/ad2name.ad2type' }]"))
+		    .on("GET /solution/UUID_SOLUTION/revision/UUID_REVISION/deploy?page=0&size=100", xq("{'content':[{'solutionId':'UUID_SOLUTION'," +
+					"'revisionId':'UUID_REVISION','detail':\"{\\\"nodePortUrl\\\":\\\"https://acumos.org:1234\\\",\\\"continuousTrainingEnabled\\\":\\\"true\\\"}\"}]," +
+					"'pageable':{'sort':{'sorted':false,'unsorted':true,'empty':true}," +
+					"'pageSize':20,'pageNumber':0,'offset':0,'paged':true,'unpaged':false},'totalPages':1,'totalElements':2,'last':true,'first':true,'size':20}"))
 		    .applyTo(cdsClient);
 
 		when(clients.getCDSClient()).thenReturn(cdsClient);
@@ -338,6 +343,20 @@ public class FederationControllerTest {
 		ModelData payloadObjectNode =  objectMapper.readValue("{\"model\": { \"solutionId\": \"UUID\"}}", ModelData.class);
 		try {
 			self.receiveModelData(payloadObjectNode);
+		} catch (Exception e) {
+			System.err.println(e);
+			fail("exception when sending model data not expected");
+		}
+	}
+
+	@Test
+	public void testUpdateParams() throws Exception {
+		FederationClient self = new FederationClient("https://localhost:" + port, getConfig("acumosa"));
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		ModelData payloadObjectNode =  objectMapper.readValue("{\"model\": { \"solutionId\": \"UUID_SOLUTION\",\"revisionId\": \"UUID_REVISION\"}}", ModelData.class);
+		try {
+			self.updateParams(payloadObjectNode);
 		} catch (Exception e) {
 			System.err.println(e);
 			fail("exception when sending model data not expected");

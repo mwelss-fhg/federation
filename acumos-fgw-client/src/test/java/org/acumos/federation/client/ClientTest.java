@@ -3,6 +3,7 @@
  * Acumos
  * ===================================================================================
  * Copyright (C) 2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Modifications Copyright (C) 2020 Nordix Foundation.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -22,10 +23,12 @@ package org.acumos.federation.client;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.Test;
-import org.junit.Before;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
@@ -133,6 +136,39 @@ public class ClientTest {
 				}
 	}
 
+	@Test
+	public void testFederationUpdateParams() throws Exception {
+		FederationClient client = new FederationClient("http://localhost:8888", getConfig("acumosa"));
+		(new ClientMocking()).errorOnNoAuth(401, "Unauthorized")
+		.errorOnBadAuth("acumosa", "acumosa", 403, "Forbidden")
+		    .on("POST /updateparams", xq("{ 'content': 'successfully send model data to peer' }"))
+		    .applyTo(client);
+		ObjectMapper objectMapper = new ObjectMapper();
+		ModelData modelData =
+				objectMapper.readValue("{\"model\": { \"solutionId\": \"UUID\"}}", ModelData.class);
+				try {
+					client.updateParams(modelData);
+				} catch (Exception e) {
+					fail("failed to send model data");
+				}
+	}
+
+	@Test
+	public void testGatewayUpdateParams() throws Exception {
+		GatewayClient client = new GatewayClient("http://localhost:8888", getConfig("acumosa"));
+		(new ClientMocking()).errorOnNoAuth(401, "Unauthorized")
+		.errorOnBadAuth("acumosa", "acumosa", 403, "Forbidden")
+		    .on("POST /peer/somepeerid/updateparams", xq("{ 'content': 'successfully send model data to peer' }"))
+		    .applyTo(client);
+		ObjectMapper objectMapper = new ObjectMapper();
+		ModelData modelData =
+				objectMapper.readValue("{\"model\": { \"solutionId\": \"UUID\"}}", ModelData.class);
+				try {
+					client.updateParams("somepeerid", modelData);
+				} catch (Exception e) {
+					fail("failed to send model data");
+				}
+	}
 
 	@Test
 	public void testFederation() throws Exception {

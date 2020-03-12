@@ -4,6 +4,7 @@
 	Acumos
 	===================================================================================
 	Copyright (C) 2017-2020 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+	Modifications Copyright (C) 2020 Nordix Foundation.
 	===================================================================================
 	This Acumos software file is distributed by AT&T and Tech Mahindra
 	under the Apache License, Version 2.0 (the "License");
@@ -27,7 +28,7 @@
 	</parent>
 	<groupId>org.acumos.federation</groupId>
 	<artifactId>gateway</artifactId>
-	<version>3.2.1-SNAPSHOT</version>
+	<version>3.2.2-SNAPSHOT</version>
 	<name>Federation Gateway</name>
 	<description>Federated Acumos Interface for inter-acumos communication</description>
 	<properties>

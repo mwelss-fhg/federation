@@ -2,6 +2,7 @@
 .. Acumos CC-BY-4.0
 .. ===================================================================================
 .. Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+.. Modifications Copyright (C) 2020 Nordix Foundation.
 .. ===================================================================================
 .. This Acumos documentation file is distributed by AT&T and Tech Mahindra
 .. under the Creative Commons Attribution 4.0 International License (the "License");
@@ -130,3 +131,7 @@ The following endpoints are defined on the public "E5" interface:
 * /modeldata
 
   Sends model data to supplier of the model.
+
+* /updateparams
+
+  Sends parameters to deployed models.

@@ -3,6 +3,7 @@
  * Acumos
  * ===================================================================================
  * Copyright (C) 2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Modifications Copyright (C) 2020 Nordix Foundation.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -343,6 +344,39 @@ public class GatewayControllerTest {
 				objectMapper.readValue("{\"model\": { \"solutionId\": \"cat2soln\"}}", ModelData.class);
 		try {
 			self.sendModelData("USE_SOLUTION_SOURCE", payloadObjectNode);
+		} catch (Exception e) {
+			fail("was not able to send modeldata to peer");
+		}
+	}
+
+	@Test
+	public void testUpdateParamsWithPeer() throws Exception {
+		GatewayClient self = new GatewayClient("https://localhost:" + port, getConfig("acumosa"));
+
+		ICommonDataServiceRestClient cdsClient =
+		    CommonDataServiceRestClientImpl.getInstance("http://cds:999",
+						ClientBase.buildRestTemplate("http://cds:999", new ClientConfig(), null, null));
+		String peerUrl = "https://somepeer.org:999";
+
+		(new ClientMocking())
+		    .on("GET /peer/peerid", xq("{ 'peerId': 'peerid', 'apiUrl': \'" + peerUrl + "\'}"))
+		    .on("GET /solution/cat2soln", xq("{ 'solutionId': 'cat2soln', 'sourceId': 'peerid' }"))
+		    .on("GET /peer/search?subjectName=gateway.acumosa.org&_j=a&page=0&size=100", xq("{ 'content': [ {'peerId': 'acumosa', 'subjectName': 'gateway.acumosa.org', 'statusCode': 'AC', 'self': true } ], 'last': true, 'number': 0, 'size': 100, 'numberOfElements': 1 }"))
+		    .on("GET /peer/SUBSCIBER_PEER_ID", xq("{'apiUrl':'http://peer.company.com/api','contact1':'SysAdmin212-555-1212','created':'2018-12-16T12:34:56.789Z','description':'string','local':true,'modified':'2018-12-16T12:34:56.789Z','name':'MyPeerName','peerId':'USE_SOLUTION_SOURCE','self':true,'statusCode':'AC','subjectName':'peer.company.com','webUrl':'string'}"))
+		    .applyTo(cdsClient);
+		when(clients.getCDSClient()).thenReturn(cdsClient);
+
+		FederationClient fedClient = new FederationClient(peerUrl, new ClientConfig());
+		(new ClientMocking())
+		    .on("POST /updateparams", xq("{'message': 'successfully posted model data'}"))
+		    .applyTo(fedClient);
+		when(clients.getFederationClient(any(String.class))).thenReturn(fedClient);
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		ModelData payloadObjectNode =
+		    objectMapper.readValue("{\"model\": { \"solutionId\": \"cat2soln\"}}", ModelData.class);
+		try {
+			self.updateParams("SUBSCIBER_PEER_ID", payloadObjectNode);
 		} catch (Exception e) {
 			fail("was not able to send modeldata to peer");
 		}

@@ -3,6 +3,7 @@
  * Acumos
  * ===================================================================================
  * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Modifications Copyright (C) 2020 Nordix Foundation.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -163,6 +164,7 @@ public class GatewayController {
 	}
 	/**
 	 * Receives incoming log message from logstash and Sends to {@link FederationController#receiveModelData(ModelData, HttpServletResponse)}
+	 * Training API 1: PeerModelData(sender)
 	 *
 	 * @param payload model data payload The payload must have a model.solutionId
 	 *
@@ -212,6 +214,26 @@ public class GatewayController {
 		}
 		return response;
 
+	}
+
+	/**
+	 * Receives incoming log message from logstash and Sends to {@link FederationController#updateParams(ModelData, HttpServletResponse)} (ModelData, HttpServletResponse)}
+	 * Training API 3: PeerUpdateParams(sender)
+	 *
+	 * @param payload         model data payload The payload must have a model.solutionId
+	 * @param theHttpResponse HttpServletResponse
+	 * @param peerId   PeerID from url path param or USE_SOLUTION_SOURCE to lookup peer based on model.solutionId field
+	 * @return success message in JSON formatm
+	 */
+	@Secured(Security.ROLE_PEER)
+	@ApiOperation(
+	   value = "Invoked by local Acumos to post incoming model data to respective remote peer Acumos instance .",
+	   response = String.class)
+	@PostMapping(FederationClient.UPDATE_PARAMS)
+	@ResponseBody
+	public JsonResponse<String> updateParams(HttpServletResponse theHttpResponse, @RequestBody ModelData payload, @PathVariable("peerId") String peerId) {
+		log.debug("peer/{}/updateparams  payload: {}", peerId, payload);
+		return callPeer(theHttpResponse, peerId, peer -> peer.updateParams(payload));
 	}
 
 	private JsonResponse getSuccessResponse(
