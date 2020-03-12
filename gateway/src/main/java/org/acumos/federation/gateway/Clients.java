@@ -2,7 +2,7 @@
  * ===============LICENSE_START=======================================================
  * Acumos
  * ===================================================================================
- * Copyright (C) 2017-2019 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
+ * Copyright (C) 2017-2020 AT&T Intellectual Property & Tech Mahindra. All rights reserved.
  * ===================================================================================
  * This Acumos software file is distributed by AT&T and Tech Mahindra
  * under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,8 @@ import org.acumos.federation.client.FederationClient;
 import org.acumos.securityverification.service.ISecurityVerificationClientService;
 import org.acumos.securityverification.service.SecurityVerificationClientServiceImpl;
 import org.acumos.licensemanager.client.rtu.LicenseAsset;
+import org.acumos.nexus.client.NexusArtifactClient;
+import org.acumos.nexus.client.RepositoryLocation;
 
 /**
  * Defines all beans used to access outside services.
@@ -158,7 +160,12 @@ public class Clients {
 
 	public synchronized LicenseAsset getLMClient() {
 		if (lmClient == null) {
-			lmClient = new LicenseAsset(getCDSClient(), lmConfig.getUrl(), nexusConfig.getUrl().replaceAll("/*$", "") + "/");
+			RepositoryLocation repositoryLocation = new RepositoryLocation();
+			repositoryLocation.setId("1");
+			repositoryLocation.setUrl(nexusConfig.getUrl().replaceAll("/*$", "") + "/");
+			repositoryLocation.setUsername(nexusConfig.getUsername());
+			repositoryLocation.setPassword(nexusConfig.getPassword());
+			lmClient = new LicenseAsset(getCDSClient(), lmConfig.getUrl(), new NexusArtifactClient(repositoryLocation));
 		}
 		return lmClient;
 	}
