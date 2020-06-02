@@ -207,10 +207,37 @@ public class SubscriptionPoller {
 			leaf = new PendingAction(null, action, String.format(item, args), true);
 		}
 
+		/*
+		 * MLPNotification.java limits the lengths of the title
+		 * and message fields.
+		 * However, it doesn't define constants with these values, and
+		 * the setters are perfectly happy accepting oversize values.
+		 * We limit ourselves to use significantly less than those
+		 * limits so we don't run into any off-by-one type errors and
+		 * will use at most 73 characters in titles and at most 2003
+		 * characters in messages (the 3 allows for an elipsis ...)
+		 */
+		private static final int NOTIF_TITLE_MAX_USED = 73;
+		private static final int NOTIF_MESSAGE_MAX_USED = 2003;
+		private static final String ELIPSIS = "...";
+		private static final int ELIPSIS_LENGTH = ELIPSIS.length();
+
 		private void note(PendingAction cur, String sev, String msg) {
-			MLPNotification note = new MLPNotification(cur.getItem(), sev, cur.getStart(), Instant.now());
+			String item = cur.getItem().strip();
+			if (item.length() > NOTIF_TITLE_MAX_USED) {
+				msg = item + " - " + msg;
+				item = item.substring(0, NOTIF_TITLE_MAX_USED - ELIPSIS_LENGTH) + ELIPSIS;
+			}
+			if (msg.length() > NOTIF_MESSAGE_MAX_USED) {
+				msg = msg.substring(0, NOTIF_MESSAGE_MAX_USED - ELIPSIS_LENGTH) + ELIPSIS;
+			}
+			MLPNotification note = new MLPNotification(item, sev, cur.getStart(), Instant.now());
 			note.setMessage(msg);
-			cds.addUserToNotification(cds.createNotification(note).getNotificationId(), userId);
+			try {
+				cds.addUserToNotification(cds.createNotification(note).getNotificationId(), userId);
+			} catch (Exception e) {
+				log.error("Error notifying user of federation actions", e);
+			}
 		}
 
 		public PendingAction end() {
