@@ -27,7 +27,7 @@ limitations under the License.
 	</parent>
 	<groupId>org.acumos.federation</groupId>
 	<artifactId>acumos-fgw-client-config</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>Federation Gateway Client Configuration Types</name>
 	<!-- Dependency/plugin versions are inherited from parent pom -->
 	<dependencies>
@@ -37,6 +37,12 @@ limitations under the License.
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
+        <distributionManagement>
+        	<repository>
+            		<id>ai4eu-repo</id>
+            		<url>https://cicd.ai4eu-dev.eu:7443/repository/maven-releases/</url>
+        	</repository>
+    	</distributionManagement> 
 	<build>
 		<plugins>
 			<plugin>

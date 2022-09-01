@@ -28,16 +28,16 @@ limitations under the License.
 	</parent>
 	<groupId>org.acumos.federation</groupId>
 	<artifactId>acumos-fgw-client</artifactId>
-	<version>3.2.3-SNAPSHOT</version>
+	<version>3.2.3</version>
 	<name>Federation Gateway Client</name>
 	<properties>
 		<!-- dependency versions -->
-		<common-dataservice.version>3.1.1</common-dataservice.version>
+		<common-dataservice.version>3.2.0-ai4eu-v1</common-dataservice.version>
 	</properties>
 	<!-- Dependency/plugin versions are inherited from parent pom -->
 	<dependencies>
 		<dependency>
-			<groupId>org.acumos.common-dataservice</groupId>
+			<groupId>ai4eu.common-dataservice</groupId>
 			<artifactId>cmn-data-svc-client</artifactId>
 			<version>${common-dataservice.version}</version>
 		</dependency>
@@ -101,6 +101,12 @@ limitations under the License.
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+        <distributionManagement>
+        	<repository>
+            		<id>ai4eu-repo</id>
+            		<url>https://cicd.ai4eu-dev.eu:7443/repository/maven-releases/</url>
+        	</repository>
+    	</distributionManagement> 
 	<build>
 		<plugins>
 			<plugin>
