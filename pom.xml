@@ -39,8 +39,8 @@ limitations under the License.
 		<build.number>0</build.number>
 		<skipTests>false</skipTests>
 		<!-- dependency versions -->
-		<client-test.version>1.0.0</client-test.version>
-		<client-config.version>1.0.0</client-config.version>
+		<client-test.version>3.2.3</client-test.version>
+		<client-config.version>3.2.3</client-config.version>
 		<jacoco.version>0.8.4</jacoco.version>
 		<lombok-plugin.version>1.18.6.0</lombok-plugin.version>
 		<spring-test.version>5.1.2.RELEASE</spring-test.version>

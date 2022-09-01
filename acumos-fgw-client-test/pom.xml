@@ -27,7 +27,7 @@ limitations under the License.
 	</parent>
 	<groupId>org.acumos.federation</groupId>
 	<artifactId>acumos-fgw-client-test</artifactId>
-	<version>1.0.0</version>
+	<version>3.2.3</version>
 	<name>Federation Gateway Client User Test Tools</name>
 	<!-- Dependency/plugin versions are inherited from parent pom -->
 	<dependencies>
